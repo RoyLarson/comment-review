@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (98)
+### open  (95)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -190,7 +190,6 @@ that changed a published name or rule:
 | [the-emitted-vocabulary-can-collide-with-the-repo](the-emitted-vocabulary-can-collide-with-the-repo.md) | agents | yes | 4/8 | The emitted vocabulary can collide with the reviewed repo's own terms |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | backend | -- | 11/13 | A docstring needs its own address series, and it names what it documents |
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | backend | -- | 5/7 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
-| [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | testing | -- | 3/5 | The filtered-census measurement exists only in run history |
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | -- | 7/10 | 720 tests green against six deliberate defects in shipped code |
 | [versioning-at-v1](versioning-at-v1.md) | systems | -- | 7/14 | v1.x wants a concrete versioning system on everything that ships |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 22/23 | Outside Python the `a` place is emitted and never filled |
@@ -217,11 +216,10 @@ that changed a published name or rule:
 | [no-step-produces-a-page](no-step-produces-a-page.md) | backend | -- | 3/4 | MEASURED 2026-08-25: commands/census.py, commands/galley.py, results/compositor.py lossless, results/compositor.py identity each run the same four calls inline -- read_source, language_for, page_for, carry the sha. Roy: you only have a step that produces a binder but you need a step here that produces a page so you can use it which is one piece of the binder. THE COST IS NOT THE DUPLICATION. With no step that yields a PAGE, a consumer that wants one either rebuilds it or reaches for the BINDER, because the binder is the only thing the tree can hand you. That is what pulled rows_of into desk/notations.py on this branch and had to be undone. The io-and-the-chain spec measured the same thing from the other side -- page_for takes TEXT, so by the time anyone reaches the reading code somebody else has already read the file -- and read it as an I/O ownership problem. It is also a missing step. flows/page.py::page_of lands on the write-chain branch and the write chain uses it; the other four sites are NOT repointed there. |
 | [into-is-never-resolved](into-is-never-resolved.md) | backend | -- | 2/5 | flows/proof_setter.py resolves TARGET but never resolves INTO, then asks whether target is relative to it. A relative or symlinked into would weaken the containment guard that stops a draft escaping the output directory. NOT REACHABLE TODAY: commands/proof.py resolves out before calling in, and every test hands an absolute tmp_path. This is library hardening, not a live defect. FOUND BY THE IMPLEMENTER OF THE GUARD, WHO REPORTED IT RATHER THAN WIDENING ITS OWN SCOPE. Worth recording because the guard it weakens was itself introduced to close an escape that the previous fix opened -- proof_setter copied the collator half of the galley command's pattern and not the guard half, and wrote a draft onto the original source file at exit 0. Two rounds of path handling on the same function, each fixing the last. |
 | [an-alteration-carries-its-own-indentation](an-alteration-carries-its-own-indentation.md) | backend | -- | 1/3 | An alteration carries its own indentation and nothing says so |
-| [a-reference-needs-its-own-write-chain](a-reference-needs-its-own-write-chain.md) | backend | -- | 1/4 | A reference needs its own write chain, and it is NOT YET |
 | [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | -- | 7/9 | The mark's fields permit a cross-citation and never say so |
 | [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | -- | 4/5 | A conflict is detected and nothing renders it |
 | [shape-is-three-words](shape-is-three-words.md) | backend | -- | 7/10 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
-| [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
+| [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 2/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | -- | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
 | [brief-says-three-series](brief-says-three-series.md) | agents | -- | 12/14 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 1/2 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
@@ -234,17 +232,16 @@ that changed a published name or rule:
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 5/10 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 3/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 26/27 | Twelve defects in `flows/collate.py`, from a review of one file |
-| [mark-defects](mark-defects.md) | backend | -- | 47/62 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [mark-defects](mark-defects.md) | backend | -- | 49/62 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 28/51 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 10/16 | Six defects in docket.py, and one discards an approved page at exit 0 |
-| [collate-command-defects](collate-command-defects.md) | backend | -- | 23/31 | Sixteen defects in `commands/collate.py`, measured by running it |
+| [collate-command-defects](collate-command-defects.md) | backend | -- | 27/31 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 7/17 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [local-annotation-false-positive](local-annotation-false-positive.md) | systems | -- | 0/1 | check_shipped_syntax reads a local variable annotation as a forward reference |
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 10/12 | the 4a/4c split promises a resolved placement that nothing produces |
 | [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
 | [row-was-never-retired](row-was-never-retired.md) | backend | -- | 4/8 | Retire row everywhere -- the type, the wire key and the prose |
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 7/12 | Route every machine read and write through a flow |
-| [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 5/7 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 85/88 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 12/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
@@ -275,7 +272,7 @@ that changed a published name or rule:
 | [answers-file-defects](answers-file-defects.md) | backend | -- | 0/4 | Answers files are admitted with answers a turn drops or refuses |
 | [machine-defects](machine-defects.md) | backend | -- | 0/5 | machine/ reads git output and JSON without the guards its callers assume |
 | [flow-helpers-placement](flow-helpers-placement.md) | backend | -- | 0/2 | Determine where the flow helpers belong |
-| [a-mark-states-its-edit-three-times](a-mark-states-its-edit-three-times.md) | backend | -- | 1/3 | A mark states its edit up to three times and no field is authoritative |
+| [a-mark-states-its-edit-three-times](a-mark-states-its-edit-three-times.md) | backend | -- | 2/3 | A mark states its edit up to three times and no field is authoritative |
 | [boundary-records-have-no-typed-form](boundary-records-have-no-typed-form.md) | backend | -- | 0/5 | Records crossing boundaries have no single typed form |
 | [area-model-stated-and-enforced-differently](area-model-stated-and-enforced-differently.md) | backend | -- | 0/5 | The area architecture is stated in one model and enforced against another |
 | [freeform-rules-have-no-source](freeform-rules-have-no-source.md) | agents | -- | 1/3 | Freeform is a second pipeline run only by prose, sharing rules with no source |
@@ -298,7 +295,7 @@ that changed a published name or rule:
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | -- | 8/27 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 69/84 | Ten findings in lexer.py and language.py, from three review rounds |
 
-### decision-needed  (17)
+### decision-needed  (16)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -308,7 +305,7 @@ that changed a published name or rule:
 | [front-half-undetermined](front-half-undetermined.md) | testing | -- | 10/11 | The census to findings to verdicts path has never been determined against a backend that works |
 | [a-role-with-no-code-out-damages-the-prose](a-role-with-no-code-out-damages-the-prose.md) | agents | -- | 11/15 | `code_concerns` is defined in the shared brief that every role reads, but named in only ONE of the four reviewer files -- `function-context`. It is absent from `module-context`, whose whole remit is whether a module announces ONE subject, which is the finding that most needs a code out. MEASURED in the harness: `module-context-widens-a-two-subject-docstring` detected that `verdicts.py` holds four subjects, had no verdict for 'split this module', and emitted a prose `patch` widening the docstring to announce TWO -- the exact defect its own trigger is named for. `code_concerns` came back empty. |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | -- | 5/6 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
-| [a-prose-file-has-no-blocks](a-prose-file-has-no-blocks.md) | backend | yes | 5/10 | A prose file has no blocks, so the system cannot review documentation |
+| [a-prose-file-has-no-blocks](a-prose-file-has-no-blocks.md) | backend | -- | 8/10 | A prose file has no blocks, so the system cannot review documentation |
 | [correcting-one-copy-strands-the-reference-copy](correcting-one-copy-strands-the-reference-copy.md) | agents | yes | 2/10 | Correcting one copy strands the copy in a REFERENCE ONLY file |
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | agents | -- | 3/4 | A claim can be false by arithmetic with no enforcing line to check it against |
 | [marketplace-resolves-live](marketplace-resolves-live.md) | systems | -- | 4/6 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
@@ -316,9 +313,8 @@ that changed a published name or rule:
 | [the-harness-cannot-run-the-system-it-grades](the-harness-cannot-run-the-system-it-grades.md) | testing | -- | 20/37 | **Nothing in this repo runs the documented eval format, and no measurement exists that a human did not perform.** `grade_hazards.py` scores worktrees a person built by hand against twelve planted defects, from a base hardcoded to another repository. Ruled 2026-08-18: a reduced role set is supported with `ownership-context` never dropped, and a fixture is a CHECKOUT AT A HASH -- this repo's own history included, since a fix commit is an answer key. ! NOT a release candidate: nothing here is under `plugins/`. * Unruled: the suite layout, which the fixture model narrows to one option |
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | agents | -- | 4/5 | The role with verdict precedence has the least mechanical support |
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | -- | 21/23 | Two live runs proposed fifteen changes |
-| [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | -- | 8/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
 | [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | -- | 3/9 | The task agent has no vocabulary home and is never told the command set |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 49/57 | A move is a composite mark and the code cannot express one |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 50/57 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 
@@ -556,3 +552,7 @@ the reason is inside the file.
 | [settle-carries-two-meanings](completed/settle-carries-two-meanings.md) | 6 finished, 2 superseded |
 | [no-component-owns-the-run](completed/no-component-owns-the-run.md) | 3 finished |
 | [fold-admission-has-no-owner](completed/fold-admission-has-no-owner.md) | 3 finished |
+| [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](completed/a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | 2 superseded |
+| [a-reference-needs-its-own-write-chain](completed/a-reference-needs-its-own-write-chain.md) | 4 superseded |
+| [filtered-measurement-unrecorded](completed/filtered-measurement-unrecorded.md) | 3 finished, 2 superseded |
+| [strip-and-fill-the-markers](completed/strip-and-fill-the-markers.md) | 1 finished, 8 superseded |

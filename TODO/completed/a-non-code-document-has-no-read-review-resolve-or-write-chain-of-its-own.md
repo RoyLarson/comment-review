@@ -1,8 +1,8 @@
 # A non-code document has no read, review, resolve or write chain of its own
 
 ```
-Status:   open
-Progress: 0 of 2 tasks closed
+Status:   closed
+Progress: 2 of 2 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-03 (Addressing 21, 2026-09-03 -- the remaining pieces external_address
@@ -37,12 +37,14 @@ into, not a replacement for either of them.
 
 ## Tasks
 
-- [ ] T1 | Implement a read, editorial review, resolution and write chain for
-      non-code documents. Verify: a document reaches a role, a finding
-      round-trips to approval, and the file sets back changed
+- [-] T1 | Overtaken by the freeform path: non-code files are listed freeform (reading/registry.py), drafted at stage 5 and set at 7a/7b | 5a6ed001 | Implement
+      a read, editorial review, resolution and write chain for non-code
+      documents. Verify: a document reaches a role, a finding round-trips to
+      approval, and the file sets back changed
         > 2026-10-30 #247's three questions are the proposed proof (#248)
         > 2026-10-30 Protect fenced code, front matter, directives, template tags
         > 2026-10-30 Scope owed: md rst txt html, also tex adoc org ipynb, jinja, others
-- [ ] T2 | Wire the document chain into the code one, so one run changes both.
-      Verify: a run touching a code file and a cited document proposes and
-      applies changes to each
+- [-] T2 | Overtaken by the freeform path: non-code files are listed freeform (reading/registry.py), drafted at stage 5 and set at 7a/7b | 5a6ed001 | Wire
+      the document chain into the code one, so one run changes both. Verify: a
+      run touching a code file and a cited document proposes and applies changes
+      to each

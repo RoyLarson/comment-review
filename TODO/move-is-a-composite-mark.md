@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 49 of 57 tasks closed
+Progress: 50 of 57 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -296,8 +296,9 @@ and now there is one object that cannot be half-held.
 - [x] T37 | the-mark.md states one Mark while open, drop and add once split; gate passes | f8a14820 | Update
       docs/the-mark.md to the two shapes, one Mark while open and a drop and add
       once agreed; the mark-shape gate passes
-- [ ] T38 | Delete claim.from from the move row, or refuse a move whose
-      claim.from names a place other than its address
+- [-] T38 | #413: a mark's claim serves the agents; the code does not check it | 52ca7d9b | Delete
+      claim.from from the move row, or refuse a move whose claim.from names a
+      place other than its address
         > 2026-09-30 Evidence and checks: docs/reviews/2026-09-30-r4.md, move tasks
 - [ ] T39 | Update _owed_from in tests/gates/test_mark_shape.py so the move
       change cell is read, not flattened to a bool

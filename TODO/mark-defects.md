@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 47 of 62 tasks closed
+Progress: 49 of 62 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -339,8 +339,8 @@ cites as its measured example of a field answering neither necessary nor purpose
         > 2026-11-09 #305: an unsourced clean refuses at check, seeded slots too
 - [x] T50 | FINISHED -- every patch owes a source | c042a9ce | Require a source
       on every patch (#304)
-- [ ] T51 | Refuse a `drop` whose supplied `change` differs from the change its
-      claim derives
+- [-] T51 | #413: the code does not check a claim against its change | 52ca7d9b | Refuse
+      a `drop` whose supplied `change` differs from the change its claim derives
         > 2026-11-22 Check: a one-line drop carrying change "" is refused
 - [ ] T52 | Correct table.py's dropped-word messages, which name a reordered
       word as dropped
@@ -361,8 +361,9 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [ ] T57 | Make allowed()'s instruction list at desk/marks/rules.py:187 follow
       docs/the-mark.md's order
         > 2026-11-22 Check: order matches the-mark.md, or a comment says why not
-- [ ] T58 | Make flows/fill.py:427 derive a ruling from the page text, not the
-      slot's carried raw_text
+- [-] T58 | The middle reads no pages (Process #62); a ruling cannot be derived from page text there | 5a6ed001 | Make
+      flows/fill.py:427 derive a ruling from the page text, not the slot's
+      carried raw_text
         > 2026-11-22 Check (M2): drop on a cut slot keeps '# and the floor is one'
 - [ ] T59 | Strip the trailing newline with the BOM from an @path file in
       commands/mark.py:109 _from_file

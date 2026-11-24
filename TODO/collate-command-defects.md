@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 23 of 31 tasks closed
+Progress: 27 of 31 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
@@ -120,11 +120,12 @@ under `utf8_console()`.
       handler. Verify: a four-copy run whose third copy has no `read_from`
       prints that copy's path and its `role` field; today the message names no
       copy and a caller can only open all four.
-- [ ] T8 | Implement a duplicate guard on `--edit-copy`, so the same path twice
-      or two copies naming the same role is refused rather than folded twice.
-      Verify: handing one copy holding a settled `move` twice is refused by
-      name; today that run exits 3 with `0 places resolved` and two spurious
-      re-reads, while the same copy handed once exits 0.
+- [-] T8 | collate no longer takes --edit-copy; the jacket names the copies it folds | 5a6ed001 | Implement
+      a duplicate guard on `--edit-copy`, so the same path twice or two copies
+      naming the same role is refused rather than folded twice. Verify: handing
+      one copy holding a settled `move` twice is refused by name; today that run
+      exits 3 with `0 places resolved` and two spurious re-reads, while the same
+      copy handed once exits 0.
 - [x] T9 | --stage written on the proof (bus.py:293) and checked against each copy (:321-342); verified at HEAD | 67184ac1 | Update
       `--stage` in `commands/collate.py` so its value reaches something
       observable -- validated against `desk.stages`, or carried onto the chief
@@ -158,10 +159,11 @@ under `utf8_console()`.
       with one backslash at each break, and a user copying it gets a command
       that runs; today the default `HelpFormatter` collapses it to one line
       carrying a literal double backslash.
-- [ ] T14 | Update `--edit-copy` so argparse's usage line agrees with the code.
-      Verify: `collate --help` does not advertise `[--edit-copy PATH]` as
-      optional while the code exits `UNREADABLE` when none is given, or the code
-      no longer refuses without it.
+- [-] T14 | collate no longer takes --edit-copy; the jacket names the copies it folds | 5a6ed001 | Update
+      `--edit-copy` so argparse's usage line agrees with the code. Verify:
+      `collate --help` does not advertise `[--edit-copy PATH]` as optional while
+      the code exits `UNREADABLE` when none is given, or the code no longer
+      refuses without it.
 - [-] T15 | No strongest-first claim on the codes (report.py:22-33); DRIFT gone (#183); verified at HEAD | 67184ac1 | Update
       the exit-code block in `commands/collate.py` so the numbers match its
       `strongest first` claim, or delete the claim. Verify: no sentence claims
@@ -215,10 +217,11 @@ under `utf8_console()`.
 - [x] T27 | Result.chief typed EditCopy; the None guards are gone | 7346304b | Drop
       the `Result.chief is not None` guard, whose other branch no handler
       reaches
-- [ ] T28 | Return UNREADABLE for a --topology file distribute cannot read,
-      instead of raising OSError
-- [ ] T29 | Resolve the paths in a collate --pairs file against the file's own
-      folder
+- [-] T28 | collate no longer takes --topology; the jacket carries the stage row | 5a6ed001 | Return
+      UNREADABLE for a --topology file distribute cannot read, instead of
+      raising OSError
+- [-] T29 | collate no longer takes --pairs; the jacket names the copies it folds | 5a6ed001 | Resolve
+      the paths in a collate --pairs file against the file's own folder
 - [ ] T30 | Guard commands/collate.py's save_proof/save_batch writes against
       OSError
         > 2026-11-22 Check: --proof-out naming a directory exits with a listed code

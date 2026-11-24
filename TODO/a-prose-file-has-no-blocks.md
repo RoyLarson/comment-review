@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 5 of 10 tasks closed
+Progress: 8 of 10 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17 (Roy: "both todo-tool and another project ended up in / six rules are
           attributed to CLAUDE.md while living in conventions.md / which tells me that the
           system does need to figure out how to work with .md, .rst, .txt files")
@@ -137,19 +137,22 @@ defect -- a tool measures it.
 
 ## Tasks
 
-- [?] T1 | T1 -- * RULE what BOUNDS a paragraph in a prose file, from the four
+- [-] T1 | Overtaken by the freeform path: non-code files are listed freeform (reading/registry.py), drafted at stage 5 and set at 7a/7b; a prose file is reviewed whole, with no paragraph bounds to rule on | 5a6ed001 | T1
+      -- * RULE what BOUNDS a paragraph in a prose file, from the four
       candidates in the Objective. Verify: the ruling is recorded in
       `docs/decision-log.md`.
         > 2026-11-22 Outcome: stays open; needs the document chain (Process #340)
 - [x] T2 | FINISHED | unknown | T2 -- RULED 2026-08-20: the four existing desks
       read a prose file, and no fifth. The mapping is in the Objective.
-- [?] T3 | T3 -- * RULE what a claim in a document is checked AGAINST. Verify:
-      the answer names the input a `block-context` reviewer is handed for a
-      `.md` page.
+- [-] T3 | Overtaken by the freeform path: non-code files are listed freeform (reading/registry.py), drafted at stage 5 and set at 7a/7b; a prose file has no blocks whose claims need a separate check target | 5a6ed001 | T3
+      -- * RULE what a claim in a document is checked AGAINST. Verify: the
+      answer names the input a `block-context` reviewer is handed for a `.md`
+      page.
         > 2026-11-22 Outcome: stays open; needs the document chain (Process #340)
-- [?] T4 | T4 -- * RULE what happens to the CAP on a prose page. Verify:
-      `SKILL.md`'s cap rule states what it means there, including if the answer
-      is "no cap applies".
+- [-] T4 | Overtaken by the freeform path: non-code files are listed freeform (reading/registry.py), drafted at stage 5 and set at 7a/7b; the chief holds a freeform comment to the cap at stage 5 | 5a6ed001 | T4
+      -- * RULE what happens to the CAP on a prose page. Verify: `SKILL.md`'s
+      cap rule states what it means there, including if the answer is "no cap
+      applies".
         > 2026-11-22 Outcome: stays open; waits on the document chain (Process #342)
 - [ ] T5 | T5 -- Name the prose-file asymmetry in `docs/limitations.md`: code
       prose citing a document is checkable, the document's drift is not. Verify:

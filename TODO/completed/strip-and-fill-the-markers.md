@@ -1,8 +1,8 @@
 # A role reproduces comment markers and indentation by hand, and that is where it breaks
 
 ```
-Status:   decision-needed
-Progress: 8 of 9 tasks closed
+Status:   closed
+Progress: 9 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, Roy, watching three failed edits in a row: "having the
@@ -205,11 +205,12 @@ wins, `Vocabulary: #27` is superseded and that file's T1 and T3 go with it. If
 T5 and T7 here and T1 and T3 there revert each other. ! T1's measurement is the
 one thing safe to take first -- it is evidence FOR the ruling, not work under it.
 
-- [ ] T1 | Measure the brittleness before changing anything. Verify: over a real
-      corpus, count how many paragraphs a naive edit to `raw_text` can make
-      unparseable -- appending past a closing delimiter, moving a closer up a
-      line, or missing that a docstring is indented. That number is the case for
-      the change and the baseline the fill is measured against.
+- [-] T1 | The change landed (T2-T9 closed); a before-change baseline can no longer be taken | 5a6ed001 | Measure
+      the brittleness before changing anything. Verify: over a real corpus,
+      count how many paragraphs a naive edit to `raw_text` can make unparseable
+      -- appending past a closing delimiter, moving a closer up a line, or
+      missing that a docstring is indented. That number is the case for the
+      change and the baseline the fill is measured against.
 - [-] T2 | The tool does not strip and fill; roles keep writing markers; Process #336 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | Strip
       and fill are EXACT INVERSES for an unchanged paragraph. Verify: over every
       paragraph of every corpus file, `fill(strip(p)) == p` byte-for-byte. !

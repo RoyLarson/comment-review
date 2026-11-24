@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 3 tasks closed
+Progress: 2 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-23 (broken review, 2026-11-23)
@@ -34,4 +34,5 @@ authoritative [D-D2, N-N8; V12, V13]
         > 2026-11-23 Related: mark-defects.md, mark-holds-spec-and-parse.md
 - [x] T2 | Ruled #413: the claim serves agents; no code check | 52ca7d9bb89ade8f8f05e427420286480890f17d | Reconcile
       the brief's claim-against-change check with what the code checks
-- [ ] T3 | Determine what reads an add mark's claim keys
+- [-] T3 | #413 answers it: agents read the claim; no code reads it by design | 52ca7d9b | Determine
+      what reads an add mark's claim keys

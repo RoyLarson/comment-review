@@ -1,9 +1,8 @@
 # A reference needs its own write chain, and it is NOT YET
 
 ```
-Status:   deferred -- waits on the middle piece working end to end (Roy, 2026-08-27:
-          "is a todo for the future Not Yet - i want the middle piece to work first")
-Progress: 1 of 4 tasks closed
+Status:   closed
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-27 (Roy, answering whether a `references` page is settable: "Yes - needs a
@@ -56,10 +55,12 @@ directly *"there was no reason to try to fix the galley as it was."*
 
 ## Tasks
 
-- [ ] T1 | T1 -- Lay out the candidate signals for which chain a schedule takes
-      -- the docket split Roy named, and at least one alternative -- with what
-      each costs. Verify: written in this file, and Roy has ruled on it.
-- [ ] T2 | T2 -- Build the reference galley and compositor, whatever T1's signal
+- [-] T1 | Overtaken by the freeform path: non-code files are listed freeform (reading/registry.py), drafted at stage 5 and set at 7a/7b; prove_unchanged answers UNCHECKED for freeform | 5a6ed001 | T1
+      -- Lay out the candidate signals for which chain a schedule takes -- the
+      docket split Roy named, and at least one alternative -- with what each
+      costs. Verify: written in this file, and Roy has ruled on it.
+- [-] T2 | Overtaken by the freeform path: non-code files are listed freeform (reading/registry.py), drafted at stage 5 and set at 7a/7b; prove_unchanged answers UNCHECKED for freeform | 5a6ed001 | T2
+      -- Build the reference galley and compositor, whatever T1's signal
       decides. Verify: a reference schedule produces a draft, and a code
       schedule is untouched by it.
 - [-] T3 | SUPERSEDED by T4: its blocker prove-refuses-a-doc T2 is obsolete: gather refuses docs | 22c3a0abcbc86509c74296319ce5b719a43338ca | T3
@@ -67,6 +68,7 @@ directly *"there was no reason to try to fix the galley as it was."*
       -- because the page is DECLARED not-code, not because a suffix was
       matched. Verify: a test that fails when the discriminator is a suffix
       test. ! Blocked on `prove-refuses-a-doc.md` T2.
-- [ ] T4 | Make a reference chain skip the unchanged-code proof because the page
-      is declared not-code
+- [-] T4 | Overtaken by the freeform path: non-code files are listed freeform (reading/registry.py), drafted at stage 5 and set at 7a/7b; prove_unchanged answers UNCHECKED for freeform | 5a6ed001 | Make
+      a reference chain skip the unchanged-code proof because the page is
+      declared not-code
         > 2026-11-22 Check: a suffix-based discriminator fails the case

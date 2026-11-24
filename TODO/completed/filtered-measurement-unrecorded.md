@@ -1,8 +1,8 @@
 # The filtered-census measurement exists only in run history
 
 ```
-Status:   open
-Progress: 3 of 5 tasks closed
+Status:   closed
+Progress: 5 of 5 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20, correcting a claim that only size had been
@@ -89,13 +89,15 @@ and by how much.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Re-run the filtered/unfiltered comparison across the 11 commits
+- [-] T1 | The census and its --filtered mode are gone from src; nothing left to re-measure | 5a6ed001 | T1
+      -- Re-run the filtered/unfiltered comparison across the 11 commits
       `v0.1.6^{}` -> `v0.1.7^{}`. Verify: a new `evidence/` directory holds both
       arms and their commits.
 - [x] T2 | FINISHED | unknown | T2 -- RECORD, not a task: the justification for
       `--filtered`, and why the recorded 39% and 61% are the cost rather than
       the benefit. Restated in the Objective.
-- [ ] T3 | T3 -- State the denominator the recall claim needs, as set out in the
+- [-] T3 | The census and its --filtered mode are gone from src; nothing left to re-measure | 5a6ed001 | T3
+      -- State the denominator the recall claim needs, as set out in the
       Objective. Verify: the evidence README names a numerator, a denominator
       and the file set.
 - [x] T4 | FINISHED | unknown | T4 -- RECORD, not a task: this is the baseline
