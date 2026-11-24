@@ -5,9 +5,9 @@
     names        what COUNTS as a name
 
 !! THE FIRST TWO ARE INVERSES, AND THAT IS WHY THEY SIT TOGETHER. `referrers`
-says it itself: *"The gather resolves what a comment CITES. This resolves the
-other direction -- who cites the code being edited."* One indexes definitions,
-the other occurrences.
+gives the names by which another tracked file would cite a file under review;
+`code_names` gives the names the tree defines. One indexes occurrences, the
+other definitions.
 
 !! AND BOTH EXIST BECAUSE A PAGE CANNOT CORROBORATE ITSELF. A corpus built from
 the text under review contains the comments being checked, so every obituary
