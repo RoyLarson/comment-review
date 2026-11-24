@@ -64,6 +64,27 @@ def test_a_run_that_fails_leaves_no_out_file(tmp_path, monkeypatch, capsys):
     assert not out.exists()
 
 
+def test_a_bare_name_matches_only_as_a_citation(tmp_path):
+    repo = a_checkout(
+        tmp_path,
+        {
+            "prose.md": "Each run of the tool reads one file.\n",
+            "ticked.md": "See `run` for the rule.\n",
+            "called.md": "Call run() once.\n",
+            "dotted.md": "As module.run says.\n",
+            "longer.md": "rerun() and `runner` and module.running.\n",
+        },
+    )
+    found, why = files_naming(repo, "run")
+    assert why == ""
+    assert sorted(found or []) == ["called.md", "dotted.md", "ticked.md"]
+
+
+def test_a_path_token_still_matches_as_a_fixed_string(tmp_path):
+    repo = a_checkout(tmp_path, {"notes.md": "the reader in flows/gather.py does it\n"})
+    assert files_naming(repo, "flows/gather.py") == (["notes.md"], "")
+
+
 def test_files_naming_lists_an_awkward_name_verbatim(tmp_path):
     name = 'a\t"b".md'
     try:
