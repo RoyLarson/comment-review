@@ -328,7 +328,7 @@ includes an external_address-able item."* **Three legal destinations:**
 
     a place the binder carries      resolves today
     a place it does NOT carry       an EMPTY place -- addressable by the walk, cut from the
-                                    binder, citable via `carry`
+                                    binder, citable via `addresses find`
     an external address             a coordinate in a file this system does not SET
 
 **What the code enforces today is the first row alone, and that is a ruling rather than a gap.**

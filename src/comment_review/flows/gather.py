@@ -1,12 +1,12 @@
-"""Stage 2, gather: every page in scope, annotated and bound into one binder.
+"""Stage 2, gather: every page in scope, bound into one binder.
 
     gather(repo, targets, stage) -> Gathering
     page_in(path, repo) -> the page one file reads as, or why not
-    unaddressed_report(missing), not_gathered(handed_in, unreadable) -> text
+    not_gathered(handed_in, unreadable) -> text
 
 A page is one file -- its paragraphs in order among the code they sit with --
 and `flows.page_for.page_of` builds one. This walks the files in scope, builds
-their pages, binds them, and runs stage 3 over the paragraphs the binder holds.
+their pages, binds them, and names the gaps in the tree's name corpus.
 The command prints and decides the exit code; nothing here does either.
 
 !! The chain is data. `STEPS` is the sequence, each step reads and writes one
@@ -42,14 +42,12 @@ from comment_review.concordance.code_names import (
     names_in,
     no_harvester,
 )
-from comment_review.flows.annotations_for import annotations_for
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import (
     git_ls_files,
-    path_index,
     relative_to,
     tracked_paths,
     walk_files,
@@ -212,12 +210,10 @@ def _owner(warning: ReadDiagnostic) -> str:
     return f" (owner on line {warning.owner_line})"
 
 
-def _annotations(g: Gathering) -> None:
-    """Stage 3, over every paragraph the binder holds."""
-    # The gather's one `git ls-files`; both indexes are built from it.
+def _name_gaps(g: Gathering) -> None:
+    """The rows naming every gap in the tree's name corpus."""
     rels = git_ls_files(g.repo)
-    known, g.unread = _name_corpus(g.repo, tracked_paths(g.repo, rels))
-    annotations_for(g.binder.paragraphs, known, path_index(g.repo, rels), g.repo)
+    _, g.unread = _name_corpus(g.repo, tracked_paths(g.repo, rels))
 
 
 def _name_corpus(repo: Path, tracked: set[Path] | None) -> tuple[set[str], list[str]]:
@@ -286,7 +282,7 @@ def _bind(g: Gathering) -> None:
 #: The chain, in the order it runs. Each step reads the `Gathering` the steps
 #: before it filled and writes its own fields; a new producer is a new element.
 #: A step that names a gap in `unreadable` is the last one that runs.
-STEPS: tuple[Callable[[Gathering], None], ...] = (_walk, _pages, _bind, _annotations)
+STEPS: tuple[Callable[[Gathering], None], ...] = (_walk, _pages, _bind, _name_gaps)
 
 
 def gather(
@@ -295,7 +291,7 @@ def gather(
     absent: bool = False,
     stage: str = "",
 ) -> Gathering:
-    """Every page under `targets`, annotated and bound, with the gaps named.
+    """Every page under `targets`, bound, with the gaps named.
 
     Args:
         repo: the root every citation resolves against, resolved.
@@ -337,21 +333,6 @@ def _repo_relative(path: Path, repo: Path) -> str:
         return path.resolve().relative_to(repo).as_posix()
     except ValueError:
         return path.as_posix()
-
-
-def unaddressed_report(missing: list[str]) -> str:
-    """What to say about a gather whose paragraphs cannot be cited.
-
-    It names them as well as counting them: a reader has to know which file to
-    look at, and the count alone sends them through the whole binder.
-    """
-    rows = "\n".join(f"  {line}" for line in missing)
-    plural = "paragraph" if len(missing) == 1 else "paragraphs"
-    return (
-        f"{len(missing)} {plural} carry NO ADDRESS, so nothing can cite them\n"
-        f"and the stage-5 gate would count them as nobody's:\n{rows}\n"
-        "A binder with no `original_start` cannot name a gap. Re-run gather."
-    )
 
 
 def not_gathered(handed_in: int, unreadable: list[str]) -> str:

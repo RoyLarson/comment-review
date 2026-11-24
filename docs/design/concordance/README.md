@@ -7,6 +7,10 @@ enough to stop either proposal.
 
 ## 1. What this package is for
 
+`annotate.py` and its one caller, `flows/annotations_for.py`, are removed until the
+annotations feature is built (`decision-log.md Process: #320`). Sections 4 to 6 describe
+the intent for that feature, not code in the tree.
+
 It is stage 3. A reviewer reads prose against code, and everything a symbol table, a filesystem
 and a regex can settle first is settled here and attached to the paragraph, so the role spends
 its reading on the claim rather than on the lookup.
@@ -20,7 +24,6 @@ the keys to documents and keys to code."*
 | module | its part of the index |
 | --- | --- |
 | `names.py` | what may be a key |
-| `annotate.py` | the keys, taken from prose |
 | `code_names.py` | key to code |
 | `referrers.py` | key to documents |
 
@@ -34,15 +37,12 @@ one bit.
 ## 2. What it may import, and what may import it
 
 A leaf. Nothing above it may be imported by it, and `binder`, `desk` and the write end all reach
-down to it rather than across to each other. `flows/annotations_for.py` is `annotate`'s one
-caller, over every paragraph a gather carried; the repeated-literal pass lives there because it
-needs the whole set rather than one paragraph.
+down to it rather than across to each other.
 
 ## 3. Each module: what it owns
 
 | module | owns |
 | --- | --- |
-| `annotate.py` | the annotations one paragraph carries, resolved where a machine can |
 | `code_names.py` | every name the tree defines, harvested from the `ast` -- the corpus an obituary is resolved against |
 | `names.py` | `SYMBOLISH`, the predicate for what counts as a name, shared by the two sides of one lookup |
 | `referrers.py` | stage 3 inbound: which tracked files name the files under review |

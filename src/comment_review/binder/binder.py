@@ -220,7 +220,7 @@ class Binder:
         )
 
     def serialize(self) -> dict:
-        """This binder as a wire dict; `gather`, `stage open` and `carry` write it."""
+        """This binder as a wire dict; `gather` and `stage open` write it."""
         return {
             "version": self.version,
             "read_from": {**self.read_from},

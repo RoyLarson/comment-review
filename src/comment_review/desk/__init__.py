@@ -17,8 +17,6 @@
                          a fold decides
     topology            a run's schedule, read from a TOML file -- which
                          stages run, in what order, and what each dispatches
-    external_address    a sketch, not in service -- a coordinate into a file
-                         this system does not set
     stages              the mark sequence, as data -- `Kind`, `Role`, and a
                          stage's `dispatches`
     report              the stage reports the commands render: refusals,

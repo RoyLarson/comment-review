@@ -266,16 +266,15 @@ def test_a_rust_file_without_detached_documentation_prints_no_detached_warning(
     assert "warning:" not in printed
 
 
-def test_the_command_builds_no_page_and_resolves_no_annotation():
+def test_the_command_builds_no_page():
     """`TODO/completed/census-should-be-a-chain-of-producers.md` T3, verify text
-    word for word: *it calls page_for nowhere*. And `annotate` nowhere, for the
-    same reason -- both are the flow's steps, and a command exposes a flow.
+    word for word: *it calls page_for nowhere*. It is the flow's step, and a
+    command exposes a flow.
 
     ! READ OFF THE MODULE'S SOURCE, so a name reached through a different
     import spelling is caught the same as a direct one."""
     source = inspect.getsource(gather_command)
     assert not re.search(r"\bpage_for\b", source)
-    assert not re.search(r"\bannotate\b", source)
     assert "gather(" in source, "the command has to call the flow it exposes"
 
 

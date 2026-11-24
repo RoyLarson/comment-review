@@ -125,8 +125,6 @@ class Paragraph:
     # because the PAGE found blank lines, so there was never a trigger for it to
     # be anchored to. `addresser.SERIES` holds four series; `LEAD` is a symbol.
     symbol: str = ""
-    annotations: set[str] = field(default_factory=set)
-    notes: list[str] = field(default_factory=list)
 
     # !! THE PARAGRAPH'S OWN CHARACTERS, EXACTLY AS THE FILE HOLDS THEM -- its
     # lines whole where it owns them, and from the end of the code onward on

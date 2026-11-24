@@ -68,8 +68,8 @@ intent."* That is why nothing downstream takes a binder in order to reach a page
 ### An address is a path and a cue, and the cue is an ordinal
 
 `addresses.resolve(address, paragraphs)` answers which paragraphs an address names.
-`series_of` and `stable` say what a paragraph's own address is. `handed` and `unaddressed`
-separate what can be ruled on from what cannot.
+`series_of` and `stable` say what a paragraph's own address is. `handed` separates what
+can be ruled on from what cannot.
 
 An address is not a line number and never was. `docs/addressing.md` is the source for the form
 and for what the line-numbered version got wrong.
