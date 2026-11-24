@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 22 tasks closed
+Progress: 14 of 23 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -82,6 +82,7 @@ Use lexical code identity at both proof boundaries.
         > 2026-11-22 Check (M13): adding '/// dangling' before a closing brace is FAIL
 - [ ] T21 | Fix commands/prove_unchanged.py:39 counting one unproven path as 2
         > 2026-11-22 Check (M40): one unproven path prints '1 unproven'
-- [ ] T22 | Determine whether 7b prove_unchanged may omit the documented check
-      7a runs
+- [x] T22 | Ruled #414: 7b must not be less strict than 7a | 52ca7d9bb89ade8f8f05e427420286480890f17d | Determine
+      whether 7b prove_unchanged may omit the documented check 7a runs
         > 2026-11-23 Broken review 6a81c7b0 [A]: 7b runs without documented; open
+- [ ] T23 | Make 7b prove_unchanged run the documented check 7a runs, per #414

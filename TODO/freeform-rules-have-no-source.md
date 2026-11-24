@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 1 of 3 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-23 (broken review, 2026-11-23)
@@ -30,5 +30,6 @@ no source [A-F5, W-F6, D-D6; V33]
 - [ ] T1 | Determine one source for the rules page and freeform reviews share
         > 2026-11-23 Related: freeform-run-findings.md
 - [ ] T2 | Make a page-to-freeform relocation one record, as page-to-page is
-- [ ] T3 | Make check report a role that left its freeform file unread
+- [-] T3 | Not wanted: #411 excludes a freeform-read check | 52ca7d9bb89ade8f8f05e427420286480890f17d | Make
+      check report a role that left its freeform file unread
         > 2026-11-23 check is backend Python; owner set to agents for the prose rules

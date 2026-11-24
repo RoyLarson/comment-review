@@ -223,7 +223,7 @@ that changed a published name or rule:
 | [shape-is-three-words](shape-is-three-words.md) | backend | -- | 7/10 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | -- | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
-| [brief-says-three-series](brief-says-three-series.md) | agents | -- | 11/14 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
+| [brief-says-three-series](brief-says-three-series.md) | agents | -- | 12/14 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 1/2 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
 | [no-command-for-the-middle](no-command-for-the-middle.md) | backend | -- | 102/104 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | -- | 2/4 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
@@ -255,7 +255,7 @@ that changed a published name or rule:
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 4/6 | The P5 self-run findings |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 13/22 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 14/23 | Use lexical code identity at both proof boundaries |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 1/4 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
@@ -275,10 +275,10 @@ that changed a published name or rule:
 | [answers-file-defects](answers-file-defects.md) | backend | -- | 0/4 | Answers files are admitted with answers a turn drops or refuses |
 | [machine-defects](machine-defects.md) | backend | -- | 0/5 | machine/ reads git output and JSON without the guards its callers assume |
 | [flow-helpers-placement](flow-helpers-placement.md) | backend | -- | 0/2 | Determine where the flow helpers belong |
-| [a-mark-states-its-edit-three-times](a-mark-states-its-edit-three-times.md) | backend | -- | 0/3 | A mark states its edit up to three times and no field is authoritative |
+| [a-mark-states-its-edit-three-times](a-mark-states-its-edit-three-times.md) | backend | -- | 1/3 | A mark states its edit up to three times and no field is authoritative |
 | [boundary-records-have-no-typed-form](boundary-records-have-no-typed-form.md) | backend | -- | 0/5 | Records crossing boundaries have no single typed form |
 | [area-model-stated-and-enforced-differently](area-model-stated-and-enforced-differently.md) | backend | -- | 0/5 | The area architecture is stated in one model and enforced against another |
-| [freeform-rules-have-no-source](freeform-rules-have-no-source.md) | agents | -- | 0/3 | Freeform is a second pipeline run only by prose, sharing rules with no source |
+| [freeform-rules-have-no-source](freeform-rules-have-no-source.md) | agents | -- | 1/3 | Freeform is a second pipeline run only by prose, sharing rules with no source |
 | [names-persist-before-they-settle](names-persist-before-they-settle.md) | systems | -- | 0/2 | Names reach four persisted layers before their meaning settles |
 
 ### in-progress  (12)

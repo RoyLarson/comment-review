@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 14 tasks closed
+Progress: 12 of 14 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
@@ -65,5 +65,6 @@ place the same brief tells it to cite at `:74`.
 - [x] T13 | Turn answers and chief recasts at f places ask; disposition --human | 9d9cedac | Ask
       the human before a turn answer, a chief ruling or a copy's docket changes
       an f place, as collate does per #291
-- [ ] T14 | Include f places in what handed and the coverage checks count
+- [-] T14 | Not wanted: #412, f places are matter, not reviewed | 52ca7d9bb89ade8f8f05e427420286480890f17d | Include
+      f places in what handed and the coverage checks count
         > 2026-11-23 Broken review 6a81c7b0 [D-D7]: an unexamined f place looks examined

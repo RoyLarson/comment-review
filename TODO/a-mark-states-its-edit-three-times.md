@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 1 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-23 (broken review, 2026-11-23)
@@ -32,6 +32,6 @@ authoritative [D-D2, N-N8; V12, V13]
 
 - [ ] T1 | Determine which mark field is authoritative for the edit
         > 2026-11-23 Related: mark-defects.md, mark-holds-spec-and-parse.md
-- [ ] T2 | Reconcile the brief's claim-against-change check with what the code
-      checks
+- [x] T2 | Ruled #413: the claim serves agents; no code check | 52ca7d9bb89ade8f8f05e427420286480890f17d | Reconcile
+      the brief's claim-against-change check with what the code checks
 - [ ] T3 | Determine what reads an add mark's claim keys
