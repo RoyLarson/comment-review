@@ -453,7 +453,7 @@ class TestAReaderRefusesRatherThanCoping:
         `comment`, 130 `trailing-comment`, 2 `matter`. 259 empty places read as
         prose.
 
-        ! WHAT THAT COSTS: `Kind.holds_no_prose` is what `Page.prose` and the
+        ! WHAT THAT COSTS: `Kind.holds_no_prose` is what `RedactedPage.of` and the
         gather's filter ask, so a role handed a re-read binder would be given 259
         places to rule on that hold nothing. Roy, 2026-08-25: *"The absent kinds
         are not supposed to be sent to the agents."*

@@ -59,11 +59,6 @@ from comment_review.reading.readers import read_source
 from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
 
-#: The five fields a place is carried by, in the order `_place` writes them.
-#: `path` is not among them: the page states it once, because repeating it per
-#: place is the same string as many times as the file has paragraphs.
-WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
-
 
 @dataclass
 class Page:
@@ -119,36 +114,6 @@ class Page:
         """The nth paragraph down the page."""
         return self.paragraphs[i]
 
-    @property
-    def prose(self) -> list[Paragraph]:
-        """The paragraphs a reviewer owes a record on.
-
-        ! The empty places are ADDRESSABLE and not accountable: an `add` cites
-        one, and nobody owes it a ruling. Front matter is prose and is not
-        accountable either -- no role can settle a licence header.
-
-        ! Asked by series, not by the kind. The file's own matter is the `f`
-        series, and every consumer that has to know reads that --
-        `binder.addresses.handed`, which `flows.distribute.seed`,
-        `flows.distribute.assigned_binder` and `flows.verify.admit`
-        read, and this.
-
-        !! `d` IS OUT BECAUSE IT NAMES NO PLACE, and that is the whole test.
-        Leading is not prose, it is the space BETWEEN two paragraphs; a reviewer
-        handed one would be asked to rule on blank lines. Requiring an ADDRESS
-        keeps it out without a list of series to keep current -- a paragraph
-        that names no place is owed no record.
-        """
-        return [
-            b
-            for b in self.paragraphs
-            if b.address
-            and not Kind.holds_no_prose(b.kind)
-            # ! ASKED OF THE ADDRESS DIRECTLY: `cue_of` is the addresser's,
-            # which this module already imports.
-            and cue_of(b.address).series != COVERS
-        ]
-
     def serialize(self) -> dict:
         """This page as a binder carries it: its path, its sha, its places.
 
@@ -170,7 +135,10 @@ class Page:
 
 
 def _place(paragraph: Paragraph) -> dict:
-    """One place as an agent receives it -- the five fields of `WIRE_FIELDS`."""
+    """One place as an agent receives it: its cue, anchor, lines and text.
+
+    `path` is not among them: the page states it once.
+    """
     return {
         "cue": cue_of(paragraph.address).cue,
         "anchor": paragraph.anchor,
@@ -408,13 +376,6 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     Returns:
         The cue, or "" when the paragraph states no position to tie it to.
     """
-    # Front matter is the file's: the reader types it `Kind.MATTER`, and this
-    # only reads that type. `page_for` gives it an `f` place without asking
-    # this, so here it is tied to nothing. Asking `above()` would give it the
-    # gap it happens to occupy, which is the gap that introduces the first
-    # statement and belongs to that statement.
-    if paragraph.get("kind") == Kind.MATTER:
-        return ""
     if Series.of_kind(str(paragraph.get("kind", ""))) is Series.ON:
         start = paragraph.get("start")
         return cues.beside(start) if isinstance(start, int) else ""

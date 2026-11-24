@@ -141,7 +141,7 @@ COVERS = Series.COVERS.value.letter
 # as `@10`, and this whole scheme rests on a cue being unmistakable.
 #
 # !! It is the one series nothing cites: a `d` holds nothing to rule on and is
-# there to preserve the document. So a `d` is kept out of `Page.prose` and out
+# there to preserve the document. So a `d` is kept out of the binder and out
 # of edit-copy seeding, and no empty `d` is emitted -- the other four series
 # exist wherever prose could go, because an `add` cites them; a place no
 # instruction can name has no reason to exist unfilled.
