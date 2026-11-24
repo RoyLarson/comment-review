@@ -285,7 +285,7 @@ that changed a published name or rule:
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 6/11 | COMPACT can buy lines with width, and nothing stops it |
+| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 7/11 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | -- | 9/18 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 10/11 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | -- | 17/19 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
