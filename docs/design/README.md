@@ -66,8 +66,7 @@ can come up with a closed set of failure modes is silly."* See
       reading/         addresser, language, paragraph, readers, series
       binder/          addresses, binder, page
       concordance/     annotate, code_names, names, referrers
-      desk/            collator, containers, external_address, mark, proof,
-                       stages, topology
+      desk/            collator, containers, mark, proof, stages, topology
       docket/          docket
       results/         compositor, differences, galley, prove_unchanged
       flows/           carry, census, collate, distribute, fan_out, mark_errors,

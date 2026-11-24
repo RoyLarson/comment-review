@@ -42,7 +42,6 @@ is correct so testing it is solidifying wrong."* ! The mark --
 2026-08-28: `tests/test_mark.py` and `tests/test_mark_brief.py` test it
 directly, once the port's own defect
 (`TODO/the-ported-mark-does-not-fit-the-brief.md`) made it worth testing.
-`desk/external_address.py` remains untouched here.
 
 ! AND THE FRONT-MATTER/`b` COLLISION IS OFF LIMITS -- a file whose front matter
 is not on line 1. It is a known normalisation, ruled a sacrifice rather than a
