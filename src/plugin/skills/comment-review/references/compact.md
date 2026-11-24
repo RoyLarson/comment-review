@@ -30,6 +30,8 @@ and checkable sentence.
    its measured comment wrap, whichever is less. Never widen a line to remove a line.
 5. Keep the paragraph's kind. A block stays a comment between lines of code; turning it into a
    docstring or any other kind of text to leave the count is not a condensation.
+6. When the paragraph cannot reach the cap at that width without losing a necessary sentence,
+   keep the width and mark it `clean`, naming what holds it over the cap.
 
 ## How you record it
 
