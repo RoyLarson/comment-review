@@ -262,6 +262,11 @@ it.
 | **checkable** | it stays | `drop` -- it narrates what the code says |
 | **not checkable** | `move` -- real rationale, belonging where it can be read | `drop` -- history |
 
+A `drop` of history names, in its reason, the home the style sheet records for removed history.
+Where the style sheet records none answered, file a `query` of shape `human-review-necessary`
+asking the author where the sentence goes; where it records that the repo has none, the `drop`
+stands.
+
 A third question: is the sentence the rule, or one instance of it? When a reader can build a
 case the code governs and the sentence leaves out, it is written too narrowly, and the ruling
 is a `patch` to the general rule.
