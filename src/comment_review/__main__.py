@@ -37,6 +37,7 @@ class Command(StrEnum):
     DISPOSITION = auto()
     DISTRIBUTE = auto()
     GATHER = auto()
+    LOST = auto()
     MARK = auto()
     PROOF = auto()
     PROVE_UNCHANGED = auto()
