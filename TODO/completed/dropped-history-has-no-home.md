@@ -1,8 +1,8 @@
 # A dropped history sentence has no home
 
 ```
-Status:   open
-Progress: 3 of 4 tasks closed
+Status:   closed
+Progress: 4 of 4 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-08 (2026-11-08 run on another repository, plugin 0.2.4-beta.7)
@@ -37,6 +37,7 @@ rule with no check that the prose arrived, leaves the loss in place.
       the brief so a drop of history names its destination, or queries the
       author where none is recorded
         > 2026-11-08 Waits on external addresses, after the code section works (#297)
-- [ ] T4 | Implement a 7a list of every removed sentence the write leaves in no
-      file, matched exactly
+- [x] T4 | #420: lost lists removed sentences no file of the tree as written holds | 0c979445 | Implement
+      a 7a list of every removed sentence the write leaves in no file, matched
+      exactly
         > 2026-11-08 Waits on external addresses, after the code section works (#297)

@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (94)
+### open  (93)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -264,7 +264,6 @@ that changed a published name or rule:
 | [page-defects](page-defects.md) | backend | -- | 3/4 | binder/page.py carries unread names and a branch nothing reaches |
 | [addresser-defects](addresser-defects.md) | backend | -- | 0/4 | reading/addresser.py answers a miss with a real position |
 | [command-entry-points](command-entry-points.md) | backend | -- | 0/2 | The commands keep entry points of their own beside __main__ |
-| [dropped-history-has-no-home](dropped-history-has-no-home.md) | agents | -- | 3/4 | A dropped history sentence has no home |
 | [concordance-module](concordance-module.md) | backend | -- | 0/1 | Keep concordance logic in concordance/ |
 | [commands-reach-past-flows](commands-reach-past-flows.md) | backend | -- | 0/2 | Commands import only flows and the leaves |
 | [answers-file-defects](answers-file-defects.md) | backend | -- | 2/4 | Answers files are admitted with answers a turn drops or refuses |
@@ -557,3 +556,4 @@ the reason is inside the file.
 | [a-conflict-has-no-rendering](completed/a-conflict-has-no-rendering.md) | 5 finished, 1 superseded |
 | [compact-can-buy-lines-with-width](completed/compact-can-buy-lines-with-width.md) | 10 finished, 1 superseded |
 | [prove-unchanged-compares-raw-line-endings](completed/prove-unchanged-compares-raw-line-endings.md) | 1 finished, 1 superseded |
+| [dropped-history-has-no-home](completed/dropped-history-has-no-home.md) | 4 finished |
