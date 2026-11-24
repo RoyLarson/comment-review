@@ -275,7 +275,7 @@ that changed a published name or rule:
 | [freeform-rules-have-no-source](freeform-rules-have-no-source.md) | agents | -- | 1/3 | Freeform is a second pipeline run only by prose, sharing rules with no source |
 | [names-persist-before-they-settle](names-persist-before-they-settle.md) | systems | -- | 0/2 | Names reach four persisted layers before their meaning settles |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 2/3 | external_address.py cites two modules that left the tree |
-| [dropped-history-has-no-home](dropped-history-has-no-home.md) | agents | -- | 5/9 | A dropped history sentence has no home |
+| [dropped-history-has-no-home](dropped-history-has-no-home.md) | agents | -- | 7/9 | A dropped history sentence has no home |
 
 ### in-progress  (10)
 

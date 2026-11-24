@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 9 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-08 (2026-11-08 run on another repository, plugin 0.2.4-beta.7)
@@ -41,12 +41,13 @@ rule with no check that the prose arrived, leaves the loss in place.
       a 7a list of every removed sentence the write leaves in no file, matched
       exactly
         > 2026-11-08 Waits on external addresses, after the code section works (#297)
-- [ ] T5 | Split lost's sentences at line ends as well as at sentence
-      punctuation
+- [x] T5 | FINISHED -- split at line ends via Fragment.positions | 085c2f3a | Split
+      lost's sentences at line ends as well as at sentence punctuation
 - [-] T6 | SUPERSEDED -- #426: lost checks a sentence at a named place, not across the tree | 1c3c0e31 | Parse
       in lost only the files the raw-text match could not rule out
-- [ ] T7 | Implement in lost a check of each sentence a move removed at the
-      move's destination, reading the closed proofs
+- [x] T7 | FINISHED -- #426: an agreed move's destination file saves it | 085c2f3a | Implement
+      in lost a check of each sentence a move removed at the move's destination,
+      reading the closed proofs
 - [ ] T8 | Add to a history drop a field naming its home, which check reads
         > 2026-11-24 #426: later plan; history drops are listed till then
 - [ ] T9 | Implement in lost a check of each sentence a history drop removed in
