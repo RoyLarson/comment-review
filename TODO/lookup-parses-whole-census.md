@@ -29,38 +29,44 @@ RE-SPLIT: 2026-08-23 -- the ten boxes still over two lines were cut again. Roy's
 
 ## Objective
 
-Every address lookup parses the whole census, so query cost scales with the project.
+Every address lookup parses the whole census, so query cost scales with the
+project.
 
-MEASURED 2026-08-23 on the 19 shipped scripts (11,009 lines, 8,734 paragraphs, 5.5 MB census).
-Producing the census costs 2.48 s, once per run, and that is fine. QUERYING one address costs
-0.28 s -- 0.17 s interpreter startup, 25 ms parsing the census, ~0.09 s the addresser's own work.
-! The addresser does NO page work: it imports `constants` and `exceptions` and nothing else, and
-its CLI reads the census JSON.
+MEASURED 2026-08-23 on the 19 shipped scripts (11,009 lines, 8,734 paragraphs,
+5.5 MB census). Producing the census costs 2.48 s, once per run, and that is
+fine. QUERYING one address costs 0.28 s -- 0.17 s interpreter startup, 25 ms
+parsing the census, ~0.09 s the addresser's own work. ! The addresser does NO
+page work: it imports `constants` and `exceptions` and nothing else, and its CLI
+reads the census JSON.
 
-!! **THE COST IS LINEAR IN THE WHOLE PROJECT**, because every invocation parses the entire census
-to answer about one file. Extrapolated at 630 bytes/paragraph: 100k lines -> ~50 MB and ~0.2 s per
-lookup; 500k lines -> ~250 MB and ~1.1 s per lookup, plus reading 250 MB from disk every time.
+!! **THE COST IS LINEAR IN THE WHOLE PROJECT**, because every invocation parses
+the entire census to answer about one file. Extrapolated at 630 bytes/paragraph:
+100k lines -> ~50 MB and ~0.2 s per lookup; 500k lines -> ~250 MB and ~1.1 s per
+lookup, plus reading 250 MB from disk every time.
 
-! **RE-LEXING IS FASTER ABOVE ~14k LINES AND IS NOT THE FIX.** Building one page (987 lines) costs
-31 ms, constant per file; the census parse is 25 ms today and crosses 31 ms at roughly a 7 MB
-census. ! But the census answers about the file AS THE REVIEWERS WERE GIVEN IT and a fresh lex
-answers about it AS IT IS NOW -- which differ exactly when something changed mid-run, the case the
-census exists to catch. `addresser.py` states the dependency: the scheme *"rests entirely on the
-census being a HASHED STATIC TABLE -- exact, constant, FULLY ENUMERATED."* Speed would be bought
-with staleness detection.
+! **RE-LEXING IS FASTER ABOVE ~14k LINES AND IS NOT THE FIX.** Building one page
+(987 lines) costs 31 ms, constant per file; the census parse is 25 ms today and
+crosses 31 ms at roughly a 7 MB census. ! But the census answers about the file
+AS THE REVIEWERS WERE GIVEN IT and a fresh lex answers about it AS IT IS NOW --
+which differ exactly when something changed mid-run, the case the census exists
+to catch. `addresser.py` states the dependency: the scheme *"rests entirely on
+the census being a HASHED STATIC TABLE -- exact, constant, FULLY ENUMERATED."*
+Speed would be bought with staleness detection.
 
-! **The cheap half and the ruled half are independent.** Batching needs no decision and recovers
-the 0.17 s.
+! **The cheap half and the ruled half are independent.** Batching needs no
+decision and recovers the 0.17 s.
 
-!! **THE RULING CAME BACK NEITHER WAY IT WAS ASKED, 2026-08-23.** It was offered as *shard the
-census per file, or do not* -- both answers about an on-disk SHAPE. Roy ruled the shape was never
-the problem: *"they shouldn't have to go through the whole census to get an address ... No parse
-everything"*, and then named the cause -- *"It is silly to make the census be the cli it breaks
-things like this option."* **`census.py` BEING the CLI is what forecloses stopping early**: if the
-only way to ask a question is to run the thing that builds everything, every question costs the
-whole project. **The census is a BINDER you ask; the CLI is what asks it.** A caller names its
-grain -- the whole census, one page, a subpart of a page -- and the chain stops as soon as the
-addresser can answer. `decision-log.md Addressing: #9`.
+!! **THE RULING CAME BACK NEITHER WAY IT WAS ASKED, 2026-08-23.** It was offered
+as *shard the census per file, or do not* -- both answers about an on-disk
+SHAPE. Roy ruled the shape was never the problem: *"they shouldn't have to go
+through the whole census to get an address ... No parse everything"*, and then
+named the cause -- *"It is silly to make the census be the cli it breaks things
+like this option."* **`census.py` BEING the CLI is what forecloses stopping
+early**: if the only way to ask a question is to run the thing that builds
+everything, every question costs the whole project. **The census is a BINDER you
+ask; the CLI is what asks it.** A caller names its grain -- the whole census,
+one page, a subpart of a page -- and the chain stops as soon as the addresser
+can answer. `decision-log.md Addressing: #9`.
 
 ### The rest of the ruling, verbatim
 
@@ -75,10 +81,11 @@ addresser can answer. `decision-log.md Addressing: #9`.
 
 ### What early stopping costs
 
-The measurement above is the reason it is not free: anything that re-runs the chain answers about
-the file AS IT IS NOW, and those two answers differ exactly when a file changed mid-run. An
-early-stopping lookup therefore needs a STATED answer for the disagreement rather than an assumed
-one, written where `addresser.py` states the hashed-static-table dependency.
+The measurement above is the reason it is not free: anything that re-runs the
+chain answers about the file AS IT IS NOW, and those two answers differ exactly
+when a file changed mid-run. An early-stopping lookup therefore needs a STATED
+answer for the disagreement rather than an assumed one, written where
+`addresser.py` states the hashed-static-table dependency.
 
 ## Tasks
 

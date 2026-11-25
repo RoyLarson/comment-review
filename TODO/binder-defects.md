@@ -12,18 +12,18 @@ Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run agains
 
 ## Objective
 
-Eighteen defects in `binder/binder.py`, found on 2026-08-30 by running `read` against
-the shapes its own docstrings say it refuses.
+Eighteen defects in `binder/binder.py`, found on 2026-08-30 by running `read`
+against the shapes its own docstrings say it refuses.
 
-!! **THESE LAND TOGETHER, AND THAT IS WHAT EARNS THE FILE.** The module makes ONE
-claim about itself -- `binder.py:239-242`, *"WHAT IS CHECKED IS WHAT IS CONSUMED and
-no more"* -- and every admission below it is licensed by that sentence. M1 measures
-that the sentence is written against a STALE inventory of consumers, so closing the
-duplicate cue, the missing `path`, the missing `rows`, the boolean `revise`, the empty
-`root` or the duplicate page one at a time leaves the rule that admitted the next one
-standing. Landing any one without the others leaves the objective -- *`read` refuses
-what its docstring says it refuses* -- unmet, which is the dependency test
-`docs/conventions.md` sets.
+!! **THESE LAND TOGETHER, AND THAT IS WHAT EARNS THE FILE.** The module makes
+ONE claim about itself -- `binder.py:239-242`, *"WHAT IS CHECKED IS WHAT IS
+CONSUMED and no more"* -- and every admission below it is licensed by that
+sentence. M1 measures that the sentence is written against a STALE inventory of
+consumers, so closing the duplicate cue, the missing `path`, the missing `rows`,
+the boolean `revise`, the empty `root` or the duplicate page one at a time
+leaves the rule that admitted the next one standing. Landing any one without the
+others leaves the objective -- *`read` refuses what its docstring says it
+refuses* -- unmet, which is the dependency test `docs/conventions.md` sets.
 
 ## What was measured, by running it
 

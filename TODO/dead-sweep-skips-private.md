@@ -26,28 +26,31 @@ Split:    2026-08-23 -- no box held two tasks; the four settled boxes were short
 
 ## Objective
 
-`dead_sweep` skips every `_private` name, so a dead module constant is invisible to it and to
-ruff.
+`dead_sweep` skips every `_private` name, so a dead module constant is invisible
+to it and to ruff.
 
-MEASURED 2026-08-22 and RE-CHECKED 2026-08-23: `dead_sweep.py:217` reads
-`if name.startswith("_") or name == "main": continue`, documented at `:194-196` as deliberate --
-*"`main` and any `_private` name are skipped: the first is an entry point every CLI defines and
-nothing imports, the second is ruff's to see within its own file."* So no `_private` name is
-ever reported by the sweep, and ruff does not see a module-level constant either -- which is
-the exact gap `CLAUDE.md` cites the sweep as covering.
+MEASURED 2026-08-22 and RE-CHECKED 2026-08-23: `dead_sweep.py:217` reads `if
+name.startswith("_") or name == "main": continue`, documented at `:194-196` as
+deliberate -- *"`main` and any `_private` name are skipped: the first is an
+entry point every CLI defines and nothing imports, the second is ruff's to see
+within its own file."* So no `_private` name is ever reported by the sweep, and
+ruff does not see a module-level constant either -- which is the exact gap
+`CLAUDE.md` cites the sweep as covering.
 
-! **THE RULING THE SKIP NEEDS.** A `_private` name is by definition read only inside its own
-module, which is what makes it CHEAPER to check, not harder -- the opposite of the reason given
-for skipping `main`.
+! **THE RULING THE SKIP NEEDS.** A `_private` name is by definition read only
+inside its own module, which is what makes it CHEAPER to check, not harder --
+the opposite of the reason given for skipping `main`.
 
-! **A SECOND BLIND SPOT, SAME CAUSE.** The sweep matches a name TEXTUALLY, so a name appearing
-inside an unrelated identifier counts as a use. Measured 2026-08-22 on
-`Cues.first_code_line` / `Cues.last_code_line`: their only hits were the test method names
+! **A SECOND BLIND SPOT, SAME CAUSE.** The sweep matches a name TEXTUALLY, so a
+name appearing inside an unrelated identifier counts as a use. Measured
+2026-08-22 on `Cues.first_code_line` / `Cues.last_code_line`: their only hits
+were the test method names
 `test_the_gap_ABOVE_the_first_code_line_inserts_above_it` and
-`test_the_gap_BELOW_the_last_code_line_appends`, which are prose about a gap and never call
-either method -- and the sweep reported them as held by a test. ! Both methods have since been
-deleted; the two test names survive (`tests/test_galley.py:210`, `:217`) and the sweep behaviour
-that mis-read them has not changed.
+`test_the_gap_BELOW_the_last_code_line_appends`, which are prose about a gap and
+never call either method -- and the sweep reported them as held by a test. !
+Both methods have since been deleted; the two test names survive
+(`tests/test_galley.py:210`, `:217`) and the sweep behaviour that mis-read them
+has not changed.
 
 ## Tasks
 

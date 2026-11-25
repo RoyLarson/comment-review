@@ -11,7 +11,8 @@ Raised:   2026-09-02 (systems)
 ## Objective
 
 `row` is retired everywhere -- as a type, as a JSON key, and in prose. The word
-this system has for one place is **paragraph**. `decision-log.md Vocabulary: #31`.
+this system has for one place is **paragraph**. `decision-log.md Vocabulary:
+#31`.
 
 !! **IT WAS SUPPOSED TO GO WITH THE `block` -> `paragraph` RENAME, AND AN
 UNAUTHORISED SENTENCE KEPT IT.** `docs/vocabulary.md` read *"`row` IS NOT
@@ -44,8 +45,9 @@ take the word.
 
 !! **THE SAME INVENTION WAS ALREADY CAUGHT ONCE.** `BinderRow` and `BinderPage`
 were added and deleted the same day, 2026-08-31 (`1d9314d`), after Roy: *"So you
-invented a term 'row' for something that is a Paragraph."* `Row` in `desk/mark.py`
-survived because it is in a different module and nothing mechanical was looking.
+invented a term 'row' for something that is a Paragraph."* `Row` in
+`desk/mark.py` survived because it is in a different module and nothing
+mechanical was looking.
 
 ! **T4 LANDS LAST, DELIBERATELY.** Adding the word to the gate before the rename
 turns it red across 24 files with no rename behind it. Roy, 2026-09-02: the

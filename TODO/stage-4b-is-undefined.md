@@ -18,7 +18,8 @@ Updated:  2026-09-01 -- no decision owed -- T1 closed by reading, see Process #7
 
 ## Objective
 
-**Stage 4 is split into 4a and 4c, and 4b is defined nowhere.** MEASURED 2026-08-23:
+**Stage 4 is split into 4a and 4c, and 4b is defined nowhere.** MEASURED
+2026-08-23:
 
 - `SKILL.md:550-551` names `4a` (`ownership-context`, ALONE) and `4c` (the other three, in one
   message). `:30` and `:161-163` say the same. **`4b` has zero occurrences under `plugins/`.**
@@ -26,32 +27,36 @@ Updated:  2026-09-01 -- no decision owed -- T1 closed by reading, see Process #7
 - ! The letter is not free for something else to mean: `SKILL.md` now defines **5b** (`:905`)
   and **6b** (`:972`) as RE-REVIEW steps, so a reader meets `Nb` elsewhere as a real stage.
 
-!! **AND NOTHING PRODUCES A RESOLVED PLACEMENT.** `SKILL.md:663` seeds all four roles from the
-same `census.json` BEFORE dispatch, and `:608` hands all four the same stage-2 `dispatch.txt`.
-So the serialisation only DELAYS the three: `block-context` still verifies a misfiled note
-against the passage it was misfiled into, which is the precise failure `SKILL.md:555-558` says
-the ordering prevents. **The boxes below cannot be checked until the stage exists or the claim
-goes.** ! Nothing else in this file can be closed before T1: T2 is whichever answer T1 gives.
+!! **AND NOTHING PRODUCES A RESOLVED PLACEMENT.** `SKILL.md:663` seeds all four
+roles from the same `census.json` BEFORE dispatch, and `:608` hands all four the
+same stage-2 `dispatch.txt`. So the serialisation only DELAYS the three:
+`block-context` still verifies a misfiled note against the passage it was
+misfiled into, which is the precise failure `SKILL.md:555-558` says the ordering
+prevents. **The boxes below cannot be checked until the stage exists or the
+claim goes.** ! Nothing else in this file can be closed before T1: T2 is
+whichever answer T1 gives.
 
-! **One half of the advertising is already corrected.** `reviewer-brief.md` no longer tells all
-four that *"remits overlap by design ... two roles can reach different placement decisions"* --
-zero matches for `overlap` in that file, 2026-08-23. What is left is `SKILL.md:3`, whose
-description still advertises *"parallel read-only subagents"* while `:30` says stage 4 is
-`4 reviewers, SERIAL`.
+! **One half of the advertising is already corrected.** `reviewer-brief.md` no
+longer tells all four that *"remits overlap by design ... two roles can reach
+different placement decisions"* -- zero matches for `overlap` in that file,
+2026-08-23. What is left is `SKILL.md:3`, whose description still advertises
+*"parallel read-only subagents"* while `:30` says stage 4 is `4 reviewers,
+SERIAL`.
 
-!! **THOSE TWO SENTENCES ARE NOT A CONTRADICTION TO RESOLVE BY DELETION.** Roy, 2026-08-23:
-*"That was the original setup and I want to be able to figure out how well that setup does
-compared to any other expansion of the process because the expansion has to pay for itself in
-tokens."* The parallel form is the BASELINE, and correcting `:3` to match `:30` destroys the only
-written record of what the comparison is against. So the work is to say WHICH CONFIGURATION a run
-used (T3) and to frame `:3` as a configuration rather than as current behaviour (T4) -- not to
-make the two sentences agree.
+!! **THOSE TWO SENTENCES ARE NOT A CONTRADICTION TO RESOLVE BY DELETION.** Roy,
+2026-08-23: *"That was the original setup and I want to be able to figure out
+how well that setup does compared to any other expansion of the process because
+the expansion has to pay for itself in tokens."* The parallel form is the
+BASELINE, and correcting `:3` to match `:30` destroys the only written record of
+what the comparison is against. So the work is to say WHICH CONFIGURATION a run
+used (T3) and to frame `:3` as a configuration rather than as current behaviour
+(T4) -- not to make the two sentences agree.
 
-! **A third drift sits in the same stage's gate.** `run_context.py:62` holds four
-`PATH_SECTIONS` -- `REPO ROOT`, `CENSUS`, `LOOKUP CENSUS`, `REVIEWER FILES` -- so `--check`
-refuses a packet without `LOOKUP CENSUS`. `SKILL.md:624` still says it refuses *"the three
-answers a machine can settle"* and never mentions the section at all. A run following `SKILL.md`
-fails its own stage-4 gate.
+! **A third drift sits in the same stage's gate.** `run_context.py:62` holds
+four `PATH_SECTIONS` -- `REPO ROOT`, `CENSUS`, `LOOKUP CENSUS`, `REVIEWER FILES`
+-- so `--check` refuses a packet without `LOOKUP CENSUS`. `SKILL.md:624` still
+says it refuses *"the three answers a machine can settle"* and never mentions
+the section at all. A run following `SKILL.md` fails its own stage-4 gate.
 
 ## Tasks
 

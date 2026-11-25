@@ -12,10 +12,11 @@ Raised:   2026-08-16 (Roy, on a proposed sentence saying "why the BLOCK belongs 
 
 ## Objective
 
-**A block is how a finding is ADDRESSED; a statement is what is ruled on.** The payloads already
-say so -- `drop` carries *"the sentence, verbatim"*, `correct` carries *"the false clause and the
-true one"*, and `split` exists because one block holds two unrelated notes. Nothing states it,
-and three files disagree about whether a reviewer may report two statements in one block:
+**A block is how a finding is ADDRESSED; a statement is what is ruled on.** The
+payloads already say so -- `drop` carries *"the sentence, verbatim"*, `correct`
+carries *"the false clause and the true one"*, and `split` exists because one
+block holds two unrelated notes. Nothing states it, and three files disagree
+about whether a reviewer may report two statements in one block:
 
 | where | says |
 | --- | --- |
@@ -23,16 +24,17 @@ and three files disagree about whether a reviewer may report two statements in o
 | `SKILL.md:44` | *"you will get **several verdicts per role per block** and must synthesise ONE"* |
 | `sk-scripts/verdicts.py:266-268` | `by_reviewer[f.reviewer].add(f.block)` -- a **set**. Two findings on one block are accepted, and nothing reports it |
 
-The gate permits it and the task agent expects it, so the brief is the outlier -- and the brief is
-what the reviewers actually read. A reviewer obeying *"exactly once"* merges two unrelated defects
-into one finding, which is the failure `split` exists to catch.
+The gate permits it and the task agent expects it, so the brief is the outlier
+-- and the brief is what the reviewers actually read. A reviewer obeying
+*"exactly once"* merges two unrelated defects into one finding, which is the
+failure `split` exists to catch.
 
 ! **Neither direction of "exactly once" is enforced.** `coverage_gaps` computes
-`all_blocks - found - clean`, so it reports only what is MISSING. A block appearing in both a
-finding and a `CLEAN` range passes silently too.
+`all_blocks - found - clean`, so it reports only what is MISSING. A block
+appearing in both a finding and a `CLEAN` range passes silently too.
 
-! **Not vocabulary, and deliberately off that branch.** The words are settled; this is a rule
-three files state differently.
+! **Not vocabulary, and deliberately off that branch.** The words are settled;
+this is a rule three files state differently.
 
 ## Tasks
 

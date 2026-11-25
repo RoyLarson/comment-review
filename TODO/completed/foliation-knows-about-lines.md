@@ -17,7 +17,8 @@ Narrowed: 2026-08-22 — the walkers survive the walk (b90aaac); Foliation is 4 
 
 ## Objective
 
-The foliation carries line data for one consumer, and one field of it is read by nobody.
+The foliation carries line data for one consumer, and one field of it is read by
+nobody.
 
 ## Tasks
 

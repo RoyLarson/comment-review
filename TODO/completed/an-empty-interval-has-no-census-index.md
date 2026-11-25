@@ -9,24 +9,27 @@ Raised:   2026-08-15 (Roy ruled (a): every interval is a block, empty ones inclu
 
 ## Objective
 
-**A block is the interval between two lines of code** -- settled 2026-08-15, and the prose said
-so while the census still enumerated from PROSE: it emitted a block where it found a comment
-run or a docstring, so an interval with nothing in it produced no entry and therefore had no
-index. Measured: three adjacent code lines with nothing between them censused as **0 blocks**.
+**A block is the interval between two lines of code** -- settled 2026-08-15, and
+the prose said so while the census still enumerated from PROSE: it emitted a
+block where it found a comment run or a docstring, so an interval with nothing
+in it produced no entry and therefore had no index. Measured: three adjacent
+code lines with nothing between them censused as **0 blocks**.
 
-That was the whole reason `add` did not fit the finding record. `add` says *a constraint exists
-in code and nowhere in prose* -- the finding is about an EMPTY interval -- yet `BLOCK` is required
-and coverage is computed from it, so an `add` had to borrow a neighbouring index.
+That was the whole reason `add` did not fit the finding record. `add` says *a
+constraint exists in code and nowhere in prose* -- the finding is about an EMPTY
+interval -- yet `BLOCK` is required and coverage is computed from it, so an
+`add` had to borrow a neighbouring index.
 
 ! **DONE 2026-08-17**, except the naming ruling in the last task.
 
-Roy ruled **(a)**: enumerate every interval, empty ones included. He named the cost himself --
-*"I don't see a way around this pseudo-concrete syntax tree and I don't think it matters"* -- and
-separately ruled that run data is not what the budget protects, which `docs/limitations.md` now
-records.
+Roy ruled **(a)**: enumerate every interval, empty ones included. He named the
+cost himself -- *"I don't see a way around this pseudo-concrete syntax tree and
+I don't think it matters"* -- and separately ruled that run data is not what the
+budget protects, which `docs/limitations.md` now records.
 
-! **This is not vocabulary and is deliberately not on that branch.** The definition was
-vocabulary and is done; this is the census change that follows from it.
+! **This is not vocabulary and is deliberately not on that branch.** The
+definition was vocabulary and is done; this is the census change that follows
+from it.
 
 ## Tasks
 

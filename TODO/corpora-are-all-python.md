@@ -37,35 +37,40 @@ Split:    2026-08-23 -- the one FETCH box named four languages and is now four b
 
 ## Objective
 
-The corpora are nine Python projects, so every per-language rule is measured on Python and C alone.
+The corpora are nine Python projects, so every per-language rule is measured on
+Python and C alone.
 
-!! **THE MANIFEST IS NO LONGER THE GAP; THE DISK IS.** Ten rows landed 2026-08-22 and one of
-them has been fetched. A row pins a ref and proves nothing about a language -- the boundary
-table, the leading-edge count and the `a`-series claims are all measured from FILES, and for
-nine of the ten there are none.
+!! **THE MANIFEST IS NO LONGER THE GAP; THE DISK IS.** Ten rows landed
+2026-08-22 and one of them has been fetched. A row pins a ref and proves nothing
+about a language -- the boundary table, the leading-edge count and the
+`a`-series claims are all measured from FILES, and for nine of the ten there are
+none.
 
-!! **FOUR LANGUAGES SHIP WITH A KEYWORD LIST AND NO FILES.** csharp, java, kotlin and swift each
-carry a keyword list giving them an `a` series, and each is measured against nothing. The
-2026-08-22 rows changed WHICH half is wrong: elasticsearch (java), dotnet-runtime (csharp),
-kotlin (`corpora.toml:336`) and swift (`:353`) are now IN the manifest, and none is on disk.
+!! **FOUR LANGUAGES SHIP WITH A KEYWORD LIST AND NO FILES.** csharp, java,
+kotlin and swift each carry a keyword list giving them an `a` series, and each
+is measured against nothing. The 2026-08-22 rows changed WHICH half is wrong:
+elasticsearch (java), dotnet-runtime (csharp), kotlin (`corpora.toml:336`) and
+swift (`:353`) are now IN the manifest, and none is on disk.
 
-! **EACH FETCH BOX HAS THE SAME STANDING ALTERNATIVE**: files on disk, OR the manifest recording
-why that language ships unmeasured. Either satisfies the box; nothing else does.
+! **EACH FETCH BOX HAS THE SAME STANDING ALTERNATIVE**: files on disk, OR the
+manifest recording why that language ships unmeasured. Either satisfies the box;
+nothing else does.
 
-! **THE BOUNDARY DISTRIBUTION INVERTS ACROSS LANGUAGES ALREADY.** The `c`->`a` row goes from
-python (0 blanks, 100%) to javascript (1 blank, 100%), which is why the table has to be re-taken
-from fetched trees rather than extrapolated.
+! **THE BOUNDARY DISTRIBUTION INVERTS ACROSS LANGUAGES ALREADY.** The `c`->`a`
+row goes from python (0 blanks, 100%) to javascript (1 blank, 100%), which is
+why the table has to be re-taken from fetched trees rather than extrapolated.
 
-!! **THE LEADING-EDGE CLAIM RESTS ON 10 OF 17 LANGUAGES.** Measured 2026-08-22: c 48,966 edges,
-python 41,356, yaml 4,174, toml-ini 672, cpp 557, javascript 161, typescript 147, shell 7, sql 4,
-lua 3. ! rust, go and ruby were checked with HAND FIXTURES when the pair key was cut, and java,
-csharp, swift and kotlin have neither corpus nor fixture -- so the claim that `before` alone is
-unique rests on ten languages, three of them on single-digit evidence. The re-take is per
-language, from FETCHED TREES.
+!! **THE LEADING-EDGE CLAIM RESTS ON 10 OF 17 LANGUAGES.** Measured 2026-08-22:
+c 48,966 edges, python 41,356, yaml 4,174, toml-ini 672, cpp 557, javascript
+161, typescript 147, shell 7, sql 4, lua 3. ! rust, go and ruby were checked
+with HAND FIXTURES when the pair key was cut, and java, csharp, swift and kotlin
+have neither corpus nor fixture -- so the claim that `before` alone is unique
+rests on ten languages, three of them on single-digit evidence. The re-take is
+per language, from FETCHED TREES.
 
-! **THE 2026-08-21 DISTRIBUTION, kept as the record it is**: python 700 files / 43,478
-boundaries, c 494 / 244,778, yaml 104, toml-ini 46, javascript 12, typescript 5, shell 5, sql 2
--- and lua, cpp, go, ruby and RUST one file each.
+! **THE 2026-08-21 DISTRIBUTION, kept as the record it is**: python 700 files /
+43,478 boundaries, c 494 / 244,778, yaml 104, toml-ini 46, javascript 12,
+typescript 5, shell 5, sql 2 -- and lua, cpp, go, ruby and RUST one file each.
 
 ## Tasks
 

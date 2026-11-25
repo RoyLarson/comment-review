@@ -17,21 +17,23 @@ Split:    2026-08-23 -- the derive-the-census box held three jobs (the derivatio
 
 ## Objective
 
-**Nothing between the reviewer and the author ever renders the proposed text as a FILE.** Stage
-7a presents `CHANGE` -- a block of replacement prose -- and the author rules on it as prose. What
-lands on disk at 7b is that block spliced into a file, and the splice is the first time anyone
-sees the two together.
+**Nothing between the reviewer and the author ever renders the proposed text as
+a FILE.** Stage 7a presents `CHANGE` -- a block of replacement prose -- and the
+author rules on it as prose. What lands on disk at 7b is that block spliced into
+a file, and the splice is the first time anyone sees the two together.
 
-Roy, 2026-08-17: *"Maybe at the reviewer at 7a where things are temporarily applied"* ... *"Or
-applied to a copy and diffed."*
+Roy, 2026-08-17: *"Maybe at the reviewer at 7a where things are temporarily
+applied"* ... *"Or applied to a copy and diffed."*
 
-! **The copy is what makes it safe.** 7a's contract is that the run STOPS and writes nothing;
-applying to a copy under the scratch tree keeps that contract while producing a real diff.
+! **The copy is what makes it safe.** 7a's contract is that the run STOPS and
+writes nothing; applying to a copy under the scratch tree keeps that contract
+while producing a real diff.
 
-! **MEASURED 2026-08-23: 7a still presents the block, not the diff.** `SKILL.md:996-1005`
-instructs the task agent to show five parts (`VERDICT / PARAGRAPH / CLAIM / REASON / CHANGE`)
-with replacement text inline, and says nothing about a diff. The galley exists and is set at 5b
-and 6 (`SKILL.md:918-921`); nothing routes it to the author.
+! **MEASURED 2026-08-23: 7a still presents the block, not the diff.**
+`SKILL.md:996-1005` instructs the task agent to show five parts (`VERDICT /
+PARAGRAPH / CLAIM / REASON / CHANGE`) with replacement text inline, and says
+nothing about a diff. The galley exists and is set at 5b and 6
+(`SKILL.md:918-921`); nothing routes it to the author.
 
 ## Why the diff is worth more than the block
 

@@ -16,7 +16,8 @@ Raised:   2026-08-29 (the final review of feat/the-mark-and-the-collator, 2026-0
 
 ## Objective
 
-the docket names one role per page, so two roles settling one page names neither.
+the docket names one role per page, so two roles settling one page names
+neither.
 
 ## Tasks
 

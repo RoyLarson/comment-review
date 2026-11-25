@@ -34,7 +34,8 @@ VERIFIED: 2026-08-23 — 2026-08-23, task 8 done. page.recut takes only the free
 
 ## Objective
 
-The original range leaves 105 blank lines owned by nothing, and 25 blanks go to an a.
+The original range leaves 105 blank lines owned by nothing, and 25 blanks go to
+an a.
 
 ## Tasks
 

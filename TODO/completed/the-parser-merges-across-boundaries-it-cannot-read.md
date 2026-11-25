@@ -14,8 +14,9 @@ SPLIT:    2026-08-23 -- no box held two tasks; four boxes stay four. The two clo
 
 ## Objective
 
-**When the collator cannot recognise a boundary it silently merges across it, and the diagnostic then
-points at the correct work on the other side.** Roy named the class after the third instance:
+**When the collator cannot recognise a boundary it silently merges across it,
+and the diagnostic then points at the correct work on the other side.** Roy
+named the class after the third instance:
 
 | | what merged | what the error blamed |
 | --- | --- | --- |
@@ -23,25 +24,27 @@ points at the correct work on the other side.** Roy named the class after the th
 | **D8** | a bare field label into the field above it | a correct `SOURCES` entry, same way |
 | **D9** | a dropped span into the punctuation beside it | a correct edit, for naming prose its `CLAIM` does not mention |
 
-!! **D9 came in TWO shapes and the second one had no legal expression at all.** First a trailing
-`.` re-attaching to the previous word; then markdown emphasis, where the span reads
-`*"a wrap ... defect"*`. That span comes from the FILE and carries the file's markup, so **no
-wording of the claim could match it** -- measured both ways, cleanly quoted and quoted with the
-delimiters, and both refused.
+!! **D9 came in TWO shapes and the second one had no legal expression at all.**
+First a trailing `.` re-attaching to the previous word; then markdown emphasis,
+where the span reads `*"a wrap ... defect"*`. That span comes from the FILE and
+carries the file's markup, so **no wording of the claim could match it** --
+measured both ways, cleanly quoted and quoted with the delimiters, and both
+refused.
 
-!! **The reviewer reshaped a sound finding twice to route around it**, moving its ruling onto a
-differently-bounded span to avoid characters the checker mishandled. **A reviewer contorting its
-judgement to satisfy a mechanical defect is CONSERVATIVE ON MEANING, FREE ON FORM failing from
-the tooling side** -- the gate was deciding what could be FOUND rather than whether it was true.
-That is the cost this class charges, and it does not show up as a refused record.
+!! **The reviewer reshaped a sound finding twice to route around it**, moving
+its ruling onto a differently-bounded span to avoid characters the checker
+mishandled. **A reviewer contorting its judgement to satisfy a mechanical defect
+is CONSERVATIVE ON MEANING, FREE ON FORM failing from the tooling side** -- the
+gate was deciding what could be FOUND rather than whether it was true. That is
+the cost this class charges, and it does not show up as a refused record.
 
-!! **This is the most expensive kind of diagnostic there is**, because it sends the reader to
-fix something that is not broken. Every one of the three cost a session real time on the wrong
-record before the tool was suspected at all.
+!! **This is the most expensive kind of diagnostic there is**, because it sends
+the reader to fix something that is not broken. Every one of the three cost a
+session real time on the wrong record before the tool was suspected at all.
 
-! **D7 was fixed for citations specifically, and the class survived to produce D8 and D9.**
-That is the reason this file exists rather than three closed entries: each fix was correct and
-none of them addressed the shape.
+! **D7 was fixed for citations specifically, and the class survived to produce
+D8 and D9.** That is the reason this file exists rather than three closed
+entries: each fix was correct and none of them addressed the shape.
 
 ## Where the two boundary decisions live now, measured 2026-08-23
 

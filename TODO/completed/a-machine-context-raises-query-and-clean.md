@@ -11,7 +11,8 @@ Raised:   2026-09-07 (Roy 2026-09-07: a machine-context automatically raises que
 
 ## Objective
 
-A machine context raises the queries a script can see, and certifies the rest clean.
+A machine context raises the queries a script can see, and certifies the rest
+clean.
 
 ## Tasks
 

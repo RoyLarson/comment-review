@@ -65,21 +65,23 @@ Superseded: 2026-08-21 — the MECHANISM this file is about was deleted 2026-08-
 
 ## Objective
 
-!! **`galley.py --edits` TAKES `{"<census index>": ...}` AND NO RECORD CARRIES AN INDEX ANY MORE.**
-So between stage 5 and the galley there is now a HAND conversion from address to census position,
-with nothing checking it -- at the step that produces the artifact a human approves at 7a.
+!! **`galley.py --edits` TAKES `{"<census index>": ...}` AND NO RECORD CARRIES
+AN INDEX ANY MORE.** So between stage 5 and the galley there is now a HAND
+conversion from address to census position, with nothing checking it -- at the
+step that produces the artifact a human approves at 7a.
 
-**An off-by-one there splices the wrong lines into the proof.** That is the one artifact the
-author actually rules on, and the galley exists precisely because *"the splice is the first time
-anyone sees the two together."*
+**An off-by-one there splices the wrong lines into the proof.** That is the one
+artifact the author actually rules on, and the galley exists precisely because
+*"the splice is the first time anyone sees the two together."*
 
-! **It sits exactly at the round-2 boundary**, where `re-review.md` says *"THE ADDRESS DOES
-CARRY, and it is what to quote back."* The one place the rebuild's property matters most is the
-one place it is discarded.
+! **It sits exactly at the round-2 boundary**, where `re-review.md` says *"THE
+ADDRESS DOES CARRY, and it is what to quote back."* The one place the rebuild's
+property matters most is the one place it is discarded.
 
-! **The bridge already exists and is not wired.** `foliator.resolve(address, blocks)` returns
-exactly the 1-based indices `galley` wants, and `record.entry_for` resolves an address to its
-entry -- but `galley` imports neither. `SKILL.md` still documents the index form at the 5b/6b step.
+! **The bridge already exists and is not wired.** `foliator.resolve(address,
+blocks)` returns exactly the 1-based indices `galley` wants, and
+`record.entry_for` resolves an address to its entry -- but `galley` imports
+neither. `SKILL.md` still documents the index form at the 5b/6b step.
 
 ## Tasks
 

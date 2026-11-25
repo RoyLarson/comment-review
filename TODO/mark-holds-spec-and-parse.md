@@ -16,11 +16,13 @@ Updated:  2026-08-30 — Task 6 was the only question owed and Roy answered it 2
 
 `desk/mark.py` holds the instruction spec and the boundary parse at one scope.
 
-!! **RULED 2026-08-30 -- `decision-log.md Process: #59`.** Roy, asked whether the module's
-four subjects warranted a split: *"Yes pull out the leaves out of mark.py"*
+!! **RULED 2026-08-30 -- `decision-log.md Process: #59`.** Roy, asked whether
+the module's four subjects warranted a split: *"Yes pull out the leaves out of
+mark.py"*
 
-! It is the same shape as `Process: #54` -- the mark answers for ITSELF and the collator
-answers for the SET -- applied one level down, inside the mark's own file.
+! It is the same shape as `Process: #54` -- the mark answers for ITSELF and the
+collator answers for the SET -- applied one level down, inside the mark's own
+file.
 
 ## The two subjects
 

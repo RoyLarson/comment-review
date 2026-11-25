@@ -12,14 +12,15 @@ Closed:   2026-08-23 -- all three tasks SUPERSEDED. The eight expectedFailures a
 
 ## Objective
 
-Seven of the eight `expectedFailure` cases in `tests/test_galley.py` never reached the code they
-named. `_gap` looked an interval up by `(original_start, original_end) == (2,1)` / `(1,0)` /
-`(4,3)` -- the RETIRED `(n, n-1)` form -- while the census emitted `(None, None)`, so seven
-raised `AssertionError: no gap editing ...` INSIDE THE HELPER and the eighth failed comparing
-`(None, None)` to itself. `galley.splice_range` and `paragraph_matches` were never reached.
+Seven of the eight `expectedFailure` cases in `tests/test_galley.py` never
+reached the code they named. `_gap` looked an interval up by `(original_start,
+original_end) == (2,1)` / `(1,0)` / `(4,3)` -- the RETIRED `(n, n-1)` form --
+while the census emitted `(None, None)`, so seven raised `AssertionError: no gap
+editing ...` INSIDE THE HELPER and the eighth failed comparing `(None, None)` to
+itself. `galley.splice_range` and `paragraph_matches` were never reached.
 
-!! **THE WHOLE FILE IS SUPERSEDED, VERIFIED 2026-08-23**, and by the change the 0.2.4 rework
-landed rather than by a repair to this suite:
+!! **THE WHOLE FILE IS SUPERSEDED, VERIFIED 2026-08-23**, and by the change the
+0.2.4 rework landed rather than by a repair to this suite:
 
 | what this file claimed | what the tree says now |
 | --- | --- |
@@ -28,15 +29,17 @@ landed rather than by a repair to this suite:
 | the class docstring claims an unexpected-success mechanism that does not exist | it now reads *"EIGHT OF THESE WERE `@unittest.expectedFailure` UNTIL 2026-08-21"* and states why the splice could not do any of them |
 | plan box R7 is UNJUDGEABLE | `docs/plans/0.2.4-rework-the-foliator-owns-the-address.md:461` records R7 DONE 2026-08-21, and `:445-450` records this file as no longer threatening it |
 
-! **The cause is the address system, not a test fix.** An empty gap had no lines, so its range was
-`n+1 .. n`, and at the file's edges both bounds clamped to 1 -- so the address could not say which
-side of line 1 a gap was on. A page has a PLACE for the gap and the compositor sets the places in
-order; there is no range, so there is nothing to clamp, and the eight cases pass as ordinary tests
+! **The cause is the address system, not a test fix.** An empty gap had no
+lines, so its range was `n+1 .. n`, and at the file's edges both bounds clamped
+to 1 -- so the address could not say which side of line 1 a gap was on. A page
+has a PLACE for the gap and the compositor sets the places in order; there is no
+range, so there is nothing to clamp, and the eight cases pass as ordinary tests
 in `TestAnAddIntoAnEmptyGap`.
 
-! **This is a MEASUREMENT the file was right about when it was written.** It is kept checked
-rather than deleted so the error stays legible -- a suite can be green, and eight cases can be
-red on purpose, while neither of them touches the code they name.
+! **This is a MEASUREMENT the file was right about when it was written.** It is
+kept checked rather than deleted so the error stays legible -- a suite can be
+green, and eight cases can be red on purpose, while neither of them touches the
+code they name.
 
 ## Tasks
 

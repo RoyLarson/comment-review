@@ -35,55 +35,58 @@ Two different facts are being recorded under one word:
 | **clean** | a role read this paragraph and had nothing to report | `clean` |
 | **stet** | a mark WAS proposed here, and the original stands | `clean` |
 
-!! **ELEVEN BOXES WERE SUPERSEDED 2026-09-02, AND THE FINDING ABOVE SURVIVES THEM.**
-This file was written as though `stet` were an EIGHTH ROLE INSTRUCTION -- added to a
-role's verdict set, defined in the four role vocabularies, asserted in each of the four
-agent files. It is not. **`stet` is the copy chief's**, and the two sets are closed and
-different:
+!! **ELEVEN BOXES WERE SUPERSEDED 2026-09-02, AND THE FINDING ABOVE SURVIVES
+THEM.** This file was written as though `stet` were an EIGHTH ROLE INSTRUCTION
+-- added to a role's verdict set, defined in the four role vocabularies,
+asserted in each of the four agent files. It is not. **`stet` is the copy
+chief's**, and the two sets are closed and different:
 
 | | the set |
 | --- | --- |
 | the copy chief | `taken_in`, `stet`, `recast` -- `Vocabulary: #29` |
 | a role | `hold`, `withdraw`, `correct`, `patch` -- `Process: #22` |
 
-! **`Process: #9` SAID SO ON 2026-08-24 AND NAMED THESE BOXES BY ID**, then closed with
-*"this entry records the correction rather than rewriting its boxes."* They stayed open
-nine days. Roy, 2026-09-02: *"It was wrong to make that statement. supersede them."*
-`Process: #79`.
+! **`Process: #9` SAID SO ON 2026-08-24 AND NAMED THESE BOXES BY ID**, then
+closed with *"this entry records the correction rather than rewriting its
+boxes."* They stayed open nine days. Roy, 2026-09-02: *"It was wrong to make
+that statement. supersede them."* `Process: #79`.
 
-!! **AND THE CONFLATION IS SMALLER THAN THIS FILE ARGUES.** Roy, 2026-09-02: *"it only
-conflates because we haven't got the wording correct. Query also indicates that a mark
-was declined in another way. In both cases it doesn't matter as much as it seems."*
-**It is a WORDING problem, not a missing category** -- `clean` reads as two facts because
-its sentence has not been written right, and a declined mark already reaches a reader
-through `query` by another route. The table below states the two facts correctly and
-overstates what follows from them.
+!! **AND THE CONFLATION IS SMALLER THAN THIS FILE ARGUES.** Roy, 2026-09-02:
+*"it only conflates because we haven't got the wording correct. Query also
+indicates that a mark was declined in another way. In both cases it doesn't
+matter as much as it seems."* **It is a WORDING problem, not a missing
+category** -- `clean` reads as two facts because its sentence has not been
+written right, and a declined mark already reaches a reader through `query` by
+another route. The table below states the two facts correctly and overstates
+what follows from them.
 
-! **WHAT SURVIVES IS THE REMEMBERING, NOT THE NAMING.** T1 asks whether a `stet` persists
-ACROSS RUNS, T6 measures what re-proposal costs, T7 asks whether stage 8 re-raises what
-7a declined, and T11 reserves the word. Where the mark is emitted is settled; whether
-anything remembers it is the open half -- and by Roy's reading it is a smaller half than
-this file's Objective claims.
+! **WHAT SURVIVES IS THE REMEMBERING, NOT THE NAMING.** T1 asks whether a `stet`
+persists ACROSS RUNS, T6 measures what re-proposal costs, T7 asks whether stage
+8 re-raises what 7a declined, and T11 reserves the word. Where the mark is
+emitted is settled; whether anything remembers it is the open half -- and by
+Roy's reading it is a smaller half than this file's Objective claims.
 
-! **The second is a decision; the first is the absence of one.** A `stet` presupposes
-a finding -- it is the answer to a mark, not a reading of the code. Publishing writes it
-in the margin as *stet* ("let it stand") with dots under the text, precisely BECAUSE the
-correction is still visible underneath: the page records that the change was considered
-and refused, not that nobody looked. **That is the NAME, settled 2026-08-21** -- the finding
-was never a missing word, it was `clean` carrying two facts.
+! **The second is a decision; the first is the absence of one.** A `stet`
+presupposes a finding -- it is the answer to a mark, not a reading of the code.
+Publishing writes it in the margin as *stet* ("let it stand") with dots under
+the text, precisely BECAUSE the correction is still visible underneath: the page
+records that the change was considered and refused, not that nobody looked.
+**That is the NAME, settled 2026-08-21** -- the finding was never a missing
+word, it was `clean` carrying two facts.
 
-!! **WHY THE CONFLATION COSTS SOMETHING.** A declined proposal recorded as `clean` says
-*nothing was found here*, which is false. Nothing downstream can tell the two apart, so:
+!! **WHY THE CONFLATION COSTS SOMETHING.** A declined proposal recorded as
+`clean` says *nothing was found here*, which is false. Nothing downstream can
+tell the two apart, so:
 
 - a re-run raises the same finding again, and the author declines it again
 - **stage 8 REVIEW cannot know a mark was refused** -- it reads the finished page and
   sees text a reviewer would flag, with no record that it was already flagged and kept
 - the run's own report undercounts what the roles actually found
 
-! **This is the third instance of the pattern in `CLAUDE.md`'s "it supplies categories,
-not only names"** -- after `matter`/`f` and `leading`/`d`. The tell is the same each
-time: one category straining to hold a second job, where publishing already has a
-separate name for the half that does not fit.
+! **This is the third instance of the pattern in `CLAUDE.md`'s "it supplies
+categories, not only names"** -- after `matter`/`f` and `leading`/`d`. The tell
+is the same each time: one category straining to hold a second job, where
+publishing already has a separate name for the half that does not fit.
 
 ## What it touches
 

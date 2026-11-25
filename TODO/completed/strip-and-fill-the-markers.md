@@ -25,12 +25,13 @@ Settled:  2026-08-29 — every one of the 276 a places has a following b; the la
 
 ## Objective
 
-A role is handed a paragraph's raw text **with its comment markers and its indentation**, and
-must reproduce both exactly in `change`. Everything the role writes is then placed verbatim.
+A role is handed a paragraph's raw text **with its comment markers and its
+indentation**, and must reproduce both exactly in `change`. Everything the role
+writes is then placed verbatim.
 
-!! **MEASURED 2026-08-29, and the measurement is that an agent WITH FULL CONTEXT FAILED THREE
-TIMES IN A ROW.** Driving the chain end to end, a session tried to make one word's edit to a
-docstring and instead:
+!! **MEASURED 2026-08-29, and the measurement is that an agent WITH FULL CONTEXT
+FAILED THREE TIMES IN A ROW.** Driving the chain end to end, a session tried to
+make one word's edit to a docstring and instead:
 
 | attempt | what it did | what it looked like |
 | --- | --- | --- |
@@ -38,13 +39,14 @@ docstring and instead:
 | 2 | `rstrip()` pulled the closer up a line, renumbering everything below | **"39 refused"** |
 | 3 | tested `raw.startswith('\"\"\"')`, missing that a declaration's docstring is INDENTED | **"2 refused"** |
 
-! **EVERY INTERMEDIATE RESULT READ AS A DEFECT IN THE SETTER**, and none was. The correct edit
-succeeds at 63 of 63 places. **The failure mode is not that the writer is careless; it is that the
-format makes carelessness indistinguishable from a system fault.**
+! **EVERY INTERMEDIATE RESULT READ AS A DEFECT IN THE SETTER**, and none was.
+The correct edit succeeds at 63 of 63 places. **The failure mode is not that the
+writer is careless; it is that the format makes carelessness indistinguishable
+from a system fault.**
 
-Roy: *"having the whole text comment marks and all is brittle and subject to breakage easily. We
-may need to rethink this and strip/fill in the comment marks ourselves else the agents are seeing
-noise and potentially creating trouble."*
+Roy: *"having the whole text comment marks and all is brittle and subject to
+breakage easily. We may need to rethink this and strip/fill in the comment marks
+ourselves else the agents are seeing noise and potentially creating trouble."*
 
 ## The proposal
 

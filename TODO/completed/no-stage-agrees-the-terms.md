@@ -18,15 +18,17 @@ Reassigned: 2026-08-24 — Filed `agents`, reassigned `systems` the same day. Ro
 
 ## Objective
 
-**There is no stage where the terms are agreed, and the cost is a loose word read as permission.**
-Roy, 2026-08-24: *"Most of our back and forth is about making certain we both -- and the system --
-are clear on what the words mean, so we can be certain about what each is stating. We do not have
-a stage in the agents for that specific thing. And we can see how that goes all through this code
-base. **A loose term here gets interpreted as allowing something that it shouldn't, or implies
-something that it doesn't.**"*
+**There is no stage where the terms are agreed, and the cost is a loose word
+read as permission.** Roy, 2026-08-24: *"Most of our back and forth is about
+making certain we both -- and the system -- are clear on what the words mean, so
+we can be certain about what each is stating. We do not have a stage in the
+agents for that specific thing. And we can see how that goes all through this
+code base. **A loose term here gets interpreted as allowing something that it
+shouldn't, or implies something that it doesn't.**"*
 
-!! **NINE CASES, ALL MEASURED, SEVEN OF THEM ON ONE DAY.** This is not an argument from
-principle; it is what 2026-08-24 produced while the subject was something else:
+!! **NINE CASES, ALL MEASURED, SEVEN OF THEM ON ONE DAY.** This is not an
+argument from principle; it is what 2026-08-24 produced while the subject was
+something else:
 
 | the word | what it was read as | what it cost |
 | --- | --- | --- |
@@ -40,34 +42,38 @@ principle; it is what 2026-08-24 produced while the subject was something else:
 | **`a data row`** | the cost of adding a language | true lexically, false for a tokenized one -- a claim about cost that invites someone to make the change and discover it |
 | **`foliator`, `folio`** | live terms | retired in code, alive in ~25 sentences of a plan, past every gate |
 
-! **NOT ONE OF THE NINE WAS FOUND BY A GATE.** Each was found by a person reading a sentence and
-disagreeing with it, which is the same finding `CLAUDE.md`'s opening section makes about prose in
-general -- **arriving one level up, about the words the system uses on itself.**
+! **NOT ONE OF THE NINE WAS FOUND BY A GATE.** Each was found by a person
+reading a sentence and disagreeing with it, which is the same finding
+`CLAUDE.md`'s opening section makes about prose in general -- **arriving one
+level up, about the words the system uses on itself.**
 
 ### What the missing stage does
 
-**It establishes, before the roles are asked to rule, what each term of art in scope MEANS -- and
-gives a role somewhere to say that a term reads two ways.** Today a role is HANDED its vocabulary
-(`vocabulary.py --reviewer <role>`, pasted at stage 4) and has no way to answer back: the handout
-is one-directional, so a term that reads two ways is resolved silently, by whichever way the role
+**It establishes, before the roles are asked to rule, what each term of art in
+scope MEANS -- and gives a role somewhere to say that a term reads two ways.**
+Today a role is HANDED its vocabulary (`vocabulary.py --reviewer <role>`, pasted
+at stage 4) and has no way to answer back: the handout is one-directional, so a
+term that reads two ways is resolved silently, by whichever way the role
 happened to read it.
 
-!! **THE MATERIAL ALREADY EXISTS AND IS NOT WIRED TO ANYTHING.** `scripts/vocabulary_sweep.py`
-finds terms of art in the shipped tree the inventory does not list, and its own docstring says it
-is *"an INPUT, not a gate: every row needs a human to say whether it is a term."* **That is this
-stage's input with no stage to consume it.** `check_vocabulary.py` gates the other direction --
-that every key a role is given has a definition -- and neither asks whether the definition is
-read the way it was meant.
+!! **THE MATERIAL ALREADY EXISTS AND IS NOT WIRED TO ANYTHING.**
+`scripts/vocabulary_sweep.py` finds terms of art in the shipped tree the
+inventory does not list, and its own docstring says it is *"an INPUT, not a
+gate: every row needs a human to say whether it is a term."* **That is this
+stage's input with no stage to consume it.** `check_vocabulary.py` gates the
+other direction -- that every key a role is given has a definition -- and
+neither asks whether the definition is read the way it was meant.
 
-! **AND THE REGISTER MAY ALREADY NAME IT.** A copy desk builds a **style sheet** for a job and a
-**word list** within it -- every term of art and the decision taken about it, built AS THE WORK
-GOES and travelling with the job. ! Stage 1 already finds *"the repo's style sheet"*, which is
-spelling and hyphenation; whether this is the same artifact grown, or a second one, is T1. **The
-name comes last**, per `CLAUDE.md`: what the job IS is above.
+! **AND THE REGISTER MAY ALREADY NAME IT.** A copy desk builds a **style sheet**
+for a job and a **word list** within it -- every term of art and the decision
+taken about it, built AS THE WORK GOES and travelling with the job. ! Stage 1
+already finds *"the repo's style sheet"*, which is spelling and hyphenation;
+whether this is the same artifact grown, or a second one, is T1. **The name
+comes last**, per `CLAUDE.md`: what the job IS is above.
 
-! **T7 IS WHAT KEEPS THIS FROM BEING A GOOD IDEA NOBODY CAN CHECK.** The nine cases are the test
-set: a stage that would have caught none of them is not worth its tokens, and the number it
-catches is the measurement this file is graded on.
+! **T7 IS WHAT KEEPS THIS FROM BEING A GOOD IDEA NOBODY CAN CHECK.** The nine
+cases are the test set: a stage that would have caught none of them is not worth
+its tokens, and the number it catches is the measurement this file is graded on.
 
 ## Tasks
 

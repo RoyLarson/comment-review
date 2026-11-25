@@ -12,7 +12,8 @@ Raised:   2026-08-29 (2026-08-29, designing P4 with Roy -- `binder` goes out and
 
 ## Objective
 
-The middle has no container for one stage's marks, so nothing can reconcile them.
+The middle has no container for one stage's marks, so nothing can reconcile
+them.
 
 ## Tasks
 

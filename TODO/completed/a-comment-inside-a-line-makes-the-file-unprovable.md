@@ -40,18 +40,19 @@ no record. That is the cause-reporting work below and it stands on its own.
 
 ## Objective
 
-**The census has three positions for a comment on a line -- the whole line, a prefix, a suffix --
-and a block comment can also sit in the MIDDLE.** That fourth shape cannot be split into code
-and prose without losing one of them, so the lexical reader keeps the line whole and
-`prove_unchanged` routes the file to `unprovable`.
+**The census has three positions for a comment on a line -- the whole line, a
+prefix, a suffix -- and a block comment can also sit in the MIDDLE.** That
+fourth shape cannot be split into code and prose without losing one of them, so
+the lexical reader keeps the line whole and `prove_unchanged` routes the file to
+`unprovable`.
 
-That is the SAFE direction and it is deliberate: cutting at the opener drops the trailing `5;`
-in `int x = /* why */ 5;`, so `5` and `7` compare equal and the proof reports PROVEN on changed
-executable code. ! **Do not "fix" this by cutting.** It was written that way once and the
-existing midline test caught it.
+That is the SAFE direction and it is deliberate: cutting at the opener drops the
+trailing `5;` in `int x = /* why */ 5;`, so `5` and `7` compare equal and the
+proof reports PROVEN on changed executable code. ! **Do not "fix" this by
+cutting.** It was written that way once and the existing midline test caught it.
 
-But safe is not useful. On a file carrying the shape, stage 7b's code check is unavailable and
-four reviewers are handed a line of executable code as prose.
+But safe is not useful. On a file carrying the shape, stage 7b's code check is
+unavailable and four reviewers are handed a line of executable code as prose.
 
 ## The eight refusals, and where the cause is thrown away
 

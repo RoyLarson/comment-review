@@ -16,33 +16,38 @@ Closed:   2026-08-23 -- every task here is settled. `check_vocabulary.py` report
 
 ## Objective
 
-**A retired word inside a quoted ruling forced a whole-file exemption -- and the collision was
-resolved by removing the history rather than by exempting anything.**
+**A retired word inside a quoted ruling forced a whole-file exemption -- and the
+collision was resolved by removing the history rather than by exempting
+anything.**
 
-!! **THE TWO RULES THAT COLLIDED, AND BOTH WERE ROY'S.** `CLAUDE.md`: *"When a ruling is quoted
-here, quote all of it"* -- changing a word inside a quotation is worse than shortening one,
-because nothing marks the edit. And Roy, 2026-08-19, on the vocabulary gate: a file carrying the
-marker is *"EXEMPT WHOLE"*, because exempting a LINE would let a retired word creep back into a
+!! **THE TWO RULES THAT COLLIDED, AND BOTH WERE ROY'S.** `CLAUDE.md`: *"When a
+ruling is quoted here, quote all of it"* -- changing a word inside a quotation
+is worse than shortening one, because nothing marks the edit. And Roy,
+2026-08-19, on the vocabulary gate: a file carrying the marker is *"EXEMPT
+WHOLE"*, because exempting a LINE would let a retired word creep back into a
 file about the current representation *"one suppression at a time."*
 
-! **MEASURED 2026-08-23: the mechanical rename rewrote SIX quotations across five shipped
-modules** -- `addresser.py`, `lexer.py`, `page.py`, `galley.py`, `compositor.py` -- and every
-gate stayed green. Only reading them caught it. The sharpest was a SUPERSEDED ruling quoted as
-saying `path@cue`, a word ruled three days after the ruling was made. They were restored at
-`2f9ee2c`, and 32 more at `b048c72`.
+! **MEASURED 2026-08-23: the mechanical rename rewrote SIX quotations across
+five shipped modules** -- `addresser.py`, `lexer.py`, `page.py`, `galley.py`,
+`compositor.py` -- and every gate stayed green. Only reading them caught it. The
+sharpest was a SUPERSEDED ruling quoted as saying `path@cue`, a word ruled three
+days after the ruling was made. They were restored at `2f9ee2c`, and 32 more at
+`b048c72`.
 
-!! **RULING ONE, `0d53a8a`: a quoted span is exempt only where no agent reads it.** Roy: *"Yes, a
-quoted span is exempt -- add folio to RETIRED"*, narrowed to *"the specific doc files that could
-have old references"*, with *"strict no mistakes even quoted in the agents files."* Measured
-there: of the 31 `foli*` uses left in the shipped tree, ZERO were in `agents/`, `SKILL.md` or
+!! **RULING ONE, `0d53a8a`: a quoted span is exempt only where no agent reads
+it.** Roy: *"Yes, a quoted span is exempt -- add folio to RETIRED"*, narrowed to
+*"the specific doc files that could have old references"*, with *"strict no
+mistakes even quoted in the agents files."* Measured there: of the 31 `foli*`
+uses left in the shipped tree, ZERO were in `agents/`, `SKILL.md` or
 `references/`; all 31 were inside quotations in `scripts/*.py`.
 
-!! **RULING TWO, `8141b7a`, LATER THE SAME DAY, AND IT SUPERSEDES THE FIRST.** Roy: *"It simply
-isn't necessary to know the history to understand the code. It is a bad habit to think it needs
-it."* The quotations came out of the shipped code, the exemption came out of the gate, and what
-survives is the rule and the reason -- both checkable against the code in front of the reader.
-! A pointer to a decision-log entry is not a way round it: Roy, on the first attempt, *"Making a
-link referencing the change is just prose history laundering."*
+!! **RULING TWO, `8141b7a`, LATER THE SAME DAY, AND IT SUPERSEDES THE FIRST.**
+Roy: *"It simply isn't necessary to know the history to understand the code. It
+is a bad habit to think it needs it."* The quotations came out of the shipped
+code, the exemption came out of the gate, and what survives is the rule and the
+reason -- both checkable against the code in front of the reader. ! A pointer to
+a decision-log entry is not a way round it: Roy, on the first attempt, *"Making
+a link referencing the change is just prose history laundering."*
 
 **WHAT SHIPS NOW, verified 2026-08-23:**
 
@@ -55,9 +60,10 @@ link referencing the change is just prose history laundering."*
   use, `portfolio` does not, and `cv` carries no `QUOTED` or `AGENT_FACING` attribute.
 - `docs/vocabulary.md:49` records `folio -> cue` with the error it shipped as a DEFINITION.
 
-! **THE CREEP ARGUMENT WAS ANSWERED BY NOT NEEDING AN EXEMPTION AT ALL.** The question this file
-asked -- whether a quoted span is exempt, given the repo already marks quotes one way as
-`*"..."*` -- has no live remainder: there is nothing left to exempt.
+! **THE CREEP ARGUMENT WAS ANSWERED BY NOT NEEDING AN EXEMPTION AT ALL.** The
+question this file asked -- whether a quoted span is exempt, given the repo
+already marks quotes one way as `*"..."*` -- has no live remainder: there is
+nothing left to exempt.
 
 ## Tasks
 

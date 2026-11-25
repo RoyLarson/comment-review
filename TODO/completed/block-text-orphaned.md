@@ -14,16 +14,16 @@ Raised:   2026-08-26 (the final simplify pass on feat/the-write-chain-of-command
 `block_text` (`src/comment_review/reading/lexer.py:457`) has no caller anywhere
 under `src/`, `plugins/` or `tests/` -- MEASURED: `grep -rn block_text` over
 those trees matches only the definition itself and its own docstring.
-`prototype/original/desk.py` still calls it, but `prototype/` is reference
-only and nothing imports it.
+`prototype/original/desk.py` still calls it, but `prototype/` is reference only
+and nothing imports it.
 
 Its last real caller was `desk.as_block`, which existed continuously from the
-function's introduction until commit `b50e7a4` ("the middle moves to
-prototype/, and the new suite replaces the old one", 2026-08-25) deleted
+function's introduction until commit `b50e7a4` ("the middle moves to prototype/,
+and the new suite replaces the old one", 2026-08-25) deleted
 `src/comment_review/desk/desk.py` wholesale -- `git log --follow -p --
-src/comment_review/desk/desk.py` shows the import
-`from comment_review.reading.lexer import block_text, language_for` removed in
-that same diff.
+src/comment_review/desk/desk.py` shows the import `from
+comment_review.reading.lexer import block_text, language_for` removed in that
+same diff.
 
 Not this branch's to cut: it is orphaned code, and a cut needs its own
 consideration rather than riding in on an unrelated pass.

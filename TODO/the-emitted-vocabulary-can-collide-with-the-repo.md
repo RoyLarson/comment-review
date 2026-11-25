@@ -16,32 +16,35 @@ Split:    2026-08-23 -- 4 boxes became 6. The style-sheet box held the section a
 
 ## Objective
 
-**Every reviewer is handed a vocabulary and told *"These words have one meaning in this
-system."* Nothing checks those words against the repo being reviewed.**
+**Every reviewer is handed a vocabulary and told *"These words have one meaning
+in this system."* Nothing checks those words against the repo being reviewed.**
 
 MEASURED 2026-08-23: `references/vocabulary.toml` holds 59 definitions, and
-`vocabulary.terms_for` gives `ownership-context` 43, `block-context` 42, `function-context` 43
-and `module-context` 46 of them. `vocabulary.py:72-73` renders the header verbatim into each
-prompt: *"These words have one meaning in this system. Where you are unsure what a word means,
-it is here; where it is not here, it is ordinary English."*
+`vocabulary.terms_for` gives `ownership-context` 43, `block-context` 42,
+`function-context` 43 and `module-context` 46 of them. `vocabulary.py:72-73`
+renders the header verbatim into each prompt: *"These words have one meaning in
+this system. Where you are unsure what a word means, it is here; where it is not
+here, it is ordinary English."*
 
-! **The 2026-08-17 worked example is retired and the hazard is not.** `block` was the term that
-collided on a training-plan codebase, where it means a training block. It is no longer emitted
--- `paragraph` replaced it, and `scripts/check_vocabulary.py`'s RETIRED check refuses its return
-(*"`block` survived in 298 places after `paragraph` replaced it"*). The words that ship in its
-place are the same kind of word: measured against `vocabulary.toml`, the emitted set includes
-`page`, `census`, `record`, `sentence`, `statement`, `series`, `cue`, `owner`, `anchor`
-and `mark` -- each of which an ordinary codebase can use for something else, and all ten
-verified 2026-08-23 as terms `ownership-context` is GIVEN rather than merely defined.
+! **The 2026-08-17 worked example is retired and the hazard is not.** `block`
+was the term that collided on a training-plan codebase, where it means a
+training block. It is no longer emitted -- `paragraph` replaced it, and
+`scripts/check_vocabulary.py`'s RETIRED check refuses its return (*"`block`
+survived in 298 places after `paragraph` replaced it"*). The words that ship in
+its place are the same kind of word: measured against `vocabulary.toml`, the
+emitted set includes `page`, `census`, `record`, `sentence`, `statement`,
+`series`, `cue`, `owner`, `anchor` and `mark` -- each of which an ordinary
+codebase can use for something else, and all ten verified 2026-08-23 as terms
+`ownership-context` is GIVEN rather than merely defined.
 
-! `scripts/check_vocabulary.py` proves the shipped tree consistent with itself -- 59 definitions
-across 6 roles, 0 holes, 0 defined twice, 0 roles drifted, 8 retired words unused. It says
-nothing about the tree under review, correctly: it is a repo tool and the review happens
-elsewhere.
+! `scripts/check_vocabulary.py` proves the shipped tree consistent with itself
+-- 59 definitions across 6 roles, 0 holes, 0 defined twice, 0 roles drifted, 8
+retired words unused. It says nothing about the tree under review, correctly: it
+is a repo tool and the review happens elsewhere.
 
-! `SKILL.md:257-264` asks the style sheet for *"terms of art with a fixed meaning"* -- the
-REPO's terms. It does not ask which of them collide with ours, and the collision is the
-dangerous half.
+! `SKILL.md:257-264` asks the style sheet for *"terms of art with a fixed
+meaning"* -- the REPO's terms. It does not ask which of them collide with ours,
+and the collision is the dangerous half.
 
 ## ! What LOOKING for collisions would cost, and the recommendation
 

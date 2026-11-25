@@ -31,25 +31,28 @@ TRIAGED:  2026-08-23 -- `locator.py` NO LONGER EXISTS. Tasks 1-4 name it and are
 
 ## Objective
 
-!! **AN EMPTY PLACE SITS AT LINE 0 BY RULING, AND THE LISTING SORTS BY LINE.** So every place
-an `add` exists to cite floats above the file it belongs to, in a listing whose job is to let a
-reviewer find where prose goes.
+!! **AN EMPTY PLACE SITS AT LINE 0 BY RULING, AND THE LISTING SORTS BY LINE.**
+So every place an `add` exists to cite floats above the file it belongs to, in a
+listing whose job is to let a reviewer find where prose goes.
 
-MEASURED 2026-08-23, `census.py --repo . tests/fixtures/sample.py`: **7 of 18 rows print before
-line 1**, each with a `0-0` span -- `f0`, `f1`, then `b0`, `b2`, `b3`, `b4`, `b5`. The remaining
-eleven print in source order. ! The symptom recorded in 2026-08-19 has INVERTED: this file says
-*"`@b0` printing after `@a4`"*; today `@b0` prints BEFORE `@a0`. The cause is unchanged -- a
-zero span sorts first -- and the `f` series did not exist when the original example was written.
+MEASURED 2026-08-23, `census.py --repo . tests/fixtures/sample.py`: **7 of 18
+rows print before line 1**, each with a `0-0` span -- `f0`, `f1`, then `b0`,
+`b2`, `b3`, `b4`, `b5`. The remaining eleven print in source order. ! The
+symptom recorded in 2026-08-19 has INVERTED: this file says *"`@b0` printing
+after `@a4`"*; today `@b0` prints BEFORE `@a0`. The cause is unchanged -- a zero
+span sorts first -- and the `f` series did not exist when the original example
+was written.
 
 !! **AND `--filtered` MAKES A RUN THAT DOES NOT EXIST.** Same file, same day:
-`census.py --filtered` prints one row reading `3-7  @b0..b5  0-0  no-prose  0L  5-intervals`.
-Five separate places are presented as one contiguous run, **and `b1` is named by the range while
-being excluded from it** -- `b1` is a real 2-line comment at lines 4-7, printed on its own row
-below. A reviewer reading `@b0..b5` as a span reads a place into it that is not there.
+`census.py --filtered` prints one row reading `3-7  @b0..b5  0-0  no-prose  0L
+5-intervals`. Five separate places are presented as one contiguous run, **and
+`b1` is named by the range while being excluded from it** -- `b1` is a real
+2-line comment at lines 4-7, printed on its own row below. A reviewer reading
+`@b0..b5` as a span reads a place into it that is not there.
 
-! **The locator half of this file is history.** `locator.py` was the second tool that answered
-by line and it no longer exists; tasks 1-4 record what it did wrong and stay ticked so the
-error remains legible.
+! **The locator half of this file is history.** `locator.py` was the second tool
+that answered by line and it no longer exists; tasks 1-4 record what it did
+wrong and stay ticked so the error remains legible.
 
 ## What the ticked boxes recorded
 

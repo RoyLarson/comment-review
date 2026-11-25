@@ -55,24 +55,25 @@ Updated:  2026-08-24 — The TRIAGED note above names FOUR ast importers and thi
 
 ## Objective
 
-**The lexer cannot read Python. `ast` reads it, and `ast` is the interpreter running the
-tool** -- so the tool can only read code its own floor can parse.
+**The lexer cannot read Python. `ast` reads it, and `ast` is the interpreter
+running the tool** -- so the tool can only read code its own floor can parse.
 
-!! **MEASURED: 3.11 IS THE FLOOR AND IT CANNOT PARSE 3.14 CODE.** `.python-version` pins 3.11
-because that is what `plugins/` ships against, and any syntax added after it fails to parse.
-Measured on NumPy. **This breaks on every new version of the language, permanently** -- it is
-not a bug to fix once, it is the shape of depending on the running interpreter to read the
-subject.
+!! **MEASURED: 3.11 IS THE FLOOR AND IT CANNOT PARSE 3.14 CODE.**
+`.python-version` pins 3.11 because that is what `plugins/` ships against, and
+any syntax added after it fails to parse. Measured on NumPy. **This breaks on
+every new version of the language, permanently** -- it is not a bug to fix once,
+it is the shape of depending on the running interpreter to read the subject.
 
-! **AN UNPARSED PAGE SETS AS AN EMPTY FILE**, which is the sharp edge: the failure is silent
-at the point it matters.
+! **AN UNPARSED PAGE SETS AS AN EMPTY FILE**, which is the sharp edge: the
+failure is silent at the point it matters.
 
-! **Everything else this file used to carry -- the four AST dependencies, the trade, the
-position rule, the PEP 701 case, the Lisp argument -- is reasoning and measurement, not work.**
-It is kept below, in the record, as how the ruling was reached.
+! **Everything else this file used to carry -- the four AST dependencies, the
+trade, the position rule, the PEP 701 case, the Lisp argument -- is reasoning
+and measurement, not work.** It is kept below, in the record, as how the ruling
+was reached.
 
-**Roy, 2026-08-23, ruling the scope: *"The task is simple. Make the lexer be able to parse
-python code."***
+**Roy, 2026-08-23, ruling the scope: *"The task is simple. Make the lexer be
+able to parse python code."***
 
 ## The record -- how the ruling was reached
 

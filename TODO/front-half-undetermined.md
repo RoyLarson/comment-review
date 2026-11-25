@@ -22,20 +22,23 @@ Split:    2026-08-23 -- every box cut to two lines. The one artifact box held th
 
 ## Objective
 
-**The census to findings to verdicts path has never been determined against a backend that
-works**, and what makes it askable now is that the backend does. Roy, 2026-08-22: *"that whole
-system of from census to findings to verdicts is something that needs to be determined now that
-the backend part of the system works."*
+**The census to findings to verdicts path has never been determined against a
+backend that works**, and what makes it askable now is that the backend does.
+Roy, 2026-08-22: *"that whole system of from census to findings to verdicts is
+something that needs to be determined now that the backend part of the system
+works."*
 
-!! **THE BACKEND NOW WORKS, MEASURED 2026-08-22**: a file to a census and a list of verdicts
-back to a new file, byte-identical on 3,015 of 3,020 corpus files across ten languages, 0
-collisions -- and all seven verdicts reduce to two operations, set the text at an address or
-vacate it. **Every earlier design for the front half was drawn against a back half that could
-not set a page**, which is why they are re-asked rather than resumed.
+!! **THE BACKEND NOW WORKS, MEASURED 2026-08-22**: a file to a census and a list
+of verdicts back to a new file, byte-identical on 3,015 of 3,020 corpus files
+across ten languages, 0 collisions -- and all seven verdicts reduce to two
+operations, set the text at an address or vacate it. **Every earlier design for
+the front half was drawn against a back half that could not set a page**, which
+is why they are re-asked rather than resumed.
 
-!! **WHAT CROSSES EACH OF THE THREE BOUNDARIES IS WHAT IS UNDETERMINED** -- census to reviewer,
-reviewer to record, record to verdict. Each already has a filed defect, and this file is the hub
-they resolve against rather than a duplicate of any of them:
+!! **WHAT CROSSES EACH OF THE THREE BOUNDARIES IS WHAT IS UNDETERMINED** --
+census to reviewer, reviewer to record, record to verdict. Each already has a
+filed defect, and this file is the hub they resolve against rather than a
+duplicate of any of them:
 
 | boundary | what is unsettled | filed as |
 | --- | --- | --- |
@@ -44,30 +47,35 @@ they resolve against rather than a duplicate of any of them:
 | record -> verdict | what the collator certifies -- `verdicts.py` refuses a record `record.py` accepts and the reverse; coverage is structural but a gap goes nowhere | [`a-coverage-gap-should-go-back-to-the-reviewer`](a-coverage-gap-should-go-back-to-the-reviewer.md), [`record-and-verdicts-disagree`](record-and-verdicts-disagree.md) |
 
 ! **THE ROW WAS RE-MEASURED 2026-08-23** with `census.py --json --repo .
-tests/fixtures/sample.py`: 19 keys, an `interval` fills 8 of them and an `f` fills 6. **What the
-four roles actually need decides that shape**, and it is pasted into four prompts per page.
+tests/fixtures/sample.py`: 19 keys, an `interval` fills 8 of them and an `f`
+fills 6. **What the four roles actually need decides that shape**, and it is
+pasted into four prompts per page.
 
 ! **ALSO FILED AND IN SCOPE**:
 [`ownership-is-read-first-but-nothing-makes-it-so`](ownership-is-read-first-but-nothing-makes-it-so.md),
 [`the-author-approves-blocks-and-never-sees-the-page`](the-author-approves-blocks-and-never-sees-the-page.md),
 [`a-malformed-page-drops-its-records`](a-malformed-page-drops-its-records.md).
 
-! **THE SEVEN THIS FILE IS THE HUB FOR**, all confirmed present in `TODO/` on 2026-08-23:
-`the-census-is-mostly-intervals-nobody-rules-on`, `census-row-carries-empty-fields`,
-`claim-fallback-is-unreachable`, `a-coverage-gap-should-go-back-to-the-reviewer`,
+! **THE SEVEN THIS FILE IS THE HUB FOR**, all confirmed present in `TODO/` on
+2026-08-23: `the-census-is-mostly-intervals-nobody-rules-on`,
+`census-row-carries-empty-fields`, `claim-fallback-is-unreachable`,
+`a-coverage-gap-should-go-back-to-the-reviewer`,
 `ownership-is-read-first-but-nothing-makes-it-so`,
-`the-author-approves-blocks-and-never-sees-the-page`, `a-malformed-page-drops-its-records`.
+`the-author-approves-blocks-and-never-sees-the-page`,
+`a-malformed-page-drops-its-records`.
 
-!! **AND FOUR OF THE RECORD/VERDICTS FINDINGS ARE ONE CLASS**: `record.py --check` refuses a
-record `verdicts.py` admits, and **the admitting one is the gate that certifies a review.**
-! Which of the two is right is not answerable until this determination settles what a record IS,
-which is why they are deferred to an independent session on
-[`record-and-verdicts-disagree`](record-and-verdicts-disagree.md) rather than fixed one at a
-time.
+!! **AND FOUR OF THE RECORD/VERDICTS FINDINGS ARE ONE CLASS**: `record.py
+--check` refuses a record `verdicts.py` admits, and **the admitting one is the
+gate that certifies a review.** ! Which of the two is right is not answerable
+until this determination settles what a record IS, which is why they are
+deferred to an independent session on
+[`record-and-verdicts-disagree`](record-and-verdicts-disagree.md) rather than
+fixed one at a time.
 
-!! **WITHOUT A WRITTEN STATEMENT OF WHAT *DETERMINED* MEANS, THIS FILE STAYS OPEN FOREVER.** The
-statement is one per boundary, with the fields NAMED, and every named field is either a key
-`census.py --json` already emits or one this determination adds.
+!! **WITHOUT A WRITTEN STATEMENT OF WHAT *DETERMINED* MEANS, THIS FILE STAYS
+OPEN FOREVER.** The statement is one per boundary, with the fields NAMED, and
+every named field is either a key `census.py --json` already emits or one this
+determination adds.
 
 ## Tasks
 

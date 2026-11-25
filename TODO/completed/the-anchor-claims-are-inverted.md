@@ -13,27 +13,30 @@ Triaged:  2026-08-23 -- both claims re-checked against the tree. Both are still 
 
 ## Objective
 
-**Two shipped files tell a reviewer that an anchor may be absent, and one of them also says an
-anchor is a declaration. Neither is true of what `census.py` emits, and the second is read
-VERBATIM by every reviewer.**
+**Two shipped files tell a reviewer that an anchor may be absent, and one of
+them also says an anchor is a declaration. Neither is true of what `census.py`
+emits, and the second is read VERBATIM by every reviewer.**
 
-MEASURED 2026-08-23 -- `census.py --json --repo .` over the 20 shipped scripts: 8,738
-paragraphs, **687 of them holding prose (`comment`, `docstring`, `trailing-comment`), and every
-one of the 687 carries a non-empty anchor.** The 401 empty anchors in that run are ALL of kind
-`leading` -- a zero-line place that holds no prose, carries no address and gets no record slot,
-so it reaches no reviewer. **The field a reviewer is handed is never empty.**
+MEASURED 2026-08-23 -- `census.py --json --repo .` over the 20 shipped scripts:
+8,738 paragraphs, **687 of them holding prose (`comment`, `docstring`,
+`trailing-comment`), and every one of the 687 carries a non-empty anchor.** The
+401 empty anchors in that run are ALL of kind `leading` -- a zero-line place
+that holds no prose, carries no address and gets no record slot, so it reaches
+no reviewer. **The field a reviewer is handed is never empty.**
 
-! The earlier reading (0 empty in 7,371 paragraphs over 15 scripts) was taken before `leading`
-existed. The count changed; the conclusion did not.
+! The earlier reading (0 empty in 7,371 paragraphs over 15 scripts) was taken
+before `leading` existed. The count changed; the conclusion did not.
 
-! **`anchor` is a LINE OF CODE, not a declaration.** `vocabulary.toml:25`: *"The LINE OF CODE
-that an address is attached to -- the exact characters on it."* Observed anchors in the same run
-include `        return`, `        continue` and `    try:`.
+! **`anchor` is a LINE OF CODE, not a declaration.** `vocabulary.toml:25`: *"The
+LINE OF CODE that an address is attached to -- the exact characters on it."*
+Observed anchors in the same run include `        return`, `        continue`
+and `    try:`.
 
 !! **`census.py` ALREADY PRINTS THE CORRECT CLAIM.** `census.py:454-458` prints
-*"! EVERY address carries an anchor -- the LINE OF CODE it attaches to, at both tiers"*,
-unconditionally, on every run. The two files below contradict a line the reviewer's own tool
-emits, which is why this is worth fixing rather than tolerating.
+*"! EVERY address carries an anchor -- the LINE OF CODE it attaches to, at both
+tiers"*, unconditionally, on every run. The two files below contradict a line
+the reviewer's own tool emits, which is why this is worth fixing rather than
+tolerating.
 
 ## The three false sentences
 

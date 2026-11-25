@@ -18,9 +18,17 @@ Ruled:    2026-08-21 — 2026-08-21 -- INPUT, not a gate. Roy: 'I don't think it
 
 ## Objective
 
-!! **FOUR MODULE-LEVEL NAMES WENT DEAD IN THIS REPO AND NO GATE SAID SO.** Ruff flags an unused import and an unused local; a constant or function nobody reads is invisible to it. `record.ANCHOR_SIDE` survived long enough to be found by a code-review agent READING the file, and three more died inside one session -- `OPENER`, `CODE_CONCERNS` and `PATHISH` -- each when the last thing that read it was deleted. `foliator.line_address()` was 63 lines with zero callers anywhere.
+!! **FOUR MODULE-LEVEL NAMES WENT DEAD IN THIS REPO AND NO GATE SAID SO.** Ruff
+flags an unused import and an unused local; a constant or function nobody reads
+is invisible to it. `record.ANCHOR_SIDE` survived long enough to be found by a
+code-review agent READING the file, and three more died inside one session --
+`OPENER`, `CODE_CONCERNS` and `PATHISH` -- each when the last thing that read it
+was deleted. `foliator.line_address()` was 63 lines with zero callers anywhere.
 
-! **A dead name is not merely tidy-up.** Each of these was a claim: the file still said what the constant was FOR, so a reader -- human or agent -- learned a rule the system no longer had. That is the same defect class this plugin exists to catch, in the one place its four editorial roles cannot look.
+! **A dead name is not merely tidy-up.** Each of these was a claim: the file
+still said what the constant was FOR, so a reader -- human or agent -- learned a
+rule the system no longer had. That is the same defect class this plugin exists
+to catch, in the one place its four editorial roles cannot look.
 
 ## Tasks
 

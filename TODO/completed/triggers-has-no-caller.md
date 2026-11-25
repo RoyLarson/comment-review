@@ -11,7 +11,8 @@ Raised:   2026-08-20 (found while collapsing three code-line functions into one 
 
 ## Objective
 
-addresser.triggers() has no production caller and takes a shape the walk no longer uses.
+addresser.triggers() has no production caller and takes a shape the walk no
+longer uses.
 
 ## Tasks
 

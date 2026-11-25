@@ -25,12 +25,13 @@ DOGFOOD:  2026-08-23 -- 2026-08-23, Roy: 'if we can finally get to the finish of
 
 ## Objective
 
-Shipped docstrings that contradict themselves or their own bodies. **Six at filing; four survive
-at 2026-08-23.** They are held, not fixed, because they are the graded input to the first
-dogfood run of this tool on its own scripts.
+Shipped docstrings that contradict themselves or their own bodies. **Six at
+filing; four survive at 2026-08-23.** They are held, not fixed, because they are
+the graded input to the first dogfood run of this tool on its own scripts.
 
-! Two closed on their own, which is why the file is re-read rather than trusted: the galley was
-rewritten out from under one pair, and the set-comparison that justified another was deleted.
+! Two closed on their own, which is why the file is re-read rather than trusted:
+the galley was rewritten out from under one pair, and the set-comparison that
+justified another was deleted.
 
 ## The pairs, as read on 2026-08-23
 

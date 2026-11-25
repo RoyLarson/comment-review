@@ -11,7 +11,8 @@ Raised:   2026-08-22 (/simplify rounds 1 and 2, 2026-08-22, both rounds independ
 
 ## Objective
 
-The tier is dispatched on the language NAME, so a second tokenized language is not a data row.
+The tier is dispatched on the language NAME, so a second tokenized language is
+not a data row.
 
 ## Tasks
 

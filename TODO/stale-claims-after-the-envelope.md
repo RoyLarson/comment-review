@@ -17,36 +17,40 @@ SPLIT:    2026-08-23 -- the boxes were cut to two lines each. Old T1 held the re
 
 ## Objective
 
-**Shipped prose still describes formats and flags this branch deleted.** These are the obituary
-class `block-context` is chartered to catch, shipping inside the tool that catches it. Re-taken
-2026-08-23; the citations below are today's.
+**Shipped prose still describes formats and flags this branch deleted.** These
+are the obituary class `block-context` is chartered to catch, shipping inside
+the tool that catches it. Re-taken 2026-08-23; the citations below are today's.
 
 ### What the boxes carried -- the citations, moved out of the tasks
 
-! **T1 -- the second record format, four sites in `record.py`.** `:6-11` says a record *"used to
-travel as prose that `verdicts.py` reconstructed a table from by guessing where each field
-ended"*; `:518` returns *"the rendered claim for a text record"*; `:573-584` explains *"the
-marker form the text record carried"* and what *"the old format carried"*. ! The fifth site,
-said to be in `desk.py`, was NOT found on re-read: its history lines (`:130`, `:207`) are about
-`desk`'s own behaviour, not a second record format. ! `uv run pytest -q` must stay green.
+! **T1 -- the second record format, four sites in `record.py`.** `:6-11` says a
+record *"used to travel as prose that `verdicts.py` reconstructed a table from
+by guessing where each field ended"*; `:518` returns *"the rendered claim for a
+text record"*; `:573-584` explains *"the marker form the text record carried"*
+and what *"the old format carried"*. ! The fifth site, said to be in `desk.py`,
+was NOT found on re-read: its history lines (`:130`, `:207`) are about `desk`'s
+own behaviour, not a second record format. ! `uv run pytest -q` must stay green.
 
-! **T2 -- the same paragraph contradicts itself.** `record.py:14` says `--seed` writes a slot
-with *"`paragraph` and `address` already in it"*, while `record.SEEDED` is `("place", "anchor")`
-and `:699` reads *"THE ADDRESS AND NOTHING ELSE"*.
+! **T2 -- the same paragraph contradicts itself.** `record.py:14` says `--seed`
+writes a slot with *"`paragraph` and `address` already in it"*, while
+`record.SEEDED` is `("place", "anchor")` and `:699` reads *"THE ADDRESS AND
+NOTHING ELSE"*.
 
-! **T3.** `addresser.py`'s module usage line named `--repo`, which argparse rejects.
+! **T3.** `addresser.py`'s module usage line named `--repo`, which argparse
+rejects.
 
-! **T4 and T5 -- the uniqueness example.** `docs/addressing.md:142` states *"Every ADDRESS is
-unique -- measured `a0 b1 b2 b3 c1 c2`"* over the five-line example directly above it. MEASURED
-2026-08-23: `addresser.py:85` rules that **every series starts at 0**, and `f0` -- the file's own
-matter -- is a fourth series that the cue emits at the module (`:78`, `:176`), so the cited
-spelling cannot be what that example yields. ! `CLAUDE.md` calls this file the crux, and the
-command that produced the cues has to be named beside them.
+! **T4 and T5 -- the uniqueness example.** `docs/addressing.md:142` states
+*"Every ADDRESS is unique -- measured `a0 b1 b2 b3 c1 c2`"* over the five-line
+example directly above it. MEASURED 2026-08-23: `addresser.py:85` rules that
+**every series starts at 0**, and `f0` -- the file's own matter -- is a fourth
+series that the cue emits at the module (`:78`, `:176`), so the cited spelling
+cannot be what that example yields. ! `CLAUDE.md` calls this file the crux, and
+the command that produced the cues has to be named beside them.
 
-! **T6 -- the record envelope.** `reviewer-brief.md:93-107` shows a bare `{page, records}` while
-`record.seed()` writes `{record_version, reviewer, allowed, pages, code_concerns}`
-(`record.py:873-883`), with the pages under `pages` -- and the brief is a reviewer's only spec
-for the shape this branch changed.
+! **T6 -- the record envelope.** `reviewer-brief.md:93-107` shows a bare `{page,
+records}` while `record.seed()` writes `{record_version, reviewer, allowed,
+pages, code_concerns}` (`record.py:873-883`), with the pages under `pages` --
+and the brief is a reviewer's only spec for the shape this branch changed.
 
 ## Tasks
 

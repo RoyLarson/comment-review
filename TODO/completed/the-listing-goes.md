@@ -11,7 +11,8 @@ Raised:   2026-09-06 (Roy, 2026-09-06, decision-log.md Process: #99: the gather 
 
 ## Objective
 
-The listing goes: gather writes the binder only, and a reviewer is handed the binder and its seeded edit copy.
+The listing goes: gather writes the binder only, and a reviewer is handed the
+binder and its seeded edit copy.
 
 ## Tasks
 

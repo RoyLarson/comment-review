@@ -10,9 +10,9 @@ Raised:   2026-08-18 (Roy, 2026-08-18, from two files differing only in comments
 
 ## Objective
 
-!! **TWO FILES DIFFERING ONLY IN COMMENTS DO NOT AGREE ON WHERE THE CODE IS.** Roy,
-2026-08-18: *"both of the examples should have the same address for the code lines."*
-They do not, and the census says so:
+!! **TWO FILES DIFFERING ONLY IN COMMENTS DO NOT AGREE ON WHERE THE CODE IS.**
+Roy, 2026-08-18: *"both of the examples should have the same address for the
+code lines."* They do not, and the census says so:
 
 ```python
 # a.py                                          # b.py
@@ -31,12 +31,14 @@ a.py:6-6  trailing-comment
 a.py:6-6  interval
 ```
 
-The same two statements sit at lines **2 and 6** in one file and **2 and 3** in the other.
+The same two statements sit at lines **2 and 6** in one file and **2 and 3** in
+the other.
 
-!! **AND THE STRUCTURE CHANGES, not only the numbers.** In `b.py` the gap between the two
-statements is one interval, `b.py:2-3`. In `a.py` there is NO interval between them at all --
-prose fills it, so the gap is a comment block. Nothing can say the two files name the same
-place, because in one of them the place is not the same KIND of thing.
+!! **AND THE STRUCTURE CHANGES, not only the numbers.** In `b.py` the gap
+between the two statements is one interval, `b.py:2-3`. In `a.py` there is NO
+interval between them at all -- prose fills it, so the gap is a comment block.
+Nothing can say the two files name the same place, because in one of them the
+place is not the same KIND of thing.
 
 ## Why it matters HERE and not in general
 

@@ -21,9 +21,9 @@ Done:     2026-08-20 — `page.code_lines(text, prose) -> dict[int, str]` is the
 
 ## Objective
 
-!! **THE THREE FUNCTIONS ARE ONE STRUCTURE ASKED THREE WAYS.** Roy, 2026-08-20: *"the fact that
-you said 'sets' ... leaves me thinking we have a sorted-dictionary or it should always be a
-list."*
+!! **THE THREE FUNCTIONS ARE ONE STRUCTURE ASKED THREE WAYS.** Roy, 2026-08-20:
+*"the fact that you said 'sets' ... leaves me thinking we have a
+sorted-dictionary or it should always be a list."*
 
 | today | returns | the question it answers |
 | --- | --- | --- |
@@ -31,10 +31,10 @@ list."*
 | `code_lines(text, prose)` | `set[int]` | the same, for MEMBERSHIP |
 | `lines_of_code(text, prose)` | `list[tuple[int, str]]` | each code line WITH its characters |
 
-! **The `set` is the tell.** One caller wants membership, another wants order, so there are two
-shapes and a `sorted()` bridging them -- and nearly every call site writes
-`sorted(code_lines(...))`, converting the set back into the ascending list the first function
-already returns.
+! **The `set` is the tell.** One caller wants membership, another wants order,
+so there are two shapes and a `sorted()` bridging them -- and nearly every call
+site writes `sorted(code_lines(...))`, converting the set back into the
+ascending list the first function already returns.
 
 ## What it should be
 

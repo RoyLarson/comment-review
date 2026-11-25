@@ -9,16 +9,17 @@ Raised:   2026-08-17, by Roy, after three parser defects of one shape in one day
 
 ## Objective
 
-**A reviewer fills in a text form and `verdicts.py` reconstructs a table from it by guessing
-where each field ends.** Roy: *"this is clearly that we are passing around the 'wrong' data
-structure if the error is coming from how the agent has to fill out the template. This says we
-should be using a real class or something that it can paste into and knows that it is receiving
-strings, not 'can I parse this into the table'."*
+**A reviewer fills in a text form and `verdicts.py` reconstructs a table from it
+by guessing where each field ends.** Roy: *"this is clearly that we are passing
+around the 'wrong' data structure if the error is coming from how the agent has
+to fill out the template. This says we should be using a real class or something
+that it can paste into and knows that it is receiving strings, not 'can I parse
+this into the table'."*
 
 Every defect in
 [`the-parser-merges-across-boundaries-it-cannot-read`](../the-parser-merges-across-boundaries-it-cannot-read.md)
-is a boundary guess. The guessing is the defect surface, and it exists only because the record
-travels as prose.
+is a boundary guess. The guessing is the defect surface, and it exists only
+because the record travels as prose.
 
 ## What the change would actually buy
 

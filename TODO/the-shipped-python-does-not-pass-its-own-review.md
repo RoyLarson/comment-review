@@ -19,17 +19,20 @@ Split:    2026-08-24 -- second pass, eleven boxes to twelve. RUN and GRADE were 
 
 ## Objective
 
-!! **The reason is not tidiness -- it is what the system learns from reading itself.** Roy,
-2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*
-`CLAUDE.md` carries the same argument for vocabulary: an agent reads these files and then writes
-in them, so the REGISTER is an instruction. A repo whose own scripts spend a fifth of their prose
-on what the code does NOT do is demonstrating the shape its four editorial roles exist to remove.
+!! **The reason is not tidiness -- it is what the system learns from reading
+itself.** Roy, 2026-08-16: *"I don't want the system picking up bad cues from
+the documentation in the code."* `CLAUDE.md` carries the same argument for
+vocabulary: an agent reads these files and then writes in them, so the REGISTER
+is an instruction. A repo whose own scripts spend a fifth of their prose on what
+the code does NOT do is demonstrating the shape its four editorial roles exist
+to remove.
 
-**A comment should state what the code does.** These scripts stated what it does *not* do, what it
-is *not*, and how it compares to other passes.
+**A comment should state what the code does.** These scripts stated what it does
+*not* do, what it is *not*, and how it compares to other passes.
 
-Measured over `plugins/**/*.py`, counting comment and docstring lines carrying `cannot` /
-`never` / `does not` / `is not` / `nothing` / `neither` / `without` / `no longer` / `not a`:
+Measured over `plugins/**/*.py`, counting comment and docstring lines carrying
+`cannot` / `never` / `does not` / `is not` / `nothing` / `neither` / `without` /
+`no longer` / `not a`:
 
 | file | before 2026-08-16 | after that day's work |
 | --- | ---: | ---: |
@@ -41,9 +44,10 @@ Measured over `plugins/**/*.py`, counting comment and docstring lines carrying `
 | `vocabulary.py` | -- | 4 / 19 (21%) |
 | **total** | **123 / 714 (17%)** | **136 / 697 (20%)** |
 
-! **It went UP.** All five scripts were rewritten that day and the prose written with them carries
-the same defect -- which is the argument for fixing it at the source rather than trusting a pass
-to notice. The second column is the baseline the hand pass worked from.
+! **It went UP.** All five scripts were rewritten that day and the prose written
+with them carries the same defect -- which is the argument for fixing it at the
+source rather than trusting a pass to notice. The second column is the baseline
+the hand pass worked from.
 
 ## !! THE RESIDUE TEST -- established before anything was rewritten
 

@@ -20,20 +20,24 @@ Updated:  2026-08-23 — Verified in place 2026-08-23. record.check() guards bot
 
 ## Objective
 
-**`verdicts.py` is 2,083 lines and four subjects. Its docstring announces one** -- *"Stage 5's
-gate: join four reviewers' reports against the census."*
+**`verdicts.py` is 2,083 lines and four subjects. Its docstring announces one**
+-- *"Stage 5's gate: join four reviewers' reports against the census."*
 
-!! **`module-context` FOUND THIS AND THEN GOT IT WRONG, which is why it is filed rather than
-merely fixed.** Reviewing the file at `d3aa065` it quoted its own role file's trigger almost
-verbatim -- a summary line describing one half of what the file contains -- and then emitted a
-`patch` WIDENING the docstring to announce two subjects. That is the defect the trigger is named
-for, applied as the remedy. It filed no `code_concerns` entry, though the same role file says a
-misplaced module constant is a code concern, so the pattern exists and was not reached for.
+!! **`module-context` FOUND THIS AND THEN GOT IT WRONG, which is why it is filed
+rather than merely fixed.** Reviewing the file at `d3aa065` it quoted its own
+role file's trigger almost verbatim -- a summary line describing one half of
+what the file contains -- and then emitted a `patch` WIDENING the docstring to
+announce two subjects. That is the defect the trigger is named for, applied as
+the remedy. It filed no `code_concerns` entry, though the same role file says a
+misplaced module constant is a code concern, so the pattern exists and was not
+reached for.
 
-! Recorded as the run's one miss in [`evals/test-cases.jsonl`](../evals/test-cases.jsonl), case
-`module-context-widens-a-two-subject-docstring`, pinned at `d3aa065`. **Splitting the file does
-not delete that case** -- the fixture is a checkout at a hash, and the hash is an ancestor of
-`main`, reachable from `origin/main` and contained in `v0.2.3`.
+! Recorded as the run's one miss in
+[`evals/test-cases.jsonl`](../evals/test-cases.jsonl), case
+`module-context-widens-a-two-subject-docstring`, pinned at `d3aa065`.
+**Splitting the file does not delete that case** -- the fixture is a checkout at
+a hash, and the hash is an ancestor of `main`, reachable from `origin/main` and
+contained in `v0.2.3`.
 
 ## The four subjects
 

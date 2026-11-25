@@ -23,25 +23,28 @@ RE-VERIFIED: 2026-08-23 — 2026-08-23, read against the tree. STILL LIVE: `cont
 
 ## Objective
 
-`contradictions()` (verdicts.py:225) flags a block where one role REMOVES the sentence another
-rules on -- `drop` against `correct` or `patch`, printed at verdicts.py:610. It does not flag
-`correct` against `patch` on ONE sentence, and that pair is a disagreement about whether the
-sentence is TRUE: one role says it is false, the other says it is true and badly worded. The
-skill already treats the pair as hazardous -- `correct` is applied before any `patch`, because a
-patch to a false claim LAUNDERS it -- so the resolution rule exists and fires silently,
-discarding the edit of the patching role without that role or the report ever saying so.
+`contradictions()` (verdicts.py:225) flags a block where one role REMOVES the
+sentence another rules on -- `drop` against `correct` or `patch`, printed at
+verdicts.py:610. It does not flag `correct` against `patch` on ONE sentence, and
+that pair is a disagreement about whether the sentence is TRUE: one role says it
+is false, the other says it is true and badly worded. The skill already treats
+the pair as hazardous -- `correct` is applied before any `patch`, because a
+patch to a false claim LAUNDERS it -- so the resolution rule exists and fires
+silently, discarding the edit of the patching role without that role or the
+report ever saying so.
 
-Measured on the first cycle run: block 1 of `galley.py` carried `correct` from block-context
-and `patch` from module-context on the same sentence. The collator printed **no** `RE-REVIEW`
-list. Sent back anyway at stage 5b, **both roles answered `SAME SENTENCE  yes`** -- so the
-collision was real and both could see it -- and both answered `HOLD`, module-context reasoning
-that the added clause from block-context states the same defect its patch was for, *"so the
-finding is carried, not laundered"*.
+Measured on the first cycle run: block 1 of `galley.py` carried `correct` from
+block-context and `patch` from module-context on the same sentence. The collator
+printed **no** `RE-REVIEW` list. Sent back anyway at stage 5b, **both roles
+answered `SAME SENTENCE  yes`** -- so the collision was real and both could see
+it -- and both answered `HOLD`, module-context reasoning that the added clause
+from block-context states the same defect its patch was for, *"so the finding is
+carried, not laundered"*.
 
-! **That is one data point and it resolved HOLD**, which is why this is `decision-needed` and
-not a fix. Widening the flagged set costs rounds, and Roy ruled the set narrow *"for now"* on
-exactly that trade: 51 of 150 blocks had two or more roles converge against 8 flagged as
-conflicts.
+! **That is one data point and it resolved HOLD**, which is why this is
+`decision-needed` and not a fix. Widening the flagged set costs rounds, and Roy
+ruled the set narrow *"for now"* on exactly that trade: 51 of 150 blocks had two
+or more roles converge against 8 flagged as conflicts.
 
 ## The three answers T1 chooses between
 

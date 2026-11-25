@@ -19,32 +19,36 @@ Refiled:  2026-09-26 — against `decision-log.md Process: #195`. Eleven tasks n
 
 ## Objective
 
-A move is a placement claim, settled once for the pair, then split into the mover's
-`drop` and `add` -- `decision-log.md Process: #195`, 2026-09-26. The one `Mark` of `#172`
-and `#175` carries it while the placement is open; the composite below is what it becomes
-once every reader of either page has agreed. Placement is a question of its own, `agree`,
-`stet`, `withdraw` and `query`, and a `stet` makes the move contested for the chief.
+A move is a placement claim, settled once for the pair, then split into the
+mover's `drop` and `add` -- `decision-log.md Process: #195`, 2026-09-26. The one
+`Mark` of `#172` and `#175` carries it while the placement is open; the
+composite below is what it becomes once every reader of either page has agreed.
+Placement is a question of its own, `agree`, `stet`, `withdraw` and `query`, and
+a `stet` makes the move contested for the chief.
 
-The argument below is the 2026-08-30 filing, kept as the case for the composite half.
+The argument below is the 2026-08-30 filing, kept as the case for the composite
+half.
 
-!! **RULED 2026-08-30 -- `decision-log.md Process: #56`.** Roy: *"A move needs to be what
-it is and that is a composite Mark - Drop Here Add There. They have to go together and the
-ought to have a similar facade but the underneath I don't know how we make it work
-correctly without admitting that it is a composite instead of a singular mark. Nothing else
-acts on two places at once"*
+!! **RULED 2026-08-30 -- `decision-log.md Process: #56`.** Roy: *"A move needs
+to be what it is and that is a composite Mark - Drop Here Add There. They have
+to go together and the ought to have a similar facade but the underneath I don't
+know how we make it work correctly without admitting that it is a composite
+instead of a singular mark. Nothing else acts on two places at once"*
 
-!! **THE FACT THAT FORCES IT: A SENTENCE MOVES WITHOUT THE PARAGRAPH MOVING.** Roy, the
-same day, correcting a reading that an address names one paragraph so a move empties its
-origin: *"No a sentance can move without the paragraph moving"*. **The origin keeps a
-REMAINDER.** Both ends hold new text and both must be written.
+!! **THE FACT THAT FORCES IT: A SENTENCE MOVES WITHOUT THE PARAGRAPH MOVING.**
+Roy, the same day, correcting a reading that an address names one paragraph so a
+move empties its origin: *"No a sentance can move without the paragraph
+moving"*. **The origin keeps a REMAINDER.** Both ends hold new text and both
+must be written.
 
-!! **AND `drop` DECLARES A SENTENCE LEFT, NOT A PARAGRAPH -- WHICH IS WHAT MAKES IT
-CHECKABLE.** Roy: *"And for drop - remember it is just declaring that a sentance disappeared
-not the whole paragraph - it is checkable that the difference is missing and not an
-addition..."* So the origin half is verifiable as a PURE DELETION against its seeded
-`raw_text`, the destination half as a pure addition, and the PAIR carries the stronger
-check -- **the text deleted at the origin must equal the text added at the destination.** A
-move that loses a sentence in transit, or invents one on arrival, fails it.
+!! **AND `drop` DECLARES A SENTENCE LEFT, NOT A PARAGRAPH -- WHICH IS WHAT MAKES
+IT CHECKABLE.** Roy: *"And for drop - remember it is just declaring that a
+sentance disappeared not the whole paragraph - it is checkable that the
+difference is missing and not an addition..."* So the origin half is verifiable
+as a PURE DELETION against its seeded `raw_text`, the destination half as a pure
+addition, and the PAIR carries the stronger check -- **the text deleted at the
+origin must equal the text added at the destination.** A move that loses a
+sentence in transit, or invents one on arrival, fails it.
 
 ## What is measured, and it is worse than a write bug
 

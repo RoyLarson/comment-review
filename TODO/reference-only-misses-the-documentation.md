@@ -22,8 +22,9 @@ SPLIT:    2026-08-23 -- no box split; each was already one decision or one edit.
 
 ## Objective
 
-**A documentation file that documents the code under review, without NAMING it, reaches no
-reviewer.** Two mechanisms build the REFERENCE ONLY list and neither finds one:
+**A documentation file that documents the code under review, without NAMING it,
+reaches no reviewer.** Two mechanisms build the REFERENCE ONLY list and neither
+finds one:
 
 - `referrers.py` matches on a NAME -- the path, the stem, or a public top-level definition. A
   doc that describes what a module does in prose, and cites nothing from it, does not match.
@@ -33,14 +34,15 @@ reviewer.** Two mechanisms build the REFERENCE ONLY list and neither finds one:
   none of the three.
 
 ! **Measured on this repo's own first full run, 2026-08-17.** `docs/parsing.md`,
-`docs/vocabulary.md` and `docs/limitations.md` went into the packet because the task agent
-chose to put them there. Nothing asked for them, and `referrers.py` returned `scripts/README.md`
-alone out of `docs/`.
+`docs/vocabulary.md` and `docs/limitations.md` went into the packet because the
+task agent chose to put them there. Nothing asked for them, and `referrers.py`
+returned `scripts/README.md` alone out of `docs/`.
 
-That matters because a documentation file is where a claim goes to be settled or refuted. A
-docstring saying *"the lexical tier cannot answer a comment's owner"* is checkable against
-`docs/parsing.md`; a reviewer that never received it has to rule from the code alone, and the
-`clean` it returns certifies less than it appears to.
+That matters because a documentation file is where a claim goes to be settled or
+refuted. A docstring saying *"the lexical tier cannot answer a comment's owner"*
+is checkable against `docs/parsing.md`; a reviewer that never received it has to
+rule from the code alone, and the `clean` it returns certifies less than it
+appears to.
 
 ### What the three rulings have in front of them
 

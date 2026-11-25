@@ -19,8 +19,8 @@ SPLIT:    2026-08-23 -- no box held two tasks. Every box is cut to two lines, th
 
 ## Objective
 
-**`ownership-context` wins every placement contest, and nothing can check the judgement it wins
-with.**
+**`ownership-context` wins every placement contest, and nothing can check the
+judgement it wins with.**
 
 - `SKILL.md:844`: *"`ownership-context`'s destination governs. Both findings stand; only the
   destination is ..."* And placement is applied FIRST, so its answer decides what code every
@@ -29,23 +29,25 @@ with.**
   it attaches to, at both tiers. What still needs READING is whether the prose belongs to it, so
   a placement finding is a CANDIDATE."*
 
-So every `drop` and `move` it emits still rests on a reviewer reading the file. The collator checks
-that its citations RESOLVE; nothing checks that the paragraph it says belongs to that anchor
-belongs to it.
+So every `drop` and `move` it emits still rests on a reviewer reading the file.
+The collator checks that its citations RESOLVE; nothing checks that the
+paragraph it says belongs to that anchor belongs to it.
 
-! It is disclosed rather than hidden -- the census says it in its own header -- but the
-consequence was never drawn: the strongest-precedence role has the weakest-verified input.
+! It is disclosed rather than hidden -- the census says it in its own header --
+but the consequence was never drawn: the strongest-precedence role has the
+weakest-verified input.
 
-!! **WHAT CHANGED, AND IT NARROWS THE FILE RATHER THAN CLOSING IT.** This file was written
-2026-08-17 against a census that emitted an anchor only for a Python DOCSTRING, from the AST, and
-none at the lexical tier -- measured that day on a Rust crate: no language server, no name
-corpus, no anchors at all, and `ownership-context` still held the precedence. **Both tiers now
-carry an anchor on every address.** What the anchor does NOT settle is whether the prose beside
+!! **WHAT CHANGED, AND IT NARROWS THE FILE RATHER THAN CLOSING IT.** This file
+was written 2026-08-17 against a census that emitted an anchor only for a Python
+DOCSTRING, from the AST, and none at the lexical tier -- measured that day on a
+Rust crate: no language server, no name corpus, no anchors at all, and
+`ownership-context` still held the precedence. **Both tiers now carry an anchor
+on every address.** What the anchor does NOT settle is whether the prose beside
 it is ABOUT it, and that is the judgement the precedence rests on.
 
-! **THE LSP `documentSymbol` ENRICHMENT IS A SEPARATE QUESTION.** It was named by the superseded
-anchor task, and `SKILL.md` describes it as the task agent's by hand; it is not what that box
-asked for.
+! **THE LSP `documentSymbol` ENRICHMENT IS A SEPARATE QUESTION.** It was named
+by the superseded anchor task, and `SKILL.md` describes it as the task agent's
+by hand; it is not what that box asked for.
 
 ## ! What the precedence is FOR, and why removing it is not the answer
 

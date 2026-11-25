@@ -11,7 +11,8 @@ Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
 
 ## Objective
 
-The brief tells roles to write change as raw text; the checker refuses anything but an array of lines.
+The brief tells roles to write change as raw text; the checker refuses anything
+but an array of lines.
 
 ## Tasks
 

@@ -32,15 +32,34 @@ Updated:  2026-08-26 — RULED. The name is `alteration`, and the write side get
 
 ## Objective
 
-RULED 2026-08-26: the name is `alteration`, and the write side takes all three containers so it mirrors the read side. An ALTERATION is one change at one address, mirroring a row; a SCHEDULE is every alteration for one page, carrying that page's path and the sha it was read at, mirroring a page; a DOCKET holds every schedule, mirroring the binder. Roy: *"like the binder we have three levels of containers -- paragraph, page, binder. We have to be able to unwind the alterations pretty close to the same way."*
+RULED 2026-08-26: the name is `alteration`, and the write side takes all three
+containers so it mirrors the read side. An ALTERATION is one change at one
+address, mirroring a row; a SCHEDULE is every alteration for one page, carrying
+that page's path and the sha it was read at, mirroring a page; a DOCKET holds
+every schedule, mirroring the binder. Roy: *"like the binder we have three
+levels of containers -- paragraph, page, binder. We have to be able to unwind
+the alterations pretty close to the same way."*
 
-WHAT THE COLLISION WAS: `notations` sat one letter from `annotations`, which `binder/annotate.py` owns for candidate flags on a paragraph -- two words one letter apart, both meaning marks attached to a paragraph, in adjacent areas.
+WHAT THE COLLISION WAS: `notations` sat one letter from `annotations`, which
+`binder/annotate.py` owns for candidate flags on a paragraph -- two words one
+letter apart, both meaning marks attached to a paragraph, in adjacent areas.
 
-THE INSTINCT WAS RIGHT AND THAT IS WHY IT COLLIDED. Roy: *"if I was writing between the lines with marks in red pen I think of those red marks as notations."* The trade calls those PROOF CORRECTION MARKS, and `mark` is already defined here as what stage 4 emits -- so the word was reaching for something the register already had. What needed naming was the DESK'S OUTPUT, and a change to type already set is an alteration.
+THE INSTINCT WAS RIGHT AND THAT IS WHY IT COLLIDED. Roy: *"if I was writing
+between the lines with marks in red pen I think of those red marks as
+notations."* The trade calls those PROOF CORRECTION MARKS, and `mark` is already
+defined here as what stage 4 emits -- so the word was reaching for something the
+register already had. What needed naming was the DESK'S OUTPUT, and a change to
+type already set is an alteration.
 
-The ruling is `docs/decision-log.md` Vocabulary: #14, superseding Process: #25. The four terms are in `docs/vocabulary.md` and deliberately NOT in `references/vocabulary.toml`, because `check_vocabulary.check_complete` counts a definition no role is given as a hole.
+The ruling is `docs/decision-log.md` Vocabulary: #14, superseding Process: #25.
+The four terms are in `docs/vocabulary.md` and deliberately NOT in
+`references/vocabulary.toml`, because `check_vocabulary.check_complete` counts a
+definition no role is given as a hole.
 
-WHAT REMAINS is the code rename and the nested shape -- tasks 3 and 4. Measured cost of the rename: two import lines, one CLI flag, one filename, ~21 descriptive sentences, 5 tool-regenerated README rows, and 4 quoted-Roy lines that must not be touched.
+WHAT REMAINS is the code rename and the nested shape -- tasks 3 and 4. Measured
+cost of the rename: two import lines, one CLI flag, one filename, ~21
+descriptive sentences, 5 tool-regenerated README rows, and 4 quoted-Roy lines
+that must not be touched.
 
 ## Tasks
 

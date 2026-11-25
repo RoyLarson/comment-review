@@ -16,36 +16,39 @@ Ruled:    2026-08-19 — Roy, 2026-08-19: 'all intermediate comments are ignored
 
 ## Objective
 
-!! **`int x = /* why */ 5;` IS CENSUSED AS A `c` PLACE WHOSE TEXT IS THE STATEMENT.**
-Measured 2026-08-19 on a three-line C file:
+!! **`int x = /* why */ 5;` IS CENSUSED AS A `c` PLACE WHOSE TEXT IS THE
+STATEMENT.** Measured 2026-08-19 on a three-line C file:
 
 ```
 f.c@c1   comment   col=-1   text='int x = /* why */ 5;'
 ```
 
-The block's `text` is what four reviewers read as prose, and it is executable code. It carries no
-annotation saying so. `block-context` measures its claims against the code; there is no claim,
-there is a statement.
+The block's `text` is what four reviewers read as prose, and it is executable
+code. It carries no annotation saying so. `block-context` measures its claims
+against the code; there is no claim, there is a statement.
 
-! **The census stores the whole line ON PURPOSE.** Cutting at the opener loses the `5;`, which
-would make `5` and `7` compare EQUAL and `prove_unchanged` report PROVEN on a changed literal --
-that condition is written at `census.py` and is correct. What is missing is that the block is then
-handed on as prose.
+! **The census stores the whole line ON PURPOSE.** Cutting at the opener loses
+the `5;`, which would make `5` and `7` compare EQUAL and `prove_unchanged`
+report PROVEN on a changed literal -- that condition is written at `census.py`
+and is correct. What is missing is that the block is then handed on as prose.
 
-!! **`original_column = -1` IS A SECOND FACT WEARING THE FIRST ONE'S CLOTHES.** Roy, 2026-08-19, on
-the column: *"Or does it only apply to address lines - which drops the -1 sense entirely."* The
-field says WHERE THE PROSE STARTS. For this block that is a real column -- the `/*`. What makes it
-unwritable is that the prose does not run to the END of its last line, which is a fact about the
-other end and has nowhere to live. `-1` is the stopgap that keeps `galley.py` from deleting the
-`5;`, and it is the only negative value the field takes.
+!! **`original_column = -1` IS A SECOND FACT WEARING THE FIRST ONE'S CLOTHES.**
+Roy, 2026-08-19, on the column: *"Or does it only apply to address lines - which
+drops the -1 sense entirely."* The field says WHERE THE PROSE STARTS. For this
+block that is a real column -- the `/*`. What makes it unwritable is that the
+prose does not run to the END of its last line, which is a fact about the other
+end and has nowhere to live. `-1` is the stopgap that keeps `galley.py` from
+deleting the `5;`, and it is the only negative value the field takes.
 
-! **The other end already refuses it.** `prove_unchanged._delimiter_shares_the_line` makes such a
-file `unprovable`, so nothing written over it reaches stage 8. The gap is stages 4 through 7a,
-where a reviewer reads the statement as prose and may rule on it.
+! **The other end already refuses it.**
+`prove_unchanged._delimiter_shares_the_line` makes such a file `unprovable`, so
+nothing written over it reaches stage 8. The gap is stages 4 through 7a, where a
+reviewer reads the statement as prose and may rule on it.
 
-**The decision is where the shape is refused, not how the column encodes it:** at census time --
-name the block and stop, as a language with no record does -- or as an annotation that filters it
-out of what a reviewer reads, the way front matter is filtered.
+**The decision is where the shape is refused, not how the column encodes it:**
+at census time -- name the block and stop, as a language with no record does --
+or as an annotation that filters it out of what a reviewer reads, the way front
+matter is filtered.
 
 ## Tasks
 

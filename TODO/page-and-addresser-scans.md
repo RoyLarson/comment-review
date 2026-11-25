@@ -29,13 +29,13 @@ TRIAGED:  2026-08-23 -- second pass. BOTH RE-VERIFICATIONS ABOVE RE-RUN AND BOTH
 
 ## Objective
 
-`page.py` and `addresser.py` carry four scans that grow with the file, and the two modules were
-reviewed together because the scans cross them.
+`page.py` and `addresser.py` carry four scans that grow with the file, and the
+two modules were reviewed together because the scans cross them.
 
-!! **THE MEASUREMENTS ARE THE REASON, NOT THE WORK.** Each task below states what was measured on
-this repo and what the same shape costs at 200 files, which is the size the tool is meant to
-reach. The last task is the standard the other four are held to: a before-and-after number from
-a run.
+!! **THE MEASUREMENTS ARE THE REASON, NOT THE WORK.** Each task below states
+what was measured on this repo and what the same shape costs at 200 files, which
+is the size the tool is meant to reach. The last task is the standard the other
+four are held to: a before-and-after number from a run.
 
 **The four scans, as measured 2026-08-22:**
 

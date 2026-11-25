@@ -12,9 +12,9 @@ Raised:   2026-08-28 (2026-08-28, after a third separate task was found pointing
 
 ## Objective
 
-**MEASURED 2026-08-28: 25 open TODOs carry at least one UNCHECKED task naming a module that moved
-to `prototype/` on 2026-08-25.** `record.py`, `verdicts.py`, `desk.py`, `held.py`,
-`run_context.py`, `vocabulary.py`.
+**MEASURED 2026-08-28: 25 open TODOs carry at least one UNCHECKED task naming a
+module that moved to `prototype/` on 2026-08-25.** `record.py`, `verdicts.py`,
+`desk.py`, `held.py`, `run_context.py`, `vocabulary.py`.
 
     a-block-is-a-paragraph-on-a-page            a-coverage-gap-should-go-back-to-the-reviewer
     a-malformed-page-drops-its-records          assertions-that-gate-a-substring
@@ -30,11 +30,12 @@ to `prototype/` on 2026-08-25.** `record.py`, `verdicts.py`, `desk.py`, `held.py
     verdicts-is-the-join                        versioning-at-v1
     vocabulary-gate-is-red
 
-!! **THE NUMBER IS A CANDIDATE SET, NOT A DEFECT COUNT, and T1 is what separates them.** A task
-saying *"make `record.py:453` use `filled()`"* names a SITE that no longer runs -- its
-verification cannot be performed by anyone. A task saying *"`verdicts.py` did it this way"* is a
-CITATION, and citing a captured record is legitimate. **Only the first kind is broken**, and which
-is which needs a per-file read.
+!! **THE NUMBER IS A CANDIDATE SET, NOT A DEFECT COUNT, and T1 is what separates
+them.** A task saying *"make `record.py:453` use `filled()`"* names a SITE that
+no longer runs -- its verification cannot be performed by anyone. A task saying
+*"`verdicts.py` did it this way"* is a CITATION, and citing a captured record is
+legitimate. **Only the first kind is broken**, and which is which needs a
+per-file read.
 
 ## Why it went unnoticed
 

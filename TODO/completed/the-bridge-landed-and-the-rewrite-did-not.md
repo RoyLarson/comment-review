@@ -18,35 +18,40 @@ Split:    2026-08-23 -- the census-reader box held a mechanical change AND the
 
 ## Objective
 
-`claim_text` renders a record's typed `claim` OBJECT back into the marker STRING the checks read,
-and its own docstring calls that a bridge, kept *"before anything is rewritten to read the object
-directly."* **The bridge shipped; the rewrite is half done.**
+`claim_text` renders a record's typed `claim` OBJECT back into the marker STRING
+the checks read, and its own docstring calls that a bridge, kept *"before
+anything is rewritten to read the object directly."* **The bridge shipped; the
+rewrite is half done.**
 
-! **Generate-then-reparse is the defect class the record change exists to end** -- D7, D8 and D9,
-all three of them a boundary guessed wrong. It happening inside one module instead of between a
-reviewer and a parser is better, and is not the same as fixed.
+! **Generate-then-reparse is the defect class the record change exists to end**
+-- D7, D8 and D9, all three of them a boundary guessed wrong. It happening
+inside one module instead of between a reviewer and a parser is better, and is
+not the same as fixed.
 
-**What has landed since this was filed.** The cycle is inverted: `record.py` imports from
-`addresser` and `lexer` and NOTHING from `verdicts.py`, while `verdicts.py` imports from
-`record`, `desk` and `held`. The reader moved out of the collator into `held.py`, whose own docstring
-says why -- *"Reading a record file back -- the third verb on the noun `record.py` owns"*.
-`ruled_text` (now `desk.py:721`) reads the field first: `desk.py:743-745`, *"THE FIELD FIRST, and
+**What has landed since this was filed.** The cycle is inverted: `record.py`
+imports from `addresser` and `lexer` and NOTHING from `verdicts.py`, while
+`verdicts.py` imports from `record`, `desk` and `held`. The reader moved out of
+the collator into `held.py`, whose own docstring says why -- *"Reading a record
+file back -- the third verb on the noun `record.py` owns"*. `ruled_text` (now
+`desk.py:721`) reads the field first: `desk.py:743-745`, *"THE FIELD FIRST, and
 the scan below is now the FALLBACK."*
 
-**What has not.** `held.py:161` still builds `Finding.claim` by calling `claim_text(verdict,
-claim)` -- a rendered string -- and `desk.py:754-762` still marker-searches it when the field is
-absent, feeding `block_problem`, `edit_problem`, `contradictions` and `unrecorded_findings`.
-`held.py:172-176` still flattens `{cite, verbatim}` into `"cite | verbatim"` and `desk.py:326`
+**What has not.** `held.py:161` still builds `Finding.claim` by calling
+`claim_text(verdict, claim)` -- a rendered string -- and `desk.py:754-762` still
+marker-searches it when the field is absent, feeding `block_problem`,
+`edit_problem`, `contradictions` and `unrecorded_findings`. `held.py:172-176`
+still flattens `{cite, verbatim}` into `"cite | verbatim"` and `desk.py:326`
 partitions it back.
 
-!! **MEASURED 2026-08-23: FOUR READERS OF A CENSUS FILE, AND ONE CRASHES.** `addresser.py:1137`,
-`galley.py:381` and `record.py:1121` each carry their own `census["paragraphs"] if
-isinstance(census, dict) else census`; `verdicts.py:332` does not. Run against a
-`{"paragraphs": [...]}` census, `verdicts.py` raises `AttributeError: 'str' object has no
-attribute 'get'` from `addresser._by_path`. ! The key is `paragraphs`, not `blocks` -- the
-2026-08-19 reading named five readers and the wrong key, and two of the modules it named
-(`cues`, `locator`) no longer exist. `census.py:439` and `:290` emit a bare list unconditionally,
-so nothing in this tree exercises the other branch either way.
+!! **MEASURED 2026-08-23: FOUR READERS OF A CENSUS FILE, AND ONE CRASHES.**
+`addresser.py:1137`, `galley.py:381` and `record.py:1121` each carry their own
+`census["paragraphs"] if isinstance(census, dict) else census`;
+`verdicts.py:332` does not. Run against a `{"paragraphs": [...]}` census,
+`verdicts.py` raises `AttributeError: 'str' object has no attribute 'get'` from
+`addresser._by_path`. ! The key is `paragraphs`, not `blocks` -- the 2026-08-19
+reading named five readers and the wrong key, and two of the modules it named
+(`cues`, `locator`) no longer exist. `census.py:439` and `:290` emit a bare list
+unconditionally, so nothing in this tree exercises the other branch either way.
 
 ! **`galley.unanswerable` is already half of the seam** the census reader wants.
 

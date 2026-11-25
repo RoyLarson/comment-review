@@ -17,19 +17,22 @@ Triaged:  2026-08-23 -- the fifth box was a citation instruction, not a checkpoi
 
 ## Objective
 
-!! **THE FOUR ROLES ARE NAMED FOR WHAT THEY READ, NOT FOR THE DESK THEY SIT AT.**
-`ownership-context`, `block-context`, `function-context`, `module-context` -- and `block` is not
-even a term this system uses any more, ruled 2026-08-19 and replaced by `paragraph`.
+!! **THE FOUR ROLES ARE NAMED FOR WHAT THEY READ, NOT FOR THE DESK THEY SIT
+AT.** `ownership-context`, `block-context`, `function-context`, `module-context`
+-- and `block` is not even a term this system uses any more, ruled 2026-08-19
+and replaced by `paragraph`.
 
-**Roy approved the rename 2026-08-19**, and corrected the one name that did not fit the register:
-*"to be consistent, maybe `fact-check-editor` instead of `fact-checker`, because it is supposed to
-mark edits if it finds incorrect facts."* All four are EDITORS that emit edit marks; a
-*fact-checker* verifies and hands back.
+**Roy approved the rename 2026-08-19**, and corrected the one name that did not
+fit the register: *"to be consistent, maybe `fact-check-editor` instead of
+`fact-checker`, because it is supposed to mark edits if it finds incorrect
+facts."* All four are EDITORS that emit edit marks; a *fact-checker* verifies
+and hands back.
 
 ! **The desk table this works from is in
 [`ownership-is-read-first-but-nothing-makes-it-so`](ownership-is-read-first-but-nothing-makes-it-so.md)**,
-reconstructed 2026-08-17 after a compaction dropped it and confirmed by Roy then. **Cite it
-rather than re-deriving it** -- it has already been rebuilt once from nothing:
+reconstructed 2026-08-17 after a compaction dropped it and confirmed by Roy
+then. **Cite it rather than re-deriving it** -- it has already been rebuilt once
+from nothing:
 
 | role | the desk | what that desk does |
 | --- | --- | --- |
@@ -38,9 +41,10 @@ rather than re-deriving it** -- it has already been rebuilt once from nothing:
 | `function-context` | line editor | section level -- does this section deliver what its heading announces |
 | `module-context` | developmental editor | reads the whole work and asks whether it argues ONE thing |
 
-!! **UNLIKE `block` -> `paragraph`, THESE ARE ON THE WIRE.** That rename touched nothing a
-consumer reads -- measured, the census JSON has no `block` key and neither does a record slot.
-A role name is different, and it is load-bearing in five places at once:
+!! **UNLIKE `block` -> `paragraph`, THESE ARE ON THE WIRE.** That rename touched
+nothing a consumer reads -- measured, the census JSON has no `block` key and
+neither does a record slot. A role name is different, and it is load-bearing in
+five places at once:
 
 - the **plugin agent id**, `comment-review:comment-review-block-context`, which the skill
   dispatches by name and which resolves only if the plugin was installed before the session began
@@ -55,17 +59,19 @@ A role name is different, and it is load-bearing in five places at once:
   `ownership-context.json`, `block-context.json`, `function-context.json` and
   `module-context.json`
 
-! **So it is a version-bumping change to the installed plugin**, and every held run's reports keep
-the old names. A conversion is not needed -- the reports are read by stem -- but a run replayed
-against renamed agents will not match, and that is the thing to decide before starting.
+! **So it is a version-bumping change to the installed plugin**, and every held
+run's reports keep the old names. A conversion is not needed -- the reports are
+read by stem -- but a run replayed against renamed agents will not match, and
+that is the thing to decide before starting.
 
-! **THE FOUR AGENT FILES RENAME IN ONE BOX, ON PURPOSE.** `check_vocabulary.py` refuses the
-half-state -- it did exactly that during the paragraph rename -- so a per-role box could not be
-verified green on its own, and a box a stranger cannot check is not a checkpoint.
+! **THE FOUR AGENT FILES RENAME IN ONE BOX, ON PURPOSE.** `check_vocabulary.py`
+refuses the half-state -- it did exactly that during the paragraph rename -- so
+a per-role box could not be verified green on its own, and a box a stranger
+cannot check is not a checkpoint.
 
-! **Roy, 2026-08-19: *"I agree though on that we can wait."*** Not in 0.2.4, whose scope is what a
-reviewer is HANDED. **Deferred is not done** -- the tasks below are unstarted work waiting on
-that scope closing, not work overtaken.
+! **Roy, 2026-08-19: *"I agree though on that we can wait."*** Not in 0.2.4,
+whose scope is what a reviewer is HANDED. **Deferred is not done** -- the tasks
+below are unstarted work waiting on that scope closing, not work overtaken.
 
 ## Tasks
 

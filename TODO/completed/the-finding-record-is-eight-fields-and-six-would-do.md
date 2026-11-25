@@ -15,21 +15,24 @@ Raised:   2026-08-15 (Roy: "It looks like another session got convinced by other
 BUDGET decision -- which worked examples ship -- and `query` and `add` are now
 ruled, so the reason they were held back is gone.
 
-**The record shipped with five fields and now has eight, and every field added since exists to
-serve the GATE, not the reviewer.** `BLOCK` and `EVIDENCE` came in with `5f14da7` (parse the
-findings and gate stage 5), `QUOTE` with `cb7e361` (split QUOTE from SUMMARY). Roy's memory of
-the original -- *"Line | summary | reason | and something else"* -- is `LOCATION`, `SUMMARY`,
-`FINDING`, `VERDICT`, `CHANGE`, exactly as imported at `9932c3f`.
+**The record shipped with five fields and now has eight, and every field added
+since exists to serve the GATE, not the reviewer.** `BLOCK` and `EVIDENCE` came
+in with `5f14da7` (parse the findings and gate stage 5), `QUOTE` with `cb7e361`
+(split QUOTE from SUMMARY). Roy's memory of the original -- *"Line | summary |
+reason | and something else"* -- is `LOCATION`, `SUMMARY`, `FINDING`, `VERDICT`,
+`CHANGE`, exactly as imported at `9932c3f`.
 
-Six fields carry it, and the shape is ruled: **`BLOCK`, `VERDICT`, `CLAIM`, `SOURCE`, `REASON`,
-`CHANGE`**, with the record opener `--- RECORD` so the record and its own field stop sharing a
-name. Roy ruled `SOURCE` over `PROOF`, which would have collided with the `proof` level and
-`prove_unchanged.py`'s AST proof.
+Six fields carry it, and the shape is ruled: **`BLOCK`, `VERDICT`, `CLAIM`,
+`SOURCE`, `REASON`, `CHANGE`**, with the record opener `--- RECORD` so the
+record and its own field stop sharing a name. Roy ruled `SOURCE` over `PROOF`,
+which would have collided with the `proof` level and `prove_unchanged.py`'s AST
+proof.
 
-! **The cut is not the point; the check is.** `REASON` is the field Roy's `move` ruling rests
-on -- *"this comment belongs to that line there"* -- and **nothing checks it**. `LOCATION` was
-checked, but only for resolvability, never against the block it claims to describe. The gate
-loads the census and takes only `len(blocks)` from it.
+! **The cut is not the point; the check is.** `REASON` is the field Roy's `move`
+ruling rests on -- *"this comment belongs to that line there"* -- and **nothing
+checks it**. `LOCATION` was checked, but only for resolvability, never against
+the block it claims to describe. The gate loads the census and takes only
+`len(blocks)` from it.
 
 ## Tasks
 

@@ -29,13 +29,13 @@ Three defects, and the second explains the first.
 
 ### 1. Nothing carries forward
 
-**Every stage-1 answer is discovered again on every run.** Measured across two runs on two
-repos: ~25 tool calls each to establish cap, width, whether a guard exists, the documentation
-templates, the `move` destination tree, whether the reviewer agents resolve, the structure
-available, and the name-corpus source.
+**Every stage-1 answer is discovered again on every run.** Measured across two
+runs on two repos: ~25 tool calls each to establish cap, width, whether a guard
+exists, the documentation templates, the `move` destination tree, whether the
+reviewer agents resolve, the structure available, and the name-corpus source.
 
-`SKILL.md` 1.5 says the STYLE SHEET *"is the only thing in this skill that PERSISTS between
-runs"*. Two problems with that as it stands:
+`SKILL.md` 1.5 says the STYLE SHEET *"is the only thing in this skill that
+PERSISTS between runs"*. Two problems with that as it stands:
 
 - **It has no home.** It reaches a run through the `style` argument (`SKILL.md:157`), so the
   human has to remember a path and type it. Both sheets written on 2026-08-17 went to a session
@@ -46,15 +46,17 @@ runs"*. Two problems with that as it stands:
   the width, whether the guard exists, the destination tree and the marker exemptions are
   re-derived every time and appear only in the run's proposal.
 
-!! **THE HOME IS RULED AND UNIMPLEMENTED.** Roy, 2026-08-17: `.claude/comment-review/` in the
-repo under review -- a per-repo location beside the other `.claude` configuration, so the sheet is
-found without the human typing a path and travels with the repo it describes. ! It is still
-written only after approval, like everything else; this does not make stage 1 a writing stage.
+!! **THE HOME IS RULED AND UNIMPLEMENTED.** Roy, 2026-08-17:
+`.claude/comment-review/` in the repo under review -- a per-repo location beside
+the other `.claude` configuration, so the sheet is found without the human
+typing a path and travels with the repo it describes. ! It is still written only
+after approval, like everything else; this does not make stage 1 a writing
+stage.
 
 ### 2. !! 1.8 IS NOT A QUESTION -- it is 1.7's answer restated
 
-`SKILL.md:286` probes for a language server. `:319` "decides where the name corpus comes from",
-and every branch of it is a lookup on 1.7:
+`SKILL.md:286` probes for a language server. `:319` "decides where the name
+corpus comes from", and every branch of it is a lookup on 1.7:
 
 | 1.8 says | its only input |
 | --- | --- |
@@ -62,34 +64,41 @@ and every branch of it is a lookup on 1.7:
 | no server -> the AST corpus, Python only | 1.7, plus a fixed property of `census.py` |
 | both -> combine them | 1.7 |
 
-There is no input `1.8` holds that `1.7` does not. A task agent probes once and then performs a
-substep whose answer was already fixed -- which is why it reads as being asked twice.
+There is no input `1.8` holds that `1.7` does not. A task agent probes once and
+then performs a substep whose answer was already fixed -- which is why it reads
+as being asked twice.
 
-! This TODO reproduced the same error in its own first draft: the persistence table below
-listed *"which LSP servers answered"* and *"the name-corpus source (derived from LSP)"* as two
-rows, writing **derived from** and still counting it as a separate answer.
+! This TODO reproduced the same error in its own first draft: the persistence
+table below listed *"which LSP servers answered"* and *"the name-corpus source
+(derived from LSP)"* as two rows, writing **derived from** and still counting it
+as a separate answer.
 
-### 3. The skill knows ONE structure source, and that is why 1.7 and 1.8 look like two steps
+### 3. The skill knows ONE structure source, and that is why 1.7 and 1.8 look
+like two steps
 
-With only LSP in view, *"is a server there?"* and *"so where do names come from?"* read as two
-questions. They are one: **what structure is available here, and from where.**
+With only LSP in view, *"is a server there?"* and *"so where do names come
+from?"* read as two questions. They are one: **what structure is available here,
+and from where.**
 
-**CodeGraph is a second source and the shipped skill still does not mention it.** MEASURED
-2026-08-23: zero occurrences under `plugins/`; three files under `docs/` name it
-(`docs/addressing.md:164`, `docs/history.md:56`, and one spec). It answers both halves at once:
-symbols for a paragraph's ANCHOR, call paths for liveness. Landing on 1.7 and 1.8 simultaneously
-is itself the evidence that they are one substep.
+**CodeGraph is a second source and the shipped skill still does not mention
+it.** MEASURED 2026-08-23: zero occurrences under `plugins/`; three files under
+`docs/` name it (`docs/addressing.md:164`, `docs/history.md:56`, and one spec).
+It answers both halves at once: symbols for a paragraph's ANCHOR, call paths for
+liveness. Landing on 1.7 and 1.8 simultaneously is itself the evidence that they
+are one substep.
 
-!! **And it breaks the persistence split**, which is the reason it belongs in this file:
+!! **And it breaks the persistence split**, which is the reason it belongs in
+this file:
 
 | source | availability is a fact about | may persist? |
 | --- | --- | --- |
 | LSP | the **machine** -- a server someone happens to run | **no** |
 | CodeGraph | the **repo** -- a `.codegraph/` directory in the tree | **yes** |
 
-CodeGraph is the first structure source whose presence is discoverable from the checkout alone,
-which is the property that makes it recordable at all. ! And it is exercisable here now: this
-repo carries a `.codegraph/` directory, which it did not on 2026-08-17.
+CodeGraph is the first structure source whose presence is discoverable from the
+checkout alone, which is the property that makes it recordable at all. ! And it
+is exercisable here now: this repo carries a `.codegraph/` directory, which it
+did not on 2026-08-17.
 
 ## !! Persistence has to be SELECTIVE
 

@@ -25,31 +25,34 @@ SPLIT:    2026-08-23 -- the boxes were cut to two lines each and every open one 
 
 ## Objective
 
-**The same editorial role, given the same census, returned opposite verdicts on the same block
-across two runs.** Observed on `todo_tool`, r1 against r2:
+**The same editorial role, given the same census, returned opposite verdicts on
+the same block across two runs.** Observed on `todo_tool`, r1 against r2:
 
 | block | r1 | r2 |
 | --- | --- | --- |
 | the *"Six call sites"* claim | `module-context` **cleared** it | `module-context` **corrected** it -- four functions, and both test modules read the groups |
 | `_OWNER_SPLIT`'s *"five real fields"* | `module-context` **corrected** it -- *"actually three"* | `module-context` **`query` -- outside the code**, on the grounds that the fix erased the state that would settle it |
 
-!! **The second row RESOLVED, 2026-08-17, and both runs were right about different things.**
-The operator settled it from `git` rather than from the checkout: of the five fields, three used
-the separators the code parses and two used an em dash and a `!` continuation it cannot see. So
-r1's *"five is three"* was correct, and r2 was correct that **the checkout alone could not prove
-it** -- the state that would settle it had been erased by the very fix under review.
+!! **The second row RESOLVED, 2026-08-17, and both runs were right about
+different things.** The operator settled it from `git` rather than from the
+checkout: of the five fields, three used the separators the code parses and two
+used an em dash and a `!` continuation it cannot see. So r1's *"five is three"*
+was correct, and r2 was correct that **the checkout alone could not prove it**
+-- the state that would settle it had been erased by the very fix under review.
 
-! That downgrades this row from a contradiction to a scope difference, and it sharpens the
-question rather than retiring it: a role that can settle a claim only from history, not from the
-tree, has no verdict for that. `query -- outside the checkout` is the nearest, and it says
-"generated, gitignored, remote" -- not "the checkout no longer holds what would settle this,
-because this change removed it". ! The first row is unresolved and remains the evidence. A
-`correct` that reads confident and a `query` that says nobody can tell are not adjacent verdicts.
+! That downgrades this row from a contradiction to a scope difference, and it
+sharpens the question rather than retiring it: a role that can settle a claim
+only from history, not from the tree, has no verdict for that. `query -- outside
+the checkout` is the nearest, and it says "generated, gitignored, remote" -- not
+"the checkout no longer holds what would settle this, because this change
+removed it". ! The first row is unresolved and remains the evidence. A `correct`
+that reads confident and a `query` that says nobody can tell are not adjacent
+verdicts.
 
-!! **This is not the disagreement the system is built for.** Two ROLES disagreeing is designed
-in -- remits overlap, the collator prints it, and the re-review resolves it. Two runs of ONE role
-disagreeing is different: it means the verdict is a sample, and nothing anywhere states its
-variance.
+!! **This is not the disagreement the system is built for.** Two ROLES
+disagreeing is designed in -- remits overlap, the collator prints it, and the
+re-review resolves it. Two runs of ONE role disagreeing is different: it means
+the verdict is a sample, and nothing anywhere states its variance.
 
 **What rests on that, in this repo's own words:**
 
@@ -62,21 +65,24 @@ variance.
   ! **Run-to-run reversal is the same defect one level up**, and the same remedy is not
   available: there is no diff to grade a `clean` against.
 
-! **NOTHING IN `evals/` MEASURES ANYTHING TWICE, and there is no grader here at all.**
-MEASURED 2026-08-23: `evals/` holds `generator_split.py` and `test-cases.jsonl`, and the
-JSONL holds SIX cases -- one role and one outcome each, five `hit` and one `miss`. ! An earlier
-version of this file cited `evals/grade_hazards.py` as grading one run against twelve planted
-hazards. **That file was REMOVED from this repo and from its history on 2026-08-23**, with the
-corpus it graded against; `CLAUDE.md:105` records that there is now no end-to-end grade. The
-point the sentence was making survives -- nothing here measures the same run twice -- but it
-now rests on a file that exists.
+! **NOTHING IN `evals/` MEASURES ANYTHING TWICE, and there is no grader here at
+all.** MEASURED 2026-08-23: `evals/` holds `generator_split.py` and
+`test-cases.jsonl`, and the JSONL holds SIX cases -- one role and one outcome
+each, five `hit` and one `miss`. ! An earlier version of this file cited
+`evals/grade_hazards.py` as grading one run against twelve planted hazards.
+**That file was REMOVED from this repo and from its history on 2026-08-23**,
+with the corpus it graded against; `CLAUDE.md:105` records that there is now no
+end-to-end grade. The point the sentence was making survives -- nothing here
+measures the same run twice -- but it now rests on a file that exists.
 
-!! **AND `git log --all` CANNOT ANSWER "DID THIS EVER EXIST" IN THIS REPO.** The history was
-rewritten on 2026-08-23, so an empty log is what a purged path looks like AND what a path that
-never existed looks like -- **the same result for opposite facts.** A triage agent hit exactly
-this on the day and concluded the grader *"never has been"* here. ! It is [`gates.md`](../docs/gates.md)'s
-rule in its sharpest form: the check ran, came back clean, and was answering a question nobody
-had asked it. **Date anything measured from history against the rewrite before believing it.**
+!! **AND `git log --all` CANNOT ANSWER "DID THIS EVER EXIST" IN THIS REPO.** The
+history was rewritten on 2026-08-23, so an empty log is what a purged path looks
+like AND what a path that never existed looks like -- **the same result for
+opposite facts.** A triage agent hit exactly this on the day and concluded the
+grader *"never has been"* here. ! It is [`gates.md`](../docs/gates.md)'s rule in
+its sharpest form: the check ran, came back clean, and was answering a question
+nobody had asked it. **Date anything measured from history against the rewrite
+before believing it.**
 
 ## !! Every measurement here was made by an operator who KNEW it was a test
 

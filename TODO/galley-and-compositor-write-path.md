@@ -31,51 +31,57 @@ Split:    2026-08-23 -- every box cut to two lines. The read-path box was two ca
 
 ## Objective
 
-**The galley can overwrite the file under review, and the compositor reads through a
-normaliser.** This is the write path -- the one place a defect reaches disk -- so a defect here
-lands at stage 7b with every gate green.
+**The galley can overwrite the file under review, and the compositor reads
+through a normaliser.** This is the write path -- the one place a defect reaches
+disk -- so a defect here lands at stage 7b with every gate green.
 
 !! **THE DESTRUCTIVE CASE IS REFUSED, SINCE 2026-08-23.** `galley.py:365` asks
-`out.is_relative_to(repo) or repo.is_relative_to(out)` and prints `REFUSED`. ! The comment above
-it states the cause the old test missed: **`is_relative_to` is true of a path and itself**, so a
-containment test alone passed on an overlap and `compositor.draft` overwrote the file under
-review, printing `1 page(s) set` and exiting 0. VERIFIED at `galley.py:361-368`: both directions
-are tested and the run is REFUSED WHOLE.
+`out.is_relative_to(repo) or repo.is_relative_to(out)` and prints `REFUSED`. !
+The comment above it states the cause the old test missed: **`is_relative_to` is
+true of a path and itself**, so a containment test alone passed on an overlap
+and `compositor.draft` overwrote the file under review, printing `1 page(s) set`
+and exiting 0. VERIFIED at `galley.py:361-368`: both directions are tested and
+the run is REFUSED WHOLE.
 
-!! **AND A `c` NO LONGER GIVES UP ITS LEADING.** `galley.py:197-202` reads the cue off the
-address and passes `_vacate` a leading of `None` where the cue is a `c` -- `ON = "c"`,
-`addresser.py:161`. The reason is at `galley.py:191-196`: **a `c` sits BESIDE code**, so dropping
-the trailing comment leaves the statement where it was and the blank below separates that CODE
-from what follows. ! `prove_unchanged` cannot tell the two apart, because the AST is identical
-either way, which is why it would have landed silently at 7b. ! The hazard is now a comment
-recording what was fixed, not the fix that is missing.
+!! **AND A `c` NO LONGER GIVES UP ITS LEADING.** `galley.py:197-202` reads the
+cue off the address and passes `_vacate` a leading of `None` where the cue is a
+`c` -- `ON = "c"`, `addresser.py:161`. The reason is at `galley.py:191-196`: **a
+`c` sits BESIDE code**, so dropping the trailing comment leaves the statement
+where it was and the blank below separates that CODE from what follows. !
+`prove_unchanged` cannot tell the two apart, because the AST is identical either
+way, which is why it would have landed silently at 7b. ! The hazard is now a
+comment recording what was fixed, not the fix that is missing.
 
-! **WHAT IS LEFT IS THE COMPOSITOR'S READ PATH AND ITS TWO GATES**, and none of it needs a
-ruling -- the mechanism was measured right and the fix is named in the module that owns it.
+! **WHAT IS LEFT IS THE COMPOSITOR'S READ PATH AND ITS TWO GATES**, and none of
+it needs a ruling -- the mechanism was measured right and the fix is named in
+the module that owns it.
 
 ### The read path, MEASURED
 
-`compositor.lossless` and `compositor.identity` both call `Path.read_text` -- `compositor.py:304`
-and `:335` -- which universal-newline-translates, so `line_endings()` can NEVER answer CRLF from
-the gate. MEASURED 2026-08-22: **2,904 of 3,020 corpus files are CRLF on disk and `read_text`
-reports zero.** ! Re-measured reading BYTES: 3,015 of 3,020 identical, unchanged -- so the
+`compositor.lossless` and `compositor.identity` both call `Path.read_text` --
+`compositor.py:304` and `:335` -- which universal-newline-translates, so
+`line_endings()` can NEVER answer CRLF from the gate. MEASURED 2026-08-22:
+**2,904 of 3,020 corpus files are CRLF on disk and `read_text` reports zero.** !
+Re-measured reading BYTES: 3,015 of 3,020 identical, unchanged -- so the
 mechanism is right and what was untested is the newline axis.
 
-! `repo.read_raw` exists for exactly this (`repo.py:25`) and says so; **galley fixed it at its
-OWN call site and left the next caller to re-hit it.**
+! `repo.read_raw` exists for exactly this (`repo.py:25`) and says so; **galley
+fixed it at its OWN call site and left the next caller to re-hit it.**
 
 ### The shared prologue, and what `main` pays for it
 
-`compositor.lossless` (`:303-313`) and `compositor.identity` (`:334-344`) each read the file,
-resolve the language, build the page and set it, and `main` runs the pair twice per file.
+`compositor.lossless` (`:303-313`) and `compositor.identity` (`:334-344`) each
+read the file, resolve the language, build the page and set it, and `main` runs
+the pair twice per file.
 
 ### The empty page is inferred from an empty list
 
-`compositor.py:231` reads `if not page.cues.reading and page.text` and raises *"the page has no
-places -- its source was never read"* -- an inference from an EMPTY LIST, because `page_for`
-throws the fact away instead of recording it. ! The stake is at `:237-246`: MEASURED 2026-08-21
-on `sentry/src/sentry/api/paginator.py`, **884 lines in and 0 characters out, silently**, and 4
-files in `corpora/` are in that state today.
+`compositor.py:231` reads `if not page.cues.reading and page.text` and raises
+*"the page has no places -- its source was never read"* -- an inference from an
+EMPTY LIST, because `page_for` throws the fact away instead of recording it. !
+The stake is at `:237-246`: MEASURED 2026-08-21 on
+`sentry/src/sentry/api/paginator.py`, **884 lines in and 0 characters out,
+silently**, and 4 files in `corpora/` are in that state today.
 
 ## Tasks
 

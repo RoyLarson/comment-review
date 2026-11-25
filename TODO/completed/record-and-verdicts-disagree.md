@@ -38,15 +38,16 @@ Updated:  2026-08-28 — T4 was ticked at fcba2a6 and is UNTICKED again: only it
 
 ## Objective
 
-**record.py and verdicts.py disagree about what a valid record is, in six places, and the
-disagreement always resolves the same way: `record.py --check` REFUSES a record that
-`verdicts.py` ADMITS.** Two gates over one file, and the admitting one is the gate that certifies
-a review.
+**record.py and verdicts.py disagree about what a valid record is, in six
+places, and the disagreement always resolves the same way: `record.py --check`
+REFUSES a record that `verdicts.py` ADMITS.** Two gates over one file, and the
+admitting one is the gate that certifies a review.
 
-! **Kept as a record, not as work:** this file exists so the findings survive the wait. Roy,
-2026-08-22: *particularly the record/verdict pieces ... needs an independent review work
-session*. It also waits on [`front-half-undetermined`](front-half-undetermined.md), which is
-where what a RECORD IS gets settled -- which is why the Status is `deferred` and not `open`.
+! **Kept as a record, not as work:** this file exists so the findings survive
+the wait. Roy, 2026-08-22: *particularly the record/verdict pieces ... needs an
+independent review work session*. It also waits on
+[`front-half-undetermined`](front-half-undetermined.md), which is where what a
+RECORD IS gets settled -- which is why the Status is `deferred` and not `open`.
 
 ## The six findings, in full
 

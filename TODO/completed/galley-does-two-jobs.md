@@ -15,24 +15,26 @@ Built:    2026-08-21 — the split is built and wired: galley.reset places by ad
 
 ## Objective
 
-**`galley.py` does two jobs, and the second one keeps destroying the first.** It decides
-which paragraph each verdict belongs to and whether the census still matches -- *updating the
-page* -- and then splices that text into a copy of the file at line ranges and writes bytes --
-*setting it*. Roy, 2026-08-21: *"That is all because the galley is trying to do two things at
-once instead of one thing well."*
+**`galley.py` does two jobs, and the second one keeps destroying the first.** It
+decides which paragraph each verdict belongs to and whether the census still
+matches -- *updating the page* -- and then splices that text into a copy of the
+file at line ranges and writes bytes -- *setting it*. Roy, 2026-08-21: *"That is
+all because the galley is trying to do two things at once instead of one thing
+well."*
 
-!! **THE SHIPPED VOCABULARY ALREADY SAYS SO.** `references/vocabulary.toml` defines `page` and
-adds: *"the GALLEY is text set but not yet made into pages."* A galley that writes files has
-made pages. `galley.py`'s own module docstring quotes that definition and then does the
-opposite -- and so, in the trade, does the sequence: a galley proof is pulled from type still
-in the tray precisely so that correcting it costs nothing, because nothing has been made up
-yet.
+!! **THE SHIPPED VOCABULARY ALREADY SAYS SO.** `references/vocabulary.toml`
+defines `page` and adds: *"the GALLEY is text set but not yet made into pages."*
+A galley that writes files has made pages. `galley.py`'s own module docstring
+quotes that definition and then does the opposite -- and so, in the trade, does
+the sequence: a galley proof is pulled from type still in the tray precisely so
+that correcting it costs nothing, because nothing has been made up yet.
 
-!! **THIS IS THE ERROR CLAUDE.md OPENS WITH.** Roy, 2026-08-21: *"The galley was always broken
-and on this commit is still broken ... that header is referencing this exact error even though
-it was masked by so many other things."* **739 tests pass, `ruff` is clean, the 3.11 floor
-holds, `check_vocabulary` reports 0 drifted, and the shipped definition of a term disagrees
-with the shipped implementation of it.** No gate can ask that question; it is not the kind of
+!! **THIS IS THE ERROR CLAUDE.md OPENS WITH.** Roy, 2026-08-21: *"The galley was
+always broken and on this commit is still broken ... that header is referencing
+this exact error even though it was masked by so many other things."* **739
+tests pass, `ruff` is clean, the 3.11 floor holds, `check_vocabulary` reports 0
+drifted, and the shipped definition of a term disagrees with the shipped
+implementation of it.** No gate can ask that question; it is not the kind of
 question a gate asks.
 
 ## The split, ruled 2026-08-21

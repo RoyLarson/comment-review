@@ -56,17 +56,18 @@ Falsified: 2026-08-31 -- query kept the role LOOKING; removing it removed the lo
 
 ## Objective
 
-**`outside my role` now carries the same payload as a real finding, and on most repos it is
-most of what one role emits.**
+**`outside my role` now carries the same payload as a real finding, and on most
+repos it is most of what one role emits.**
 
-The contract landed 2026-08-17 and is still live: a `query` must NAME its shape in the brief's
-own words -- `outside my role`, `outside the checkout`, `outside the code`
-(`reviewer-brief.md:406-414`) -- carry `SOURCES` that resolve, and say what WOULD settle it.
-Roy ruled it, and the reason holds -- *"Not mine"* is an admission, a showing is a finding, and
-the block otherwise leaves the report certified by nobody (`reviewer-brief.md:425-431`).
+The contract landed 2026-08-17 and is still live: a `query` must NAME its shape
+in the brief's own words -- `outside my role`, `outside the checkout`, `outside
+the code` (`reviewer-brief.md:406-414`) -- carry `SOURCES` that resolve, and say
+what WOULD settle it. Roy ruled it, and the reason holds -- *"Not mine"* is an
+admission, a showing is a finding, and the block otherwise leaves the report
+certified by nobody (`reviewer-brief.md:425-431`).
 
-! The cost was not measured at the time. Measured then, on a 1,174-prose-block repo where
-`module-context`'s remit covers 175:
+! The cost was not measured at the time. Measured then, on a 1,174-prose-block
+repo where `module-context`'s remit covers 175:
 
 | role | report |
 | --- | --- |
@@ -75,17 +76,20 @@ the block otherwise leaves the report certified by nobody (`reviewer-brief.md:42
 | `function-context` | 512 KB |
 | `block-context` | 486 KB and still writing |
 
-`module-context` files the fewest substantive findings and writes the largest report, because
-roughly a thousand blocks are outside its remit and each one now costs a full record.
+`module-context` files the fewest substantive findings and writes the largest
+report, because roughly a thousand blocks are outside its remit and each one now
+costs a full record.
 
-! **THE 1.1 MB FIGURE IS A FILE SIZE, and attributing it to out-of-role queries is an inference
-this file has not earned** -- which is what the measurement below is for.
+! **THE 1.1 MB FIGURE IS A FILE SIZE, and attributing it to out-of-role queries
+is an inference this file has not earned** -- which is what the measurement
+below is for.
 
-!! **It pulls against the change made the same day.** The interval exemption freed budget by
-removing records a role did not owe -- measured, `function-context` went from 11 findings to 68
-because *"the role spent its budget reading instead of accounting."* The query contract spends
-budget by making each remaining out-of-role record heavier. Both are right on their own terms
-and they are pulling on the same rope.
+!! **It pulls against the change made the same day.** The interval exemption
+freed budget by removing records a role did not owe -- measured,
+`function-context` went from 11 findings to 68 because *"the role spent its
+budget reading instead of accounting."* The query contract spends budget by
+making each remaining out-of-role record heavier. Both are right on their own
+terms and they are pulling on the same rope.
 
 ## ! What is NOT established
 

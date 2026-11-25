@@ -10,7 +10,8 @@ Raised:   2026-08-29 (found while correcting SKILL.md's tier-count claims, 2026-
 
 ## Objective
 
-SKILL.md says the census prints that no comment carries an anchor; it prints that every address does.
+SKILL.md says the census prints that no comment carries an anchor; it prints
+that every address does.
 
 ## Tasks
 

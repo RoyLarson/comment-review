@@ -24,26 +24,30 @@ TRIAGED:  2026-08-23 -- ONE TASK LEFT, and Requires-Roy is cleared: both questio
 
 ## Objective
 
-A census paragraph records WHICH LINES it spans, and `original_column` now records WHERE ON THE
-FIRST LINE its text begins. **One reader still infers that fact instead of reading it.**
-`prove_unchanged._without_comments` reconstructs the surviving PREFIX of a line by testing
-whether the stored text is a proper SUFFIX of the physical one --
-`elif stored and actual.endswith(stored)`, `prove_unchanged.py:156` -- which is the same rule the
-producers already state. MEASURED 2026-08-23: that line is still there, so one rule has two
+A census paragraph records WHICH LINES it spans, and `original_column` now
+records WHERE ON THE FIRST LINE its text begins. **One reader still infers that
+fact instead of reading it.** `prove_unchanged._without_comments` reconstructs
+the surviving PREFIX of a line by testing whether the stored text is a proper
+SUFFIX of the physical one -- `elif stored and actual.endswith(stored)`,
+`prove_unchanged.py:156` -- which is the same rule the producers already state.
+MEASURED 2026-08-23: that line is still there, so one rule has two
 implementations, exactly as this file found them.
 
-! **SUPERSEDED 2026-08-18: the reason once given for leaving the inference alone -- that storing
-the file slice would stop the suffix test firing and drop the declaration line out of the code
-set -- no longer holds.** `code_lines` has no suffix test; the producer states what it needs.
+! **SUPERSEDED 2026-08-18: the reason once given for leaving the inference alone
+-- that storing the file slice would stop the suffix test firing and drop the
+declaration line out of the code set -- no longer holds.** `code_lines` has no
+suffix test; the producer states what it needs.
 
-!! **AND `whole_lines` WAS NOT THE END OF IT, which is the case that produced the column.** A
-boolean answers one question -- does code share this paragraph's first line -- and
-`_without_comments` needs a different one: it must rebuild the surviving prefix TEXT, and a
-boolean cannot give it one. `whole_lines` is gone and `original_column` replaced it
-(`lexer.py:285-289`); the last reader that never moved is the one this file now tracks.
+!! **AND `whole_lines` WAS NOT THE END OF IT, which is the case that produced
+the column.** A boolean answers one question -- does code share this paragraph's
+first line -- and `_without_comments` needs a different one: it must rebuild the
+surviving prefix TEXT, and a boolean cannot give it one. `whole_lines` is gone
+and `original_column` replaced it (`lexer.py:285-289`); the last reader that
+never moved is the one this file now tracks.
 
-! The information exists at the producers and reaches the census: `lexer.py:1148` and
-`lexer.py:1743` set `original_column` on both tiers, and `page.py:276, 287, 334` already read it.
+! The information exists at the producers and reaches the census:
+`lexer.py:1148` and `lexer.py:1743` set `original_column` on both tiers, and
+`page.py:276, 287, 334` already read it.
 
 ## Two questions this file held open, and how each was answered
 

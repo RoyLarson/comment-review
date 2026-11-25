@@ -36,9 +36,10 @@ Re-split: 2026-08-23 -- the seven boxes still over two lines were cut again. The
 
 ## Objective
 
-**SKILL.md says `ownership-context` is read FIRST because a claim attached to the wrong scope
-is measured against the wrong code and `correct`ed into a falsehood. Three mechanisms could
-deliver that, and the one that prevents the misreading is still missing.**
+**SKILL.md says `ownership-context` is read FIRST because a claim attached to
+the wrong scope is measured against the wrong code and `correct`ed into a
+falsehood. Three mechanisms could deliver that, and the one that prevents the
+misreading is still missing.**
 
 | mechanism | what it does today, MEASURED 2026-08-23 |
 | --- | --- |
@@ -46,15 +47,16 @@ deliver that, and the one that prevents the misreading is still missing.**
 | synthesis order | in-code `move` was applied **LAST**, after `correct` and `patch` -- the text was corrected at the old anchor, then relocated. Ruled *"moves first"*; placement now settles at step 2 |
 | the collator | `contradictions()` keyed on `drop` alone, so `move` + `correct` passed in silence. It now flags `move` against `correct`/`patch` |
 
-! **Two of the three act AFTER the reviewers have read.** They catch a claim measured at the
-wrong anchor; they do not stop it being measured there.
+! **Two of the three act AFTER the reviewers have read.** They catch a claim
+measured at the wrong anchor; they do not stop it being measured there.
 
-! **What is left is 4b -- the middle step that has no definition.** The order is now written
-down, but nothing carries `ownership-context`'s resolved placement into what the other three
-read: there is no PROPOSED tag, and `census.py` has nowhere to put one. So `block-context` still
-measures a misplaced claim against whatever code it sits with, and spends a verdict on it, before
-anything knows the placement is wrong. The collator sends that block back -- which is a round trip,
-not a prevention.
+! **What is left is 4b -- the middle step that has no definition.** The order is
+now written down, but nothing carries `ownership-context`'s resolved placement
+into what the other three read: there is no PROPOSED tag, and `census.py` has
+nowhere to put one. So `block-context` still measures a misplaced claim against
+whatever code it sits with, and spends a verdict on it, before anything knows
+the placement is wrong. The collator sends that block back -- which is a round
+trip, not a prevention.
 
 ## !! WHY 4a/b/c EXISTS AT ALL, stated 2026-08-18 with the consequences known
 

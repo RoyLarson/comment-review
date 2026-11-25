@@ -21,21 +21,24 @@ Split:    2026-08-23 -- that one box named four modules, and this repo takes eac
 
 ## Objective
 
-!! **THE TITLE IS FALSE AS OF 2026-08-23, AND SO IS THE RESIDUAL THAT REPLACED IT.** The census
-owns no addressing at all. Roy, correcting a session that quoted this file's own title back as
-though it were a design fact: *"that is false, it clearly owns none of the addressing. It asks the
-page to supply the address for itself ... the page knows its path and the cues. Something else
-owns addressing -- the Addresser."*
+!! **THE TITLE IS FALSE AS OF 2026-08-23, AND SO IS THE RESIDUAL THAT REPLACED
+IT.** The census owns no addressing at all. Roy, correcting a session that
+quoted this file's own title back as though it were a design fact: *"that is
+false, it clearly owns none of the addressing. It asks the page to supply the
+address for itself ... the page knows its path and the cues. Something else owns
+addressing -- the Addresser."*
 
-! **MEASURED 2026-08-23.** `census.py` sets no anchor -- the five sites named below are gone,
-`paragraphs_lexical` and `paragraphs_stdlib` moved to the lexer, and the one surviving `anchor =`
-is a render for printing. It calls no `cues.address(...)`. Every `@` in that file is
-`b.address.split("@")[-1]`, printing an address it was handed.
+! **MEASURED 2026-08-23.** `census.py` sets no anchor -- the five sites named
+below are gone, `paragraphs_lexical` and `paragraphs_stdlib` moved to the lexer,
+and the one surviving `anchor =` is a render for printing. It calls no
+`cues.address(...)`. Every `@` in that file is `b.address.split("@")[-1]`,
+printing an address it was handed.
 
-!! **AND THE PUT-TOGETHER CAME HOME.** Roy's ruling on this file, 2026-08-19, was that *"the
-foliation is the only and official spot that converts the galley artifact into an address."* The
-addresser owns every PART of an address, the whole TAKE-APART -- `flatten`, `emit`, `cue_of`,
-`unflatten` -- and now the COLLATOR as well:
+!! **AND THE PUT-TOGETHER CAME HOME.** Roy's ruling on this file, 2026-08-19,
+was that *"the foliation is the only and official spot that converts the galley
+artifact into an address."* The addresser owns every PART of an address, the
+whole TAKE-APART -- `flatten`, `emit`, `cue_of`, `unflatten` -- and now the
+COLLATOR as well:
 
 | site | what it does |
 | --- | --- |
@@ -43,17 +46,18 @@ addresser owns every PART of an address, the whole TAKE-APART -- `flatten`, `emi
 | `page.py:792`, `:804` | call it |
 | `record.py:1085`, `held.py:63` | call it |
 
-! Its own docstring records what this file was about: *"IT LEAKED TO TWO MODULES, and
-`record.address_for` -- which this is -- carried the claim 'the only place the two halves are put
-back together' while `page.py` composed its own with an f-string at two sites. Ruled by Roy,
-2026-08-23."*
+! Its own docstring records what this file was about: *"IT LEAKED TO TWO
+MODULES, and `record.address_for` -- which this is -- carried the claim 'the
+only place the two halves are put back together' while `page.py` composed its
+own with an f-string at two sites. Ruled by Roy, 2026-08-23."*
 
-! **What is left is the module-subject task, and it is unfinished for a plain reason**: the four
-modules were separated and each announces one subject -- `cues` names places, `page` says what a
-page and a paragraph are, `census` says which prose occupies which address, `galley` sets the
-proposed text -- but `module-context` has never been run over them to verify it. **It is the
-verification that is missing, not the docstrings**: each of the four announces one subject today
-and nothing has checked that claim from outside.
+! **What is left is the module-subject task, and it is unfinished for a plain
+reason**: the four modules were separated and each announces one subject --
+`cues` names places, `page` says what a page and a paragraph are, `census` says
+which prose occupies which address, `galley` sets the proposed text -- but
+`module-context` has never been run over them to verify it. **It is the
+verification that is missing, not the docstrings**: each of the four announces
+one subject today and nothing has checked that claim from outside.
 
 ## What the ticked boxes recorded
 

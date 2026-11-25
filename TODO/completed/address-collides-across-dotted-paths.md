@@ -17,23 +17,26 @@ Ruled:    2026-08-19 — Roy: 'lets use an illegal symbol for the separator then
 
 ## Objective
 
-!! **`a/b.py` AND `a.b.py` BOTH DOT TO `a.b.py`, SO `a.b.py@a0` NAMES TWO BLOCKS IN TWO FILES --
-AND `--check` PASSES IT.** Measured 2026-08-19: `4 of 4 blocks addressed`, rc 0, no SHARED row.
-Then `--resolve a.b.py@a0` answers *"no file in this census dots to 'a.b.py'"*. **The gate
-certifies what the resolver then refuses.**
+!! **`a/b.py` AND `a.b.py` BOTH DOT TO `a.b.py`, SO `a.b.py@a0` NAMES TWO BLOCKS
+IN TWO FILES -- AND `--check` PASSES IT.** Measured 2026-08-19: `4 of 4 blocks
+addressed`, rc 0, no SHARED row. Then `--resolve a.b.py@a0` answers *"no file in
+this census dots to 'a.b.py'"*. **The gate certifies what the resolver then
+refuses.**
 
-**The dotted form was chosen so mixed languages could not collide.** Roy, 2026-08-18: *"we could
-have mixed languages in the system with the same names that without that we are back to
-collisions."* It solves that and reintroduces the same failure on directory separators, because
-`/` and `.` both become `.`.
+**The dotted form was chosen so mixed languages could not collide.** Roy,
+2026-08-18: *"we could have mixed languages in the system with the same names
+that without that we are back to collisions."* It solves that and reintroduces
+the same failure on directory separators, because `/` and `.` both become `.`.
 
-! **`undot` refuses the ambiguity correctly** -- it returns "" when two real paths dot alike
-rather than picking one -- so nothing is silently mis-resolved. What is wrong is that the
-collision is ADMITTED at census time and only surfaces later, somewhere else.
+! **`undot` refuses the ambiguity correctly** -- it returns "" when two real
+paths dot alike rather than picking one -- so nothing is silently mis-resolved.
+What is wrong is that the collision is ADMITTED at census time and only surfaces
+later, somewhere else.
 
-! **`_check` cannot see it by construction**: it iterates `for path in sorted({paths})` and
-compares only within one path, so a cross-file collision is never in scope. `addresser.py` and
-`docs/addressing.md` both claim a complete path cannot collide.
+! **`_check` cannot see it by construction**: it iterates `for path in
+sorted({paths})` and compares only within one path, so a cross-file collision is
+never in scope. `addresser.py` and `docs/addressing.md` both claim a complete
+path cannot collide.
 
 ## Tasks
 

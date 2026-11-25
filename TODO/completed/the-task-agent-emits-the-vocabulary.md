@@ -11,22 +11,26 @@ Raised:   2026-08-16 (Roy: "the task agent runs a command and puts the correct
 
 ## Objective
 
-**One source, emitted verbatim, per agent.** A script prints the definitions an agent needs; the
-task agent runs it and puts the output in that agent's prompt. Nothing is summarised, nothing is
-copied into a second file, and no definition passes through a paraphrasing step.
+**One source, emitted verbatim, per agent.** A script prints the definitions an
+agent needs; the task agent runs it and puts the output in that agent's prompt.
+Nothing is summarised, nothing is copied into a second file, and no definition
+passes through a paraphrasing step.
 
-This is the pass the whole vocabulary branch deferred -- *"once we get the vocabulary resolved we
-will fix how to get the vocabulary to the correct places"* -- and it is now designed rather than
-open. Four alternatives were considered and rejected: one shared vocabulary file every agent
-reads (every agent gets every term, and a shared file inevitably names the surrounding
-machinery); the task agent assembling sections by hand (the only option that can reword a
-definition); definitions written into each agent file (duplicates every shared term); and placing
-each term where its readers already are (better, but leaves definitions spread across files).
+This is the pass the whole vocabulary branch deferred -- *"once we get the
+vocabulary resolved we will fix how to get the vocabulary to the correct
+places"* -- and it is now designed rather than open. Four alternatives were
+considered and rejected: one shared vocabulary file every agent reads (every
+agent gets every term, and a shared file inevitably names the surrounding
+machinery); the task agent assembling sections by hand (the only option that can
+reword a definition); definitions written into each agent file (duplicates every
+shared term); and placing each term where its readers already are (better, but
+leaves definitions spread across files).
 
-! **The vocabulary becomes SHIPPED content for the first time.** Roy: *"vocabulary.md was
-always going to have to move. That is the only way to get it into the system anyways."* Done
-2026-08-16: `references/vocabulary.toml` holds what agents are given, and the 2,660 lines of
-survey it came from are deleted -- `docs/vocabulary.md` keeps the settled state.
+! **The vocabulary becomes SHIPPED content for the first time.** Roy:
+*"vocabulary.md was always going to have to move. That is the only way to get it
+into the system anyways."* Done 2026-08-16: `references/vocabulary.toml` holds
+what agents are given, and the 2,660 lines of survey it came from are deleted --
+`docs/vocabulary.md` keeps the settled state.
 
 ## Result, 2026-08-16
 

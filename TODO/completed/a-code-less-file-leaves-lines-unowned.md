@@ -20,7 +20,8 @@ TRIAGED:  2026-08-23 — RE-MEASURED IN PLACE, and BOTH defects are fixed. Every
 
 A code-less file leaves lines owned by no paragraph -- **and no longer does.**
 
-!! **RE-MEASURED 2026-08-23** through `page.page_for`, counting the lines no paragraph spans:
+!! **RE-MEASURED 2026-08-23** through `page.page_for`, counting the lines no
+paragraph spans:
 
 | source | paragraphs | unowned lines |
 | --- | --- | --- |
@@ -28,24 +29,27 @@ A code-less file leaves lines owned by no paragraph -- **and no longer does.**
 | `   \n\n` (whitespace only) | `f0`/`f1` dark-matter, `a0` undocumented, `b0` interval, leading 1-2 | **0** |
 | `# just a note\n` | `f0` matter 1-1, `f1` dark-matter, `a0` undocumented, `b0` interval | **0** |
 
-! **`leading` is what closed it.** The blank run is a paragraph with no address, so Roy's
-invariant of 2026-08-20 -- *"every line belongs to 1 paragraph"* -- holds on a file with no code
-the same way it holds on one with code.
+! **`leading` is what closed it.** The blank run is a paragraph with no address,
+so Roy's invariant of 2026-08-20 -- *"every line belongs to 1 paragraph"* --
+holds on a file with no code the same way it holds on one with code.
 
 !! **AND `splitlines` NO LONGER DECIDES WHAT A LINE IS.** `constants.text_lines`
-(`constants.py:28-62`) splits on CRLF, CR and LF and nothing else, and its own docstring records
-why: *"`str.splitlines()` SPLITS ON ELEVEN THINGS, and eight of them are not line endings"*, and
-the 2026-08-22 measurement of a file that passed both gates and no longer compiled. Measured
-2026-08-23: `splitlines` occurs nowhere in `lexer.py`; the four remaining calls are on git and
-prompt output (`repo.py:122`, `referrers.py:89`, `run_context.py:239`) and in that docstring.
+(`constants.py:28-62`) splits on CRLF, CR and LF and nothing else, and its own
+docstring records why: *"`str.splitlines()` SPLITS ON ELEVEN THINGS, and eight
+of them are not line endings"*, and the 2026-08-22 measurement of a file that
+passed both gates and no longer compiled. Measured 2026-08-23: `splitlines`
+occurs nowhere in `lexer.py`; the four remaining calls are on git and prompt
+output (`repo.py:122`, `referrers.py:89`, `run_context.py:239`) and in that
+docstring.
 
-! **THE BARE `except Exception` IS STILL THERE and is not this file's work.** `census.py:385`
-catches it under the comment *"a parse failure is REPORTED, as a gap"*, so any bug in the page
-route degrades to a per-file gap rather than raising -- which is WHY the front-matter destruction
-stayed quiet. That is a diagnosis, not a checkpoint: nothing states the end state, and the
-degradation class is filed and owned in
-[`census-degrades-silently`](census-degrades-silently.md), which carries four measured inputs and
-the checkable work for each.
+! **THE BARE `except Exception` IS STILL THERE and is not this file's work.**
+`census.py:385` catches it under the comment *"a parse failure is REPORTED, as a
+gap"*, so any bug in the page route degrades to a per-file gap rather than
+raising -- which is WHY the front-matter destruction stayed quiet. That is a
+diagnosis, not a checkpoint: nothing states the end state, and the degradation
+class is filed and owned in
+[`census-degrades-silently`](census-degrades-silently.md), which carries four
+measured inputs and the checkable work for each.
 
 ## Tasks
 

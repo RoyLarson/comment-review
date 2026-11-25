@@ -25,9 +25,9 @@ SPLIT:    2026-08-23 -- no box held two tasks; every box is cut to two lines and
 
 ## Objective
 
-**A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never
-pinned.** Roy caught it 2026-08-22 when an installed plugin traced itself to the commit just
-finished rather than to v0.2.3.
+**A directory marketplace resolves the plugin LIVE, so a version-pinned
+measurement was never pinned.** Roy caught it 2026-08-22 when an installed
+plugin traced itself to the commit just finished rather than to v0.2.3.
 
 MEASURED 2026-08-22, re-measured 2026-08-23:
 
@@ -36,14 +36,15 @@ MEASURED 2026-08-22, re-measured 2026-08-23:
 | `~/.claude/plugins/known_marketplaces.json` | `roy-local` is `"source": "directory"`, `installLocation` = `C:\Users\Roy\projects\comment-review` -- **the working tree.** A directory marketplace points; it does not copy |
 | `~/.claude/plugins/cache/roy-local/comment-review/0.2.3/` | ten modules -- `annotate`, `census`, `galley`, `prove_unchanged`, `record`, `referrers`, `repo`, `run_context`, `verdicts`, `vocabulary`. **No `addresser.py`, `page.py`, `lexer.py`, `language.py`, `desk.py`, `held.py`, `compositor.py`, `constants.py` or `exceptions.py`** -- nineteen live today, and those nine did not exist at that tag |
 
-!! **SO THE `d` SERIES IS UNREACHABLE FROM THAT CACHE: no module in it can emit one.** The run
-that produced `d` records was reading the live tree.
+!! **SO THE `d` SERIES IS UNREACHABLE FROM THAT CACHE: no module in it can emit
+one.** The run that produced `d` records was reading the live tree.
 
-!! **IT CONTRADICTS WHAT CLAUDE.md TELLS US ABOUT RELEASES.** CLAUDE.md says *the plugin cache
-keys its directory on that version field, so a second different tree installed under the same
-number overwrites the first*. That describes the cache half only. It does not say that a
-directory-source marketplace resolves LIVE -- which means **any measurement believed to be
-pinned to a tag was against whatever the tree held at run time.**
+!! **IT CONTRADICTS WHAT CLAUDE.md TELLS US ABOUT RELEASES.** CLAUDE.md says
+*the plugin cache keys its directory on that version field, so a second
+different tree installed under the same number overwrites the first*. That
+describes the cache half only. It does not say that a directory-source
+marketplace resolves LIVE -- which means **any measurement believed to be pinned
+to a tag was against whatever the tree held at run time.**
 
 ## The three candidates for the ruling
 

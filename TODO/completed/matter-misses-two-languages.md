@@ -27,11 +27,12 @@ TRIAGED:  2026-08-23 -- the probes were re-run a second time today, through `pag
 
 ## Objective
 
-**A licence header is unprotected in Rust and TypeScript.** The `query` guard that protects a
-file's own matter from being edited never fires for them, because the run is never typed
-`matter`.
+**A licence header is unprotected in Rust and TypeScript.** The `query` guard
+that protects a file's own matter from being edited never fires for them,
+because the run is never typed `matter`.
 
-MEASURED 2026-08-23 on four identical licence headers, re-run the same day through `page_for`:
+MEASURED 2026-08-23 on four identical licence headers, re-run the same day
+through `page_for`:
 
 | probe | `f0` | where the header went |
 | --- | --- | --- |
@@ -52,9 +53,10 @@ MEASURED 2026-08-23 on four identical licence headers, re-run the same day throu
   docstring is not matter and is what ENDS matter. ! This is the
   `corpora/sentry/eslint.config.ts` case the superseded file measured, still live.
 
-! **The rule is POSITIONAL and per-language only in what counts as a comment** -- a run starting
-on line 1 or ending on the last line is matter. C proves the mechanism reaches beyond Python,
-so nothing here is a Python-only mechanism to be generalised, and that half is not re-litigated.
+! **The rule is POSITIONAL and per-language only in what counts as a comment**
+-- a run starting on line 1 or ending on the last line is matter. C proves the
+mechanism reaches beyond Python, so nothing here is a Python-only mechanism to
+be generalised, and that half is not re-litigated.
 
 ## The ruling wanted, and why it is DEFERRED
 

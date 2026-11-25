@@ -15,12 +15,13 @@ Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven 
 Sixteen defects in `commands/collate.py`, measured on 2026-08-30 by running the
 command -- sixteen recorded invocations, not a reading.
 
-!! **THESE LAND TOGETHER, AND THE DEPENDENCY IS THE EXIT CODE.** Four of the tasks
-each change what an exit code MEANS, and an exit code is the one thing the task agent
-branches on -- so landing any of them alone leaves the code table half-true and the
-docstring's `Returns:` list wrong in a different way than it is wrong today. The prose
-and argparse tasks state that same contract, so correcting the behaviour without them
-ships a module whose own description contradicts it.
+!! **THESE LAND TOGETHER, AND THE DEPENDENCY IS THE EXIT CODE.** Four of the
+tasks each change what an exit code MEANS, and an exit code is the one thing the
+task agent branches on -- so landing any of them alone leaves the code table
+half-true and the docstring's `Returns:` list wrong in a different way than it
+is wrong today. The prose and argparse tasks state that same contract, so
+correcting the behaviour without them ships a module whose own description
+contradicts it.
 
 ## What was measured, by running it
 

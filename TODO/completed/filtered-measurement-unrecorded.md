@@ -26,28 +26,30 @@ Split:    2026-08-23 -- boxes cut to two lines each; the Roy quotations and the
 
 ## Objective
 
-!! **THE COMPARISON THAT JUSTIFIES `--filtered` IS NOT WRITTEN DOWN, AND IT IS THE ONE THAT
-MATTERS.** `--filtered` REMOVES information from the census a role reads. The only numbers in the
-tree measure how much smaller that made the prompt -- 39% of the listing was repeated paths,
-`--filtered` saved 61%. Those are the COST. The BENEFIT was measured and recorded nowhere.
+!! **THE COMPARISON THAT JUSTIFIES `--filtered` IS NOT WRITTEN DOWN, AND IT IS
+THE ONE THAT MATTERS.** `--filtered` REMOVES information from the census a role
+reads. The only numbers in the tree measure how much smaller that made the
+prompt -- 39% of the listing was repeated paths, `--filtered` saved 61%. Those
+are the COST. The BENEFIT was measured and recorded nowhere.
 
-Roy, 2026-08-20, on going from filtered to unfiltered: *"the agents got a lot more tokens and used
-a lot more tokens on effectively the same level of output. They did miss a lot in the
-difference."* And: *"unfortunate that I did not tell the agents to put their results in evidence
-before the stuff in there."*
+Roy, 2026-08-20, on going from filtered to unfiltered: *"the agents got a lot
+more tokens and used a lot more tokens on effectively the same level of output.
+They did miss a lot in the difference."* And: *"unfortunate that I did not tell
+the agents to put their results in evidence before the stuff in there."*
 
-!! **IT IS THE JUSTIFICATION FOR THE SINGLE MOST CONSEQUENTIAL THING ABOUT WHAT A REVIEWER
-SEES.** `census.py:510` names `--filtered` *"the command SKILL.md hands a reviewer"*, and the flag
-removes information from the listing that reaches four role prompts. The recorded numbers say
-only how much SMALLER it made the prompt.
+!! **IT IS THE JUSTIFICATION FOR THE SINGLE MOST CONSEQUENTIAL THING ABOUT WHAT
+A REVIEWER SEES.** `census.py:510` names `--filtered` *"the command SKILL.md
+hands a reviewer"*, and the flag removes information from the listing that
+reaches four role prompts. The recorded numbers say only how much SMALLER it
+made the prompt.
 
-!! **AND IT IS THE BASELINE THE PAGE MUST BEAT**, which the page claims to do at BOTH ends at
-once: more information than filtered, fewer tokens than unfiltered, recall at least filtered.
-Roy: the page is *"partially to get the best of both worlds."* Without the prior recorded there
-is nothing to hold that to.
+!! **AND IT IS THE BASELINE THE PAGE MUST BEAT**, which the page claims to do at
+BOTH ends at once: more information than filtered, fewer tokens than unfiltered,
+recall at least filtered. Roy: the page is *"partially to get the best of both
+worlds."* Without the prior recorded there is nothing to hold that to.
 
-! **NEITHER ARM IS ON DISK.** MEASURED 2026-08-23: `evidence/` holds four directories --
-`comment-review-skill-023-dev-review`, `cycle-0.2.3`, `ga`,
+! **NEITHER ARM IS ON DISK.** MEASURED 2026-08-23: `evidence/` holds four
+directories -- `comment-review-skill-023-dev-review`, `cycle-0.2.3`, `ga`,
 `rename-left-history-in-the-comments` -- and none of them is this.
 
 ## It is not lost -- it is REPRODUCIBLE

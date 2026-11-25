@@ -64,71 +64,81 @@ Fixed2:   2026-08-24 — T4 and T5. census.py refuses a run with no paths
 
 ## Objective
 
-Nine findings in the record, verdict and desk system, from review round 4 -- the findings OUTSIDE
-the seven reader modules, filed rather than fixed because the reader modules shift under them.
+Nine findings in the record, verdict and desk system, from review round 4 -- the
+findings OUTSIDE the seven reader modules, filed rather than fixed because the
+reader modules shift under them.
 
-! **Every box here is a task**: each names a specific file and a specific failure, and each
-finishes when the failure stops reproducing.
+! **Every box here is a task**: each names a specific file and a specific
+failure, and each finishes when the failure stops reproducing.
 
 ### The evidence, per finding
 
-**The `patch` payload and `owes_sources` disagreed, in the shipped tree.** `record.py`'s `patch`
-row says a patch needs no source and that sentence is generated VERBATIM into the shipped
-reviewer-brief, but `owes_sources` stayed True -- only `clean` cleared it -- so `desk.py` fatally
-refused every `patch` a compliant reviewer filed. ! RE-CONFIRMED BY RUNNING IT, 2026-08-23.
-**FIXED 2026-08-24, toward the BRIEF**: the row sets `owes_sources=False`, because a `patch` rules
-on wording the paragraph itself settles, so a source would be evidence for a claim nobody made.
-Measured after: a sourceless `patch` is ADMITTED, a sourceless `correct` is still REFUSED.
+**The `patch` payload and `owes_sources` disagreed, in the shipped tree.**
+`record.py`'s `patch` row says a patch needs no source and that sentence is
+generated VERBATIM into the shipped reviewer-brief, but `owes_sources` stayed
+True -- only `clean` cleared it -- so `desk.py` fatally refused every `patch` a
+compliant reviewer filed. ! RE-CONFIRMED BY RUNNING IT, 2026-08-23. **FIXED
+2026-08-24, toward the BRIEF**: the row sets `owes_sources=False`, because a
+`patch` rules on wording the paragraph itself settles, so a source would be
+evidence for a claim nobody made. Measured after: a sourceless `patch` is
+ADMITTED, a sourceless `correct` is still REFUSED.
 
-**A non-reviewer role name passes the UNKNOWN-reviewer check.** `published` is built from
-`vocabulary.Reviewer` (`verdicts.py:403`), which also holds `compact` and `review`
-(`vocabulary.py:46-47`), so a file named `review.json` is accepted. A run where `module-context`
-never ran certifies *Every finding is admissible* at exit 0 and never names the absence.
-! RE-CONFIRMED 2026-08-23 by reading both files.
+**A non-reviewer role name passes the UNKNOWN-reviewer check.** `published` is
+built from `vocabulary.Reviewer` (`verdicts.py:403`), which also holds `compact`
+and `review` (`vocabulary.py:46-47`), so a file named `review.json` is accepted.
+A run where `module-context` never ran certifies *Every finding is admissible*
+at exit 0 and never names the absence. ! RE-CONFIRMED 2026-08-23 by reading both
+files.
 
-**Zero path arguments certified completeness.** `census.py` emitted `[]` at exit 0, and the collator's
-emptiness guard was satisfied by an empty list, so `verdicts.py` certified *0 findings over 0 prose
-paragraphs* as COMPLETE. Reachable whenever stage 1's merge-base diff yields no paths -- the exact
-complete-because-nothing-was-incomplete failure that guard exists to stop, one step out.
-! NOT RE-RUN 2026-08-23. **RE-RUN AND FIXED 2026-08-24**, both halves.
+**Zero path arguments certified completeness.** `census.py` emitted `[]` at exit
+0, and the collator's emptiness guard was satisfied by an empty list, so
+`verdicts.py` certified *0 findings over 0 prose paragraphs* as COMPLETE.
+Reachable whenever stage 1's merge-base diff yields no paths -- the exact
+complete-because-nothing-was-incomplete failure that guard exists to stop, one
+step out. ! NOT RE-RUN 2026-08-23. **RE-RUN AND FIXED 2026-08-24**, both halves.
 
-! **THE COLLATOR'S HALF IS THE SAME DEFECT ONE INPUT SHORT, and it sat beside its own reasoning.**
-`verdicts.py` already refuses a census carrying no ADDRESSES, with a comment saying *"the run then
-reads as complete because there was nothing to be incomplete about."* An EMPTY census passes that
-check **vacuously** -- `unaddressed([])` is empty because there is nothing that could be
-unaddressed -- so the guard was answering a question the input had removed. ! A guard that reads a
-collection has to say what an empty one means, or it reports *passed every question it could not
-ask* as success.
+! **THE COLLATOR'S HALF IS THE SAME DEFECT ONE INPUT SHORT, and it sat beside
+its own reasoning.** `verdicts.py` already refuses a census carrying no
+ADDRESSES, with a comment saying *"the run then reads as complete because there
+was nothing to be incomplete about."* An EMPTY census passes that check
+**vacuously** -- `unaddressed([])` is empty because there is nothing that could
+be unaddressed -- so the guard was answering a question the input had removed. !
+A guard that reads a collection has to say what an empty one means, or it
+reports *passed every question it could not ask* as success.
 
-! **AND `--languages` IS WHY THE CENSUS TAKES `nargs="*"`.** It is the one caller that
-legitimately passes no paths, so the refusal is conditioned on it rather than on the argparse
-shape -- and a test pins that it still runs, because a refusal that also refused it would be
-written to the defect's shape instead of to the defect.
+! **AND `--languages` IS WHY THE CENSUS TAKES `nargs="*"`.** It is the one
+caller that legitimately passes no paths, so the refusal is conditioned on it
+rather than on the argparse shape -- and a test pins that it still runs, because
+a refusal that also refused it would be written to the defect's shape instead of
+to the defect.
 
-**A blank line inside `desk.py`'s SOURCE window collapses to an empty string** and emits two
-spaces where the needle has one, so any honest verbatim quote SPANNING a blank line is fatally
-refused. `_resolve_lines` invites function-sized ranges, where blank lines are guaranteed.
-! NOT RE-RUN 2026-08-23.
-
-**Any at-sign in a `move`'s `to:` is treated as an address claim** in `desk.py`, but the address
-pattern matches only a series letter and digits -- so both a prose destination naming a decorated
-accessor and a real front-matter address are rejected as `not an address`. ! NOT RE-RUN
+**A blank line inside `desk.py`'s SOURCE window collapses to an empty string**
+and emits two spaces where the needle has one, so any honest verbatim quote
+SPANNING a blank line is fatally refused. `_resolve_lines` invites
+function-sized ranges, where blank lines are guaranteed. ! NOT RE-RUN
 2026-08-23.
 
-**`verdict not in VERDICTS` was asked of unvalidated JSON** in `record.py`, so a verdict written as
-a LIST raised `TypeError` and took the pre-flight down. ! RE-CONFIRMED BY RUNNING IT, 2026-08-23:
-`record_problems({"verdict": ["patch"]}, None)` gives `TypeError: unhashable type: list`.
-**FIXED 2026-08-24, and it was TWO sites rather than one** -- guarding the membership test alone
-still raised, from `ALLOWED["claim"].get(verdict)` in `claim_problems`, because `.get` hashes its
-argument exactly as `in` does. `record_problems` now reports the shape and returns before both
-verdict-keyed helpers. ! A NUMBER never raised: it hashes, so only the two JSON container types
-reached it.
+**Any at-sign in a `move`'s `to:` is treated as an address claim** in `desk.py`,
+but the address pattern matches only a series letter and digits -- so both a
+prose destination naming a decorated accessor and a real front-matter address
+are rejected as `not an address`. ! NOT RE-RUN 2026-08-23.
 
-**`compositor.draft` writes `set_page(page)` with no losslessness check.** ! The obvious fix does
-NOT work and the reason matters: `lossless()` rebuilds the page FROM DISK, so it cannot be asked
-of a drafted page -- the whole point of a draft is that lines changed. The guard that would work
-is an identity check on the page BEFORE any verdict is applied, so a later difference is
-attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
+**`verdict not in VERDICTS` was asked of unvalidated JSON** in `record.py`, so a
+verdict written as a LIST raised `TypeError` and took the pre-flight down. !
+RE-CONFIRMED BY RUNNING IT, 2026-08-23: `record_problems({"verdict": ["patch"]},
+None)` gives `TypeError: unhashable type: list`. **FIXED 2026-08-24, and it was
+TWO sites rather than one** -- guarding the membership test alone still raised,
+from `ALLOWED["claim"].get(verdict)` in `claim_problems`, because `.get` hashes
+its argument exactly as `in` does. `record_problems` now reports the shape and
+returns before both verdict-keyed helpers. ! A NUMBER never raised: it hashes,
+so only the two JSON container types reached it.
+
+**`compositor.draft` writes `set_page(page)` with no losslessness check.** ! The
+obvious fix does NOT work and the reason matters: `lossless()` rebuilds the page
+FROM DISK, so it cannot be asked of a drafted page -- the whole point of a draft
+is that lines changed. The guard that would work is an identity check on the
+page BEFORE any verdict is applied, so a later difference is attributable to the
+edit rather than to the model. ! NOT RE-RUN 2026-08-23.
 
 ### The two that arrived already fixed
 

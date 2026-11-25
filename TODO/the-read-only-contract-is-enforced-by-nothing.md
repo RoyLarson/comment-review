@@ -17,33 +17,39 @@ SPLIT:    2026-08-23 -- the `tools:` box held ADDING the key and CHOOSING what i
 
 ## Objective
 
-**The brief's first rule is absolute and nothing MECHANICAL checks it.** `reviewer-brief.md:8-9`:
-*"Do not edit, write or format the code. Not source, not comments, not docs, not a file you
-opened to settle a claim. A reviewer that fixes what it finds has destroyed the finding."*
+**The brief's first rule is absolute and nothing MECHANICAL checks it.**
+`reviewer-brief.md:8-9`: *"Do not edit, write or format the code. Not source,
+not comments, not docs, not a file you opened to settle a claim. A reviewer that
+fixes what it finds has destroyed the finding."*
 
-Measured on the builder run: all four reviewers left artifacts in the run directory --
-`gen.py`, `blocks.json`, `part_*.md`, and a duplicate `census_prose.txt`. Nobody was told; the
-operating session found them by looking.
+Measured on the builder run: all four reviewers left artifacts in the run
+directory -- `gen.py`, `blocks.json`, `part_*.md`, and a duplicate
+`census_prose.txt`. Nobody was told; the operating session found them by
+looking.
 
-! **AND THEY CANNOT BE RECOVERED.** Measured 2026-08-23: no `gen.py`, `blocks.json`, `part_*.md`
-or `census_prose*` exists anywhere in the tree, and `git log --all --diff-filter=A` finds none
-ever committed. The run directory was discarded with the run, so what survives is the
-measurement above and not the ability to re-derive it.
+! **AND THEY CANNOT BE RECOVERED.** Measured 2026-08-23: no `gen.py`,
+`blocks.json`, `part_*.md` or `census_prose*` exists anywhere in the tree, and
+`git log --all --diff-filter=A` finds none ever committed. The run directory was
+discarded with the run, so what survives is the measurement above and not the
+ability to re-derive it.
 
 ! **The agents are granted every tool.** Verified 2026-08-23: all six files in
-`plugins/comment-review/agents/` carry `name`, `description` and `model` and **no `tools:` key**,
-so each reviewer holds `Write`, `Edit` and `NotebookEdit`. The mechanism to restrict them exists
-and is used elsewhere in the same registry -- the `Explore` agent is declared *all tools except
-`Agent`, `Artifact`, `ExitPlanMode`, `Edit`, `Write`, `NotebookEdit`*.
+`plugins/comment-review/agents/` carry `name`, `description` and `model` and
+**no `tools:` key**, so each reviewer holds `Write`, `Edit` and `NotebookEdit`.
+The mechanism to restrict them exists and is used elsewhere in the same registry
+-- the `Explore` agent is declared *all tools except `Agent`, `Artifact`,
+`ExitPlanMode`, `Edit`, `Write`, `NotebookEdit`*.
 
-! **A `tools:` key does NOT close it** -- `Bash` can redirect to a file -- but it removes the path
-that requires no ingenuity, and it makes the intent machine-readable instead of prose.
+! **A `tools:` key does NOT close it** -- `Bash` can redirect to a file -- but
+it removes the path that requires no ingenuity, and it makes the intent
+machine-readable instead of prose.
 
-!! **AND A LOCKDOWN CAN REMOVE THE REMIT WITH THE RISK.** The reviewers' own vocabulary is built
-from verbs they are instructed in -- `ran`, `grep`, `count`, `resolve`, `verify` -- so removing
-execution removes what they are asked to do. `desk.py:115` is `QUERY_ATTEMPTED`, which refuses a
-query naming no attempted check, so a reviewer that cannot check cannot pass its own gate. That
-is the decision owed before a tool list is picked.
+!! **AND A LOCKDOWN CAN REMOVE THE REMIT WITH THE RISK.** The reviewers' own
+vocabulary is built from verbs they are instructed in -- `ran`, `grep`, `count`,
+`resolve`, `verify` -- so removing execution removes what they are asked to do.
+`desk.py:115` is `QUERY_ATTEMPTED`, which refuses a query naming no attempted
+check, so a reviewer that cannot check cannot pass its own gate. That is the
+decision owed before a tool list is picked.
 
 ## !! The rule conflates two different things, and Roy ruled on which
 

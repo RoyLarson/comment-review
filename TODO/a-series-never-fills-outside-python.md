@@ -33,10 +33,11 @@ TRIAGED:  2026-08-23 — 15 of 18 boxes were measurements, rulings, quoted specs
 
 ## Objective
 
-!! **THE TITLE IS FALSE AS OF 2026-08-23 FOR EVERY LANGUAGE BUT TWO, AND THE WIRE IS WHY.**
-`page.py:726` calls `document_declarations(got, declarations(text, lang, code), code)`, and
-`lexer.py:1617` sets `held.declares = ordinal` on the run that documents each declaration.
-MEASURED today by censusing the fixtures, one per language:
+!! **THE TITLE IS FALSE AS OF 2026-08-23 FOR EVERY LANGUAGE BUT TWO, AND THE
+WIRE IS WHY.** `page.py:726` calls `document_declarations(got,
+declarations(text, lang, code), code)`, and `lexer.py:1617` sets `held.declares
+= ordinal` on the run that documents each declaration. MEASURED today by
+censusing the fixtures, one per language:
 
 | fixture | what the `a` series does |
 | --- | --- |
@@ -46,18 +47,19 @@ MEASURED today by censusing the fixtures, one per language:
 | `sample.ts` `sample.kt` `sample.swift` `sample.cs` `sample.rb` | filled |
 | `sample.c` | **no `a` series at all** |
 
-! So the residual is not a wire and not a fill rule: it is that `c` and `cpp` carry an EMPTY
-`declares` tuple (`language.py:185-209`), because `_declares_here` reads a line's FIRST word or
-its first two, and a C declaration opens with its RETURN TYPE.
+! So the residual is not a wire and not a fill rule: it is that `c` and `cpp`
+carry an EMPTY `declares` tuple (`language.py:185-209`), because
+`_declares_here` reads a line's FIRST word or its first two, and a C declaration
+opens with its RETURN TYPE.
 
-! **THE CAUSE IS THE MATCHER, AND ROY AUTHORISED THE FIX 2026-08-23**: *"a slightly smarter
-parser that looks for the correct keyword in the line instead of just the first word ... It is a
-simple fix."*
+! **THE CAUSE IS THE MATCHER, AND ROY AUTHORISED THE FIX 2026-08-23**: *"a
+slightly smarter parser that looks for the correct keyword in the line instead
+of just the first word ... It is a simple fix."*
 
-! **THE HALF OF THE WIRE THAT IS STILL NOT THERE, recorded so nobody re-derives it**:
-`paragraphs_lexical` itself still does not set `Paragraph.declares`. `lexer.document_declarations`
-does, and `page.py:726` is what calls it -- which is why the wire works today by composition
-rather than at the paragraph builder.
+! **THE HALF OF THE WIRE THAT IS STILL NOT THERE, recorded so nobody re-derives
+it**: `paragraphs_lexical` itself still does not set `Paragraph.declares`.
+`lexer.document_declarations` does, and `page.py:726` is what calls it -- which
+is why the wire works today by composition rather than at the paragraph builder.
 
 ## The measurement this file was opened on, and what it now reads
 

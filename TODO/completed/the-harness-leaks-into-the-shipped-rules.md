@@ -10,21 +10,24 @@ Raised:   2026-08-16 (Roy, on finding `worktree` in the shipped plugin: "that is
 
 ## Objective
 
-**This repo's eval harness is not the user's environment, and the shipped rules had stopped
-telling them apart.** Six sites justified taking absolute paths with *"a relative one does not
-resolve from a worktree"* -- but a worktree is how `evals/grade_hazards.py` isolates a graded
-run. A user invoking `/comment-review` in their own checkout is not in one.
+**This repo's eval harness is not the user's environment, and the shipped rules
+had stopped telling them apart.** Six sites justified taking absolute paths with
+*"a relative one does not resolve from a worktree"* -- but a worktree is how
+`evals/grade_hazards.py` isolates a graded run. A user invoking
+`/comment-review` in their own checkout is not in one.
 
-! **A right rule with a wrong reason is worse than a right rule with none.** Absolute paths are
-correct -- a subagent's working directory is not guaranteed to be the dispatcher's -- but a reader
-who tests *"does a relative path fail here?"* in an ordinary checkout finds it does not, drops
-the rule, and only then do subagents break.
+! **A right rule with a wrong reason is worse than a right rule with none.**
+Absolute paths are correct -- a subagent's working directory is not guaranteed
+to be the dispatcher's -- but a reader who tests *"does a relative path fail
+here?"* in an ordinary checkout finds it does not, drops the rule, and only then
+do subagents break.
 
-The same shape has already been found twice by other routes: `SKILL.md`'s level ladder,
-justified by one budget measurement from a 4,000-line module and invented during the Aug-14
-port; and `write.md`'s *"this pass cuts, and it can cut a lot"*, which described stage 5's work
-from inside stage 7b's file. **If the harness leaked once it is worth sweeping for the rest**,
-rather than finding them one at a time when someone happens to look.
+The same shape has already been found twice by other routes: `SKILL.md`'s level
+ladder, justified by one budget measurement from a 4,000-line module and
+invented during the Aug-14 port; and `write.md`'s *"this pass cuts, and it can
+cut a lot"*, which described stage 5's work from inside stage 7b's file. **If
+the harness leaked once it is worth sweeping for the rest**, rather than finding
+them one at a time when someone happens to look.
 
 ## Tasks
 

@@ -12,7 +12,8 @@ Raised:   2026-08-30 (2026-08-30, driving distribute and collate across real sta
 
 ## Objective
 
-The staged chain runs but nothing tests it, and the fan-out topology fits one tree.
+The staged chain runs but nothing tests it, and the fan-out topology fits one
+tree.
 
 ## Tasks
 

@@ -24,27 +24,31 @@ Split:    2026-08-23 -- 6 boxes became 8. Each box carried its evidence, which i
 
 ## Objective
 
-**Five mutations to shipped code are believed to survive the whole suite, and each names the
-test that was supposed to stop it.** A test that cannot fail is a green bar over nothing, which
-is what `docs/gates.md` says the question is: not *does the check pass*.
+**Five mutations to shipped code are believed to survive the whole suite, and
+each names the test that was supposed to stop it.** A test that cannot fail is a
+green bar over nothing, which is what `docs/gates.md` says the question is: not
+*does the check pass*.
 
-! **THE COUNT IN EVERY BOX WAS STALE AND THE SHAPE IS NOT.** The runs were taken against 720
-tests; `uv run pytest -q` now reports 820 passed, 1 skipped, 734 subtests. Re-measure with the
-current suite when each is re-applied.
+! **THE COUNT IN EVERY BOX WAS STALE AND THE SHAPE IS NOT.** The runs were taken
+against 720 tests; `uv run pytest -q` now reports 820 passed, 1 skipped, 734
+subtests. Re-measure with the current suite when each is re-applied.
 
-! **TWO OF THE NAMED GUARDS HAVE MOVED SINCE.** `test_a_cue_is_never_DERIVED_from_another`
-(`tests/test_cues.py:1127`) was rewritten on 2026-08-21 and no longer asserts the absence of two
-source strings -- it builds a page and reads `cues.places`, which is the property rather than the
-punctuation. And `test_no_check_branches_on_a_VERDICT_NAME` (`tests/test_verdicts.py:1273-1291`)
-now scans EVERY shipped script with `f\.verdict\s*(==|!=|in)\s*[("']`, which still matches only a
-direct comparison. **So the mutation has to be run again to say whether it is live** -- reading
-the test is not enough, and this file is the reason: it read one and got it wrong.
+! **TWO OF THE NAMED GUARDS HAVE MOVED SINCE.**
+`test_a_cue_is_never_DERIVED_from_another` (`tests/test_cues.py:1127`) was
+rewritten on 2026-08-21 and no longer asserts the absence of two source strings
+-- it builds a page and reads `cues.places`, which is the property rather than
+the punctuation. And `test_no_check_branches_on_a_VERDICT_NAME`
+(`tests/test_verdicts.py:1273-1291`) now scans EVERY shipped script with
+`f\.verdict\s*(==|!=|in)\s*[("']`, which still matches only a direct comparison.
+**So the mutation has to be run again to say whether it is live** -- reading the
+test is not enough, and this file is the reason: it read one and got it wrong.
 
-! **A closed one stays here checked, with what closed it.** The front-matter to `query`
-conversion is gated by two end-to-end tests that run the collator and read its output, verified by
-disabling the guard. What the mutation deleted was `verdicts.py:445-469` entirely -- the 25 lines
-that convert a reviewer's edit on front matter to a `query`, the one path stopping an edit
-landing on a licence header -- and it left 720 tests OK.
+! **A closed one stays here checked, with what closed it.** The front-matter to
+`query` conversion is gated by two end-to-end tests that run the collator and
+read its output, verified by disabling the guard. What the mutation deleted was
+`verdicts.py:445-469` entirely -- the 25 lines that convert a reviewer's edit on
+front matter to a `query`, the one path stopping an edit landing on a licence
+header -- and it left 720 tests OK.
 
 ## The five mutations, and why the named guard does not stop them
 

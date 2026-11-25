@@ -23,22 +23,26 @@ Absorbed: 2026-08-24 — P5 of the 0.2.4 foliator plan came here as T30 and T31.
 
 ## Objective
 
-**Nothing in this repo runs a case against this repo's own system.** `evals/` holds
-`test-cases.jsonl` -- six cases, each a repo URL, a commit, a file list, a role, an outcome, a
-stated `expected` and the `observed` run that produced it -- and `generator_split.py`. There is no
-runner, no assertion mechanism and no score.
+**Nothing in this repo runs a case against this repo's own system.** `evals/`
+holds `test-cases.jsonl` -- six cases, each a repo URL, a commit, a file list, a
+role, an outcome, a stated `expected` and the `observed` run that produced it --
+and `generator_split.py`. There is no runner, no assertion mechanism and no
+score.
 
-!! **AND THE OLD APPARATUS IS GONE, NOT BROKEN.** `evals/evals.json`, `evals/discriminators.md`
-and the hazard grader are absent from the tree as of 2026-08-23, and `git log -- evals/` shows the
-grader was never at `scripts/grade_hazards.py` in this branch's history. They were tied to a
-corpus this repo cannot ship, so they went with it. **What that costs is the only mechanical
-scoring this system had**, and rebuilding it by RESTATEMENT on a public corpus is T26 to T29.
+!! **AND THE OLD APPARATUS IS GONE, NOT BROKEN.** `evals/evals.json`,
+`evals/discriminators.md` and the hazard grader are absent from the tree as of
+2026-08-23, and `git log -- evals/` shows the grader was never at
+`scripts/grade_hazards.py` in this branch's history. They were tied to a corpus
+this repo cannot ship, so they went with it. **What that costs is the only
+mechanical scoring this system had**, and rebuilding it by RESTATEMENT on a
+public corpus is T26 to T29.
 
-The fix is per-role cases: one role, one fixture, one assertion, and an answer known in advance.
-Ruled 2026-08-18: a reduced set is supported and `ownership-context` is never dropped, so a case
-is a legal run rather than a test-only shape. **What remains is that the prose does not say so**
--- `SKILL.md` stage 4 dispatches four by name and stage 5 is written as a negotiation between
-them, so a run of two reads as a run missing two.
+The fix is per-role cases: one role, one fixture, one assertion, and an answer
+known in advance. Ruled 2026-08-18: a reduced set is supported and
+`ownership-context` is never dropped, so a case is a legal run rather than a
+test-only shape. **What remains is that the prose does not say so** --
+`SKILL.md` stage 4 dispatches four by name and stage 5 is written as a
+negotiation between them, so a run of two reads as a run missing two.
 
 ## ! The confound is ASYMMETRIC, and only half of it was recorded
 

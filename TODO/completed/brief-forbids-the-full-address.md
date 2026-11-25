@@ -11,7 +11,8 @@ Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
 
 ## Objective
 
-The brief tells roles the address is a bare cue, and that is the form measured to cost 62 of 78 marks.
+The brief tells roles the address is a bare cue, and that is the form measured
+to cost 62 of 78 marks.
 
 ## Tasks
 

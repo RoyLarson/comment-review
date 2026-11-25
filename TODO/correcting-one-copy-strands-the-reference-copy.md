@@ -25,20 +25,22 @@ Split:    2026-08-24 -- second pass, eight boxes to nine. The stage-5 detection 
 
 ## Objective
 
-**A run corrects a claim in a file under review, and the same claim in a REFERENCE ONLY file
-keeps the old text. Nothing may target the reference file, so the run ships a disagreement it
-created.**
+**A run corrects a claim in a file under review, and the same claim in a
+REFERENCE ONLY file keeps the old text. Nothing may target the reference file,
+so the run ships a disagreement it created.**
 
-MEASURED 2026-08-17 and RE-MEASURED 2026-08-23: `scripts/todo_tool.py:1129` reads *"Four kinds
-of problem are left untouched"* and `.claude/skills/todo-tool/SKILL.md:253` reads *"Four
-kinds"*. Both files are tracked. The two copies still AGREE and are both wrong -- the docstring
-below :1129 goes on to enumerate more than four -- so the failure this file describes is still
-ahead of the tree rather than behind it, and the case can be run.
+MEASURED 2026-08-17 and RE-MEASURED 2026-08-23: `scripts/todo_tool.py:1129`
+reads *"Four kinds of problem are left untouched"* and
+`.claude/skills/todo-tool/SKILL.md:253` reads *"Four kinds"*. Both files are
+tracked. The two copies still AGREE and are both wrong -- the docstring below
+:1129 goes on to enumerate more than four -- so the failure this file describes
+is still ahead of the tree rather than behind it, and the case can be run.
 
-!! **The run makes the tree worse in a specific way.** Before it, two copies AGREE and are both
-wrong -- findable as a pair, and a grep for either finds both. After it, they DISAGREE, and the
-stale one is harder to trace precisely because its twin no longer matches it. The pass turned a
-duplicated error into a silent divergence.
+!! **The run makes the tree worse in a specific way.** Before it, two copies
+AGREE and are both wrong -- findable as a pair, and a grep for either finds
+both. After it, they DISAGREE, and the stale one is harder to trace precisely
+because its twin no longer matches it. The pass turned a duplicated error into a
+silent divergence.
 
 ## ! The rule already names the failure; its remedy does not reach this case
 

@@ -14,8 +14,8 @@ Four shas cited in this tree's prose name no object in this repository, and
 unlike the rest of the orphans they cannot be resolved by translation.
 
 !! **THE 2026-08-23 HISTORY REWRITE IS NOT WHAT BROKE THESE.** It renamed 745
-commits and dropped 7, and `.git/filter-repo/commit-map` still maps every one
-of the 745 -- which is how the citations repaired on 2026-09-02 were recovered.
+commits and dropped 7, and `.git/filter-repo/commit-map` still maps every one of
+the 745 -- which is how the citations repaired on 2026-09-02 were recovered.
 **These four are in neither set**, so they were never commits here: they were
 mistyped or invented, most likely by the two repair sweeps themselves. `f11374d`
 *"fix: every commit citation in this tree resolves again"* is measurably one

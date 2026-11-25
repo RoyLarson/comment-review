@@ -38,9 +38,8 @@ Closed:   2026-08-29 — 2026-08-29 -- BOTH VERIFIED, but by the OTHER route. Ro
 
 A docstring whose closing `"""` carries a trailing comment is owned twice.
 
-!! **VERIFIED LIVE 2026-08-23, not merely re-read.**
-`census.py --json --repo . corpora/numpy/numpy/exceptions.py` still returns two paragraphs over
-line 246:
+!! **VERIFIED LIVE 2026-08-23, not merely re-read.** `census.py --json --repo .
+corpora/numpy/numpy/exceptions.py` still returns two paragraphs over line 246:
 
 ```
 corpora:numpy:numpy:exceptions.py@a9  docstring         201-246  raw_lines[-1] == '    """  # NOQA'
@@ -50,26 +49,30 @@ corpora:numpy:numpy:exceptions.py@c38 trailing-comment  246-246  raw_lines[-1] =
 and `compositor.lossless(Path("corpora/numpy/numpy/exceptions.py"))` returns
 `line invented: '    """  # NOQA'`.
 
-**SO THE FILE COMES BACK ONE LINE LONGER.** The compositor walks the reading order and asks each
-place what it holds, so line 246 is emitted twice: 247 lines in, 248 out. That is a line
-INVENTED, which breaks the invariant `lossless` exists to hold -- and `lossless` is what found it.
+**SO THE FILE COMES BACK ONE LINE LONGER.** The compositor walks the reading
+order and asks each place what it holds, so line 246 is emitted twice: 247 lines
+in, 248 out. That is a line INVENTED, which breaks the invariant `lossless`
+exists to hold -- and `lossless` is what found it.
 
-! **BOTH HALVES CURRENTLY FAIL**, which is what makes ticking either box an observation rather
-than a judgement.
+! **BOTH HALVES CURRENTLY FAIL**, which is what makes ticking either box an
+observation rather than a judgement.
 
-! **IT BREAKS THE TILING**, which is the property everything else rests on: every line belongs to
-exactly ONE place. Same class as the `f0`-inside-`b0` overlap fixed the same day, but between an
-`a` and a `c`, and with the text stored twice rather than the range merely overlapping.
+! **IT BREAKS THE TILING**, which is the property everything else rests on:
+every line belongs to exactly ONE place. Same class as the `f0`-inside-`b0`
+overlap fixed the same day, but between an `a` and a `c`, and with the text
+stored twice rather than the range merely overlapping.
 
-! **IT IS A `paragraphs_stdlib` DEFECT -- the PYTHON reader.** The lexical tier already cuts a
-trailing comment at its opener and stores the code separately in `anchor`; the docstring path
-keeps its closing line whole and lets the `c` claim the same line's comment half.
+! **IT IS A `paragraphs_stdlib` DEFECT -- the PYTHON reader.** The lexical tier
+already cuts a trailing comment at its opener and stores the code separately in
+`anchor`; the docstring path keeps its closing line whole and lets the `c` claim
+the same line's comment half.
 
-**MEASURED 2026-08-22: of 3,228 files across ten languages, exactly ONE differs** -- this one.
-3 of the 7 files that failed `lossless` over 3,082 are this shape:
-`numpy/numpy/exceptions.py`, `numpy/.venv/Lib/site-packages/_virtualenv.py` and
-`numpy/.venv/Scripts/activate_this.py`. The other 4 are the unparsed-page case, guarded in
-`3ce4e4c`. **Those three files are what T1 re-runs.**
+**MEASURED 2026-08-22: of 3,228 files across ten languages, exactly ONE
+differs** -- this one. 3 of the 7 files that failed `lossless` over 3,082 are
+this shape: `numpy/numpy/exceptions.py`,
+`numpy/.venv/Lib/site-packages/_virtualenv.py` and
+`numpy/.venv/Scripts/activate_this.py`. The other 4 are the unparsed-page case,
+guarded in `3ce4e4c`. **Those three files are what T1 re-runs.**
 
 ## Which one owns it -- ANSWERED, and by the reader that does not have the seam
 
