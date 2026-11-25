@@ -7686,3 +7686,77 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** The condenser never widens lines to meet the cap. It files `clean`,
   naming what holds the paragraph over the cap; `compact.md` states the case.
+
+- **#420.** **The 7a list of lost sentences matches normalized sentences across the tree as
+  written** (Roy, 2026-11-24, on how dropped-history-has-no-home T4 decides that a removed
+  sentence survives nowhere; offered normalized sentences, exact lines, only the history home,
+  or deferring):
+
+  *"Normalized sentences (Recommended)"*
+
+  **What it settles.** Comment markers are stripped and wrapped lines joined, and the text is
+  split on sentence ends. A removed sentence survives when it appears, whitespace-normalized, in
+  any file of the tree as written: the tracked files with the proof pages and freeform drafts
+  laid over them.
+
+- **#421.** **`desk/external_address.py` stays, as #287 ruled** (Roy, 2026-11-24, on a plan
+  task that deleted it before #287 was found; offered restoring it or deleting it):
+
+  *"Restore it (Recommended)"*
+
+  **What it settles.** The deletion is reverted and external-address-cites-dead-modules T3 is
+  superseded.
+
+- **#422.** **A move into a non-code document is out of the 0.2.4-wrong-results-and-dead-code
+  plan** (Roy, 2026-11-24, on move-is-a-composite-mark T23, after moves into ungathered code
+  files were found to set already; offered taking it out or designing the addressing of a
+  place in a non-code document now):
+
+  *"Out of this plan (Recommended)"*
+
+  **What it settles.** T23 is superseded and reissued, unassigned, for a move whose destination
+  is a non-code document.
+
+- **#423.** **Dropping a broad referrers token waits for a measured run** (Roy, 2026-11-24, on
+  referrers T1 and T3 after T2 made a name match only as a citation; offered deferring or a
+  10%-and-25-files threshold):
+
+  *"Defer T1/T3 (Recommended)"*
+
+  **What it settles.** T1 and T3 leave the plan and are reissued unassigned.
+
+- **#424.** **An added `b0` under matter in a file with no code is set with a blank above and
+  below; T83 and T91 are superseded** (Roy, 2026-11-24, on three compositor tasks that did not
+  land as filed; offered that, superseding all three, or leaving them open):
+
+  *"T61 both blanks; drop T83, T91 (Recommended)"*
+
+  **What it settles.** galley-and-compositor-write-path T61 sets both blanks, so the place reads
+  back as `b0`. T83 did not reproduce as filed. T91 is not the compositor's: re-flowing a
+  paragraph is a decision, and the text arrives already flowed from whoever wrote it.
+
+- **#425.** **A removed sentence survives only at the place its mark named** (Roy,
+  2026-11-24, on how `lost` matches a short sentence, which matches by chance somewhere in
+  any tree; offered (a) the sentence has to appear whole anywhere in the tree, or (b) it has
+  to appear at the place its move or drop named):
+
+  *"B"*
+
+  **What it settles.** It narrows #420. A sentence a `move` removed survives when it appears at
+  the move's destination, and one a `drop` of history removed survives when it appears in the
+  home the drop named. A `drop` names that home only in its `reason`, which no checker reads,
+  so checking a drop needs a field the mark does not yet carry.
+
+- **#426.** **The 0.2.4-wrong-results-and-dead-code plan checks a move at its destination;
+  drops wait for a home field** (Roy, 2026-11-24, on how much of #425 the plan takes; offered
+  moves now and drops later, all of it, or deferring all of it):
+
+  *"Moves now, drops later (Recommended)"*
+
+  **What it settles.** `lost` reads the closed proofs and checks a move's removed sentences at
+  its destination, and dropped-history-has-no-home T5 splits at line ends. T6 is superseded:
+  nothing is matched against the whole tree once a sentence is checked at a named place. A
+  drop's home field, and checking a drop against it, are filed for a later plan; until then a
+  history drop's sentences are listed. On the same question Roy chose *"File it
+  (Recommended)"* for the compositor's blank-line rule, which is filed unassigned on
+  galley-and-compositor-write-path.

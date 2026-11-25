@@ -5,7 +5,8 @@
     decide_ends      a final placement, written onto the two place records
     cover_ends       the ends the chief's placement ruling decides
     keep_ends        an agreed move's ends, refused a ruling that restores one
-    hold_ends       an undecided placement, held on its two ends
+    keep_movers      an agreed move's ends, refused a mover's withdraw at one
+    hold_ends        an undecided placement, held on its two ends
 
 The move itself -- its fields, its placements and its name -- is
 `desk.proof.move`.
@@ -17,6 +18,8 @@ from comment_review.desk.answers.table import (
     ANSWERS,
     PlacementAnswerRow,
     PlacementEffect,
+    SideAnswerRow,
+    SideEffect,
     asks_human,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
@@ -83,6 +86,9 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
 
     Each later vote replaces the role's earlier vote. Deferral removes its
     prior acceptance or contest and leaves other readers owing their say.
+    A mover that withdrew has had its say: it is not owed one on the movers
+    left, it is not the second party a lone mover needs, and a second
+    withdraw from it changes nothing.
 
     Args:
         move: the move, its movers and readers from `moves_in`.
@@ -119,6 +125,7 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
     movers = dict(move.filed)
     accepted: set[str] = set()
     stetted: set[str] = set()
+    withdrawn: set[str] = set()
     for at in sorted(t for t in move.answers if t <= turn):
         for role, answer in move.answers[at].items():
             row = ANSWERS.get((answer.question, answer.name))
@@ -144,7 +151,8 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
                 case PlacementEffect.REMOVES:
                     if role in movers:
                         movers.pop(role)
-                    else:
+                        withdrawn.add(role)
+                    elif role not in withdrawn:
                         reasons.append(
                             f"{role}: only the role that filed a move withdraws it --"
                             " stet it to keep the paragraph where it is"
@@ -170,11 +178,13 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
         move.placement = Placement.CONTESTED
         move.owed = tuple(sorted((set(movers) | stetted) - deferring))
     else:
-        owed = set(move.readers) - set(movers) - deferring - accepted
+        owed = set(move.readers) - set(movers) - deferring - accepted - withdrawn
         move.owed = tuple(sorted(owed))
         # A move no role but its one mover read is put to the chief, owed to
         # no role.
-        unread = len(movers) == 1 and not set(move.readers) - set(movers) - deferring
+        unread = len(movers) == 1 and not (
+            set(move.readers) - set(movers) - deferring - withdrawn
+        )
         move.placement = Placement.OPEN if owed or unread else Placement.AGREED
     if move.disposition is not None:
         _ruled(move, move.disposition)
@@ -318,6 +328,50 @@ def keep_ends(move: Move, places: dict[str, Place]) -> None:
                     " withdraw a move on its placement, where `taken_in original`"
                     " takes it off both ends, and at an end rule the move's text"
                     " or a further mark",
+                ),
+            )
+
+
+def keep_movers(move: Move, places: dict[str, Place], turn: int) -> None:
+    """Refuse a mover's `withdraw` on the words at one end of an agreed move.
+
+    The withdraw takes the mover's side off that end alone, so the end is
+    decided without the move while the other end keeps it: the paragraph would
+    stand at both ends or at neither. A move is withdrawn on its placement.
+
+    Args:
+        move: the move whose ends are kept.
+        places: the fold's places, where its two ends are read. Mutated.
+        turn: the last turn whose answers are applied.
+    """
+    if move.placement is not Placement.AGREED:
+        return
+    for end in (places.get(move.origin), places.get(move.destination)):
+        if end is None or end.state is State.REFUSED:
+            continue
+        withdrew = sorted(
+            {
+                role
+                for at, by_role in end.answers.items()
+                if at <= turn
+                for role, answer in by_role.items()
+                if role in move.movers
+                and isinstance(
+                    row := ANSWERS.get((answer.question, answer.name)), SideAnswerRow
+                )
+                and row.effect(answer) is SideEffect.REMOVES
+            }
+        )
+        if withdrew:
+            end.state, end.text, end.reasons = (
+                State.REFUSED,
+                None,
+                tuple(
+                    f"{role}: a withdraw at {end.address} takes the agreed move"
+                    f" {move.key} off this end alone, which splits the move;"
+                    " withdraw the move on its placement, which takes it off"
+                    " both ends"
+                    for role in withdrew
                 ),
             )
 

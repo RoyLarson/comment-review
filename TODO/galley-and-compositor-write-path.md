@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 75 of 91 tasks closed
+Progress: 83 of 92 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -110,8 +110,8 @@ files in `corpora/` are in that state today.
 - [-] T10 | Replaced by source-reading-contract T6: failed admission and successful empty pages | b03adaa8 | T10
       -- **Make `compositor.py:231` refuse on that fact, not on an empty list.**
       Verify: an empty file with no text still sets back as empty.
-- [ ] T11 | Delete results.compositor.approve, or name the caller that will use
-      it
+- [x] T11 | compositor.approve deleted | 6a9322ea | Delete
+      results.compositor.approve, or name the caller that will use it
         > 2026-08-31 MEASURED 2026-08-31 while landing P45: grep over src/ and tests/
         > 2026-08-31 finds no caller. It is the only remaining write over a REAL file,
         > 2026-08-31 so what it does is a ruling, not a cleanup.
@@ -303,8 +303,10 @@ files in `corpora/` are in that state today.
 - [-] T60 | SUPERSEDED by one-line-ending-per-file T2: a lone CR is refused | 74a033c2 | Set
       a lone CR back as a CR on every page
         > 2026-10-23 A lone CR becomes LF on set-back, even inside a string literal
-- [ ] T61 | Set an added b0 below matter in a file with no code, adding no blank
-- [ ] T62 | Stop an add and drop at b0 growing blanks at the file head
+- [x] T61 | #424: an added b0 under matter gets both blanks, reads back at b0 | 78679fea | Set
+      an added b0 below matter in a file with no code, adding no blank
+- [x] T62 | An add then drop at b0 returns the file it started from | 673eecf7 | Stop
+      an add and drop at b0 growing blanks at the file head
         > 2026-10-30 W6: compositor.py:228-251; each cycle adds one blank
 - [x] T63 | Refused in PythonRead.preserved; prove_unchanged stops too | d6b40e39 | Refuse
       a Python draft that no longer parses at prove, at
@@ -354,8 +356,8 @@ files in `corpora/` are in that state today.
 - [ ] T81 | Record each page's write state as pending, written, verified or
       failed, per Process #20
 - [ ] T82 | Make a write retry only its failed pages, per Process #20
-- [ ] T83 | Fix the compositor, which loses a paragraph's blank lines when it is
-      dropped whole
+- [-] T83 | #424: not reproduced as filed | 7660e4a7 | Fix the compositor, which
+      loses a paragraph's blank lines when it is dropped whole
 - [-] T84 | SUPERSEDED by T83: filed twice in error | 4db8b52f | Fix the
       compositor, which loses a paragraph's blank lines when it is dropped whole
 - [ ] T85 | State _reread's two unstated skips in its docstring: _holds_prose,
@@ -364,16 +366,22 @@ files in `corpora/` are in that state today.
 - [ ] T86 | Run the re-parse guard at reading/python/records.py:351 even when
       the interpreter cannot parse the before file
         > 2026-11-22 Check (M11): dropping a class's only docstring is refused on 3.11
-- [ ] T87 | Stop results/compositor.py:266 drafting a second blank line when a
-      comment is added under a header
+- [x] T87 | A comment added under a header keeps one blank | 673eecf7 | Stop
+      results/compositor.py:266 drafting a second blank line when a comment is
+      added under a header
         > 2026-11-22 Check (M22): b1 add under 'class A:' then a blank keeps one blank
-- [ ] T88 | Drop the blank run above back matter at results/compositor.py:244
-      when f1 is removed
+- [x] T88 | Dropping f1 drops the blank run above it | 673eecf7 | Drop the blank
+      run above back matter at results/compositor.py:244 when f1 is removed
         > 2026-11-22 Check (M23): dropping f1 drafts 'x = 1' with one final newline
 - [ ] T89 | Apply the --out guards to proof --to-docket at commands/proof.py:286
         > 2026-11-22 Check (M31): --to-docket onto a page under review is refused
-- [ ] T90 | Make the compositor end the last line it sets in an empty file,
-      updating the three pinning tests
+- [x] T90 | A page set from an empty file ends with a line break | 673eecf7 | Make
+      the compositor end the last line it sets in an empty file, updating the
+      three pinning tests
         > 2026-11-22 Check: an a0 add on an empty file ends in a line break (#376)
-- [ ] T91 | Re-flow a paragraph the compositor sets after a drop
+- [-] T91 | #424: re-flow is not the compositor's; text arrives flowed | 7660e4a7 | Re-flow
+      a paragraph the compositor sets after a drop
         > 2026-11-23 Drops leave short wraps, comment-review 2026-11-23
+- [ ] T92 | Update the compositor to state its blank-line rule once, with no
+      branch per file end
+        > 2026-11-24 #426: one rule plus four end cases, compositor.py:231-337

@@ -30,7 +30,6 @@ class Command(StrEnum):
         return name.lower()
 
     ADDRESSES = auto()
-    CARRY = auto()
     CHECK = auto()
     COLLATE = auto()
     COMPARE = auto()
@@ -38,6 +37,7 @@ class Command(StrEnum):
     DISPOSITION = auto()
     DISTRIBUTE = auto()
     GATHER = auto()
+    LOST = auto()
     MARK = auto()
     PROOF = auto()
     PROVE_UNCHANGED = auto()

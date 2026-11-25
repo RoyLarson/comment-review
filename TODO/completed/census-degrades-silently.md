@@ -1,8 +1,8 @@
 # The census degrades silently on four inputs
 
 ```
-Status:   in-progress
-Progress: 9 of 10 tasks closed
+Status:   closed
+Progress: 10 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -125,7 +125,8 @@ own file.
 - [x] T8 | FINISHED | unknown | T8 -- DONE 2026-08-22. `census.py:566-568`
       flushes `--filtered` at a file boundary; three fixtures print three
       headings. Measurement in the Objective.
-- [ ] T9 | Open every reader that feeds ast.parse with utf-8-sig. Verify: a
-      BOM'd .py harvests its names
+- [x] T9 | BOM stripped before every ast.parse that reads source | 9cb865b1 | Open
+      every reader that feeds ast.parse with utf-8-sig. Verify: a BOM'd .py
+      harvests its names
 - [-] T10 | SUPERSEDED by T6, filed in error: same work | 32501183 | Refuse an
       add at the a place of a Python one-line declaration

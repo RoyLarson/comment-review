@@ -178,14 +178,14 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (95)
+### open  (94)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [a-role-can-reverse-itself-between-runs](a-role-can-reverse-itself-between-runs.md) | agents | -- | 4/7 | A role can reverse itself between runs, and nothing measures it |
 | [a-scope-declaration-costs-as-much-as-a-finding](a-scope-declaration-costs-as-much-as-a-finding.md) | agents | -- | 5/8 | A scope declaration costs as much as a finding |
 | [block-comment-markers-survive-into-the-prose](block-comment-markers-survive-into-the-prose.md) | backend | -- | 11/12 | Block-comment markers survive into the prose the reviewers read |
-| [referrers-matches-on-any-public-name-and-surfaces-the-whole-repo](referrers-matches-on-any-public-name-and-surfaces-the-whole-repo.md) | backend | -- | 0/6 | `referrers.py` matches on any public name, and surfaced the whole repo |
+| [referrers-matches-on-any-public-name-and-surfaces-the-whole-repo](referrers-matches-on-any-public-name-and-surfaces-the-whole-repo.md) | backend | -- | 3/8 | `referrers.py` matches on any public name, and surfaced the whole repo |
 | [stage-5-is-the-only-stage-with-no-independent-reader](stage-5-is-the-only-stage-with-no-independent-reader.md) | agents | -- | 15/19 | Stage 5 is the only stage whose writer is also its checker |
 | [the-emitted-vocabulary-can-collide-with-the-repo](the-emitted-vocabulary-can-collide-with-the-repo.md) | agents | yes | 4/8 | The emitted vocabulary can collide with the reviewed repo's own terms |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | backend | -- | 11/13 | A docstring needs its own address series, and it names what it documents |
@@ -193,14 +193,14 @@ that changed a published name or rule:
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | -- | 7/10 | 720 tests green against six deliberate defects in shipped code |
 | [versioning-at-v1](versioning-at-v1.md) | systems | -- | 7/14 | v1.x wants a concrete versioning system on everything that ships |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 22/23 | Outside Python the `a` place is emitted and never filled |
-| [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 7/12 | A UTF-8 BOM is censused as a line of code |
-| [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 3/6 | unaddressed() groups by path for a question that needs one flat pass |
-| [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 7/12 | Shipped prose still describes formats and flags this branch deleted |
+| [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 8/12 | A UTF-8 BOM is censused as a line of code |
+| [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 4/6 | unaddressed() groups by path for a question that needs one flat pass |
+| [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 13/20 | Shipped prose still describes formats and flags this branch deleted |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 7/8 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 75/91 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 83/92 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 5/16 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 18/20 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
-| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 17/36 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
+| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 18/36 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | -- | 6/7 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [drop-the-column](drop-the-column.md) | backend | -- | 9/10 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 2/7 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
@@ -231,15 +231,15 @@ that changed a published name or rule:
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 3/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 26/27 | Twelve defects in `flows/collate.py`, from a review of one file |
 | [mark-defects](mark-defects.md) | backend | -- | 49/62 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
-| [binder-defects](binder-defects.md) | backend | -- | 29/52 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
+| [binder-defects](binder-defects.md) | backend | -- | 30/52 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 10/16 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 27/31 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 7/17 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [local-annotation-false-positive](local-annotation-false-positive.md) | systems | -- | 0/1 | check_shipped_syntax reads a local variable annotation as a forward reference |
-| [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 10/12 | the 4a/4c split promises a resolved placement that nothing produces |
+| [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 11/12 | the 4a/4c split promises a resolved placement that nothing produces |
 | [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
 | [row-was-never-retired](row-was-never-retired.md) | backend | -- | 4/8 | Retire row everywhere -- the type, the wire key and the prose |
-| [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 7/12 | Route every machine read and write through a flow |
+| [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 8/12 | Route every machine read and write through a flow |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 5/7 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 85/88 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 12/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
@@ -250,7 +250,7 @@ that changed a published name or rule:
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 4/6 | The P5 self-run findings |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 15/23 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 20/26 | Use lexical code identity at both proof boundaries |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 1/4 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
@@ -258,37 +258,34 @@ that changed a published name or rule:
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 2/7 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 6/16 | One reader builder from each language's definition |
 | [freeform-run-findings](freeform-run-findings.md) | agents | -- | 22/26 | What the first live freeform run showed |
-| [topology-defects](topology-defects.md) | backend | -- | 0/10 | Topology defects |
+| [topology-defects](topology-defects.md) | backend | -- | 4/10 | Topology defects |
 | [reading-settings-have-no-setting](reading-settings-have-no-setting.md) | backend | -- | 4/5 | Reading settings have no setting |
 | [one-obvious-way](one-obvious-way.md) | backend | -- | 3/38 | One obvious way |
-| [page-defects](page-defects.md) | backend | -- | 0/4 | binder/page.py carries unread names and a branch nothing reaches |
+| [page-defects](page-defects.md) | backend | -- | 3/4 | binder/page.py carries unread names and a branch nothing reaches |
 | [addresser-defects](addresser-defects.md) | backend | -- | 0/4 | reading/addresser.py answers a miss with a real position |
 | [command-entry-points](command-entry-points.md) | backend | -- | 0/2 | The commands keep entry points of their own beside __main__ |
-| [dropped-history-has-no-home](dropped-history-has-no-home.md) | agents | -- | 1/4 | A dropped history sentence has no home |
 | [concordance-module](concordance-module.md) | backend | -- | 0/1 | Keep concordance logic in concordance/ |
 | [commands-reach-past-flows](commands-reach-past-flows.md) | backend | -- | 0/2 | Commands import only flows and the leaves |
-| [answers-file-defects](answers-file-defects.md) | backend | -- | 0/4 | Answers files are admitted with answers a turn drops or refuses |
-| [machine-defects](machine-defects.md) | backend | -- | 0/5 | machine/ reads git output and JSON without the guards its callers assume |
+| [answers-file-defects](answers-file-defects.md) | backend | -- | 2/4 | Answers files are admitted with answers a turn drops or refuses |
+| [machine-defects](machine-defects.md) | backend | -- | 1/5 | machine/ reads git output and JSON without the guards its callers assume |
 | [flow-helpers-placement](flow-helpers-placement.md) | backend | -- | 0/2 | Determine where the flow helpers belong |
 | [a-mark-states-its-edit-three-times](a-mark-states-its-edit-three-times.md) | backend | -- | 2/3 | A mark states its edit up to three times and no field is authoritative |
 | [boundary-records-have-no-typed-form](boundary-records-have-no-typed-form.md) | backend | -- | 0/5 | Records crossing boundaries have no single typed form |
 | [area-model-stated-and-enforced-differently](area-model-stated-and-enforced-differently.md) | backend | -- | 0/5 | The area architecture is stated in one model and enforced against another |
 | [freeform-rules-have-no-source](freeform-rules-have-no-source.md) | agents | -- | 1/3 | Freeform is a second pipeline run only by prose, sharing rules with no source |
 | [names-persist-before-they-settle](names-persist-before-they-settle.md) | systems | -- | 0/2 | Names reach four persisted layers before their meaning settles |
-| [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | -- | 5/6 | A conflict is detected and nothing renders it |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 2/3 | external_address.py cites two modules that left the tree |
+| [dropped-history-has-no-home](dropped-history-has-no-home.md) | agents | -- | 7/9 | A dropped history sentence has no home |
 
-### in-progress  (12)
+### in-progress  (10)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 7/11 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | -- | 9/18 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 10/11 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | -- | 17/19 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
-| [census-degrades-silently](census-degrades-silently.md) | backend | -- | 9/10 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | -- | 5/8 | The census owns addressing, and four modules share one subject between them |
-| [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 6/14 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
+| [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 7/14 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | -- | 14/15 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | backend | -- | 27/29 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | -- | 8/11 | The read-only contract is enforced by nothing, and four reviewers wrote files |
@@ -313,8 +310,8 @@ that changed a published name or rule:
 | [the-harness-cannot-run-the-system-it-grades](the-harness-cannot-run-the-system-it-grades.md) | testing | -- | 20/37 | **Nothing in this repo runs the documented eval format, and no measurement exists that a human did not perform.** `grade_hazards.py` scores worktrees a person built by hand against twelve planted defects, from a base hardcoded to another repository. Ruled 2026-08-18: a reduced role set is supported with `ownership-context` never dropped, and a fixture is a CHECKOUT AT A HASH -- this repo's own history included, since a fix commit is an answer key. ! NOT a release candidate: nothing here is under `plugins/`. * Unruled: the suite layout, which the fixture model narrows to one option |
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | agents | -- | 4/5 | The role with verdict precedence has the least mechanical support |
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | -- | 21/23 | Two live runs proposed fifteen changes |
-| [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | -- | 3/9 | The task agent has no vocabulary home and is never told the command set |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 50/57 | A move is a composite mark and the code cannot express one |
+| [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | -- | 4/9 | The task agent has no vocabulary home and is never told the command set |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 53/58 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 
@@ -556,3 +553,7 @@ the reason is inside the file.
 | [a-reference-needs-its-own-write-chain](completed/a-reference-needs-its-own-write-chain.md) | 4 superseded |
 | [filtered-measurement-unrecorded](completed/filtered-measurement-unrecorded.md) | 3 finished, 2 superseded |
 | [strip-and-fill-the-markers](completed/strip-and-fill-the-markers.md) | 1 finished, 8 superseded |
+| [census-degrades-silently](completed/census-degrades-silently.md) | 6 finished, 4 superseded |
+| [a-conflict-has-no-rendering](completed/a-conflict-has-no-rendering.md) | 5 finished, 1 superseded |
+| [compact-can-buy-lines-with-width](completed/compact-can-buy-lines-with-width.md) | 10 finished, 1 superseded |
+| [prove-unchanged-compares-raw-line-endings](completed/prove-unchanged-compares-raw-line-endings.md) | 1 finished, 1 superseded |

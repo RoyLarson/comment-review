@@ -1,13 +1,10 @@
 """One whole run, calling the modules. A flow decides ORDER, not behaviour.
 
-    gather          stage 2 -- every page in scope, annotated and bound into
-                    the binder. `STEPS` is the chain, as data
-    annotations_for stage 3 as one step of it -- what the concordance can
-                    settle, over every paragraph the gather carried
+    gather          stage 2 -- every page in scope, bound into the binder.
+                    `STEPS` is the chain, as data
     referrers       stage 3, inbound -- the `git grep` behind `referrers`
     page_for        acquires a source snapshot and admits it as a complete page
-    source          source acquisition outcomes for filesystem and revision
-                    reads
+    source          source acquisition outcomes for filesystem reads
     compositor      acquires, admits and sets one held source snapshot
     on_the_page     reads addressed pages once per caller-owned snapshot cache
     addresses       looks a place up on the page it names, by line or by
@@ -16,8 +13,6 @@
                     per-file overrides
     read_diagnostics retained source context and report formatting for read
                     failures
-    carry           makes the binder carry an empty place it dropped, so an
-                    `add` has an address to cite
     fan_out         splits a binder by a stage's dispatches -- one seeded
                     edit_copy per dispatch, refusing an overlap or a gap
     distribute      seeds the edit_copy a role fills, one entry per row it is
@@ -44,9 +39,11 @@
     proof_setter    the results-side flow -- calls the galley and the
                     compositor from a role's alterations to a drafted file a
                     human can read, then proves only comments changed
-    prove_unchanged admits exact current and revision pages before comparing
+    prove_unchanged admits each working-tree page and its draft before comparing
                     executable code
-    revise          pulls one revise -- drafts the docket's pages through
+    lost            the sentences a write removes that are neither still in
+                    their own file nor where an agreed move sent them
+    revise         pulls one revise -- drafts the docket's pages through
                     `proof_setter` and writes each at its repo path, copying
                     no other file
 

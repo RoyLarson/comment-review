@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 15 of 23 tasks closed
+Progress: 20 of 26 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -65,12 +65,13 @@ Use lexical code identity at both proof boundaries.
         > 2026-11-01 `.py`, `.rs`: refuses at prove, protected-source-changed
 - [ ] T15 | Name a changed interpreter line one way in both readers
         > 2026-11-01 Python: code-changed. Rust: protected-source-changed
-- [ ] T16 | Remove --base and the git read from prove_unchanged, per Process
-      #104. Verify: commands/prove_unchanged.py takes no --base
+- [x] T16 | prove_unchanged takes no --base and reads no git | 2990793e | Remove
+      --base and the git read from prove_unchanged, per Process #104. Verify:
+      commands/prove_unchanged.py takes no --base
         > 2026-11-04 Overlaps Roy's open question on the 2026-09-27 rewrite
         > 2026-11-04 Prove against the machine/ sha; nothing need be committed
-- [ ] T17 | Remove the sibling line-ending lookup from prove_unchanged, per
-      Process #104
+- [x] T17 | The sibling line-ending lookup is gone | 2990793e | Remove the
+      sibling line-ending lookup from prove_unchanged, per Process #104
 - [ ] T18 | Fix reading/python/preservation.py:266 erasing the newline of an
       invisible line a backslash continuation joins
         > 2026-11-22 Check (M10): dropping a comment after a backslash proves FAIL
@@ -87,3 +88,10 @@ Use lexical code identity at both proof boundaries.
         > 2026-11-23 Broken review 6a81c7b0 [A]: 7b runs without documented; open
 - [x] T23 | 7b passes the imprimatur proof wrote; mutants killed; 5779 pass | ad94403f88b8353559d97d09741d61d7ca88341d | Make
       7b prove_unchanged run the documented check 7a runs, per #414
+- [x] T24 | write.md validates the working tree with the drafts laid over it | 5015ff1c | Build
+      write.md's validation tree from the working tree, not the pre-edit ref
+- [x] T25 | write.md reports only the diffs the write itself made | 319c8e25 | Show
+      only the run's own changes in write.md's report, not a diff against the
+      pre-edit ref
+- [x] T26 | flows/__init__.py source entry no longer names revision reads | eb4a7f50 | Remove
+      "revision reads" from the source entry in flows/__init__.py

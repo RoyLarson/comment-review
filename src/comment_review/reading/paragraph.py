@@ -23,7 +23,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from comment_review.reading.comment import comment_form
+from comment_review.reading.comment import Comment, comment_form
 from comment_review.reading.series import Series
 
 MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
@@ -125,8 +125,6 @@ class Paragraph:
     # because the PAGE found blank lines, so there was never a trigger for it to
     # be anchored to. `addresser.SERIES` holds four series; `LEAD` is a symbol.
     symbol: str = ""
-    annotations: set[str] = field(default_factory=set)
-    notes: list[str] = field(default_factory=list)
 
     # !! THE PARAGRAPH'S OWN CHARACTERS, EXACTLY AS THE FILE HOLDS THEM -- its
     # lines whole where it owns them, and from the end of the code onward on
@@ -170,13 +168,15 @@ class Paragraph:
         key = (self.path, cue, self.anchor, tuple(self.raw_lines))
         if self._text is not None and self._text[0] == key:
             return self._text[1]
-        text = ""
-        if self.raw_text.strip():
-            text = comment_form(
-                Path(self.path), Series.of(cue), self.raw_text, self.anchor
-            ).text
+        text = self.comment.text if self.raw_text.strip() else ""
         self._text = (key, text)
         return text
+
+    @property
+    def comment(self) -> Comment:
+        """This paragraph's `comment_form`: its prose fragments and their markers."""
+        cue = self.address.rsplit("@", 1)[-1]
+        return comment_form(Path(self.path), Series.of(cue), self.raw_text, self.anchor)
 
     @property
     def lines(self) -> int:

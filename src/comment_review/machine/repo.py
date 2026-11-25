@@ -124,53 +124,17 @@ def read_source(path: Path) -> Source:
     return source_from_bytes(path.read_bytes())
 
 
-def read_revision_source(repo: Path, ref: str, rel: str) -> Source:
-    """Read a revision blob as strict UTF-8, preserving its exact contents.
-
-    Args:
-        repo: repository directory; relative paths start here.
-        ref: Git revision to read.
-        rel: path relative to the repository directory.
-
-    Returns:
-        The blob's text and identity, including for an empty blob.
-
-    Raises:
-        subprocess.CalledProcessError: Git cannot resolve the revision or path.
-        UnicodeDecodeError: the blob is not valid UTF-8.
-    """
-    got = subprocess.run(
-        [
-            "git",
-            "-c",
-            "core.quotePath=false",
-            "-C",
-            str(repo),
-            "show",
-            f"{ref}:./{rel}",
-        ],
-        capture_output=True,
-        timeout=30,
-        check=True,
-    )
-    return source_from_bytes(got.stdout)
-
-
 def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
-    r"""Every text-mode git invocation this plugin makes.
+    r"""Every git invocation this plugin makes.
 
-    This module is the only one that runs git. The one other invocation is
-    `read_revision_source`, which reads a blob as bytes and so cannot decode
-    here; it passes the same `core.quotePath=false`.
+    This module is the only one that runs git.
 
     ! `core.quotePath` defaults to true, so git renders a non-ASCII path as
     octal escapes -- `"caf\303\251.py"`, quotes included. Measured: a tracked
     path holding one non-ASCII letter, defining `helper_name`, dropped out of
     the live-name corpus and
     `unread` stayed empty, so every symbol defined only there became a false
-    obituary behind a silent coverage hole. The same escaping makes
-    `path_index` report a comment citing that file as unresolved -- a false
-    finding handed to four reviewers as settled fact.
+    obituary behind a silent coverage hole.
 
     ! The encoding is pinned for the same reason: git writes UTF-8, and
     `text=True` alone decodes with the machine's locale, so a non-ASCII path
@@ -219,12 +183,12 @@ def git_ls_files(repo: Path) -> list[str] | None:
     if not repo.is_dir():
         return None
     try:
-        listed = git(repo, "ls-files")
+        listed = git(repo, "ls-files", "-z")
     except exceptions.GIT_ERRORS:
         return None
     if listed.returncode != 0:
         return None
-    return listed.stdout.splitlines()
+    return nul_separated(listed.stdout)
 
 
 def git_untracked(repo: Path) -> list[str] | None:
@@ -232,12 +196,21 @@ def git_untracked(repo: Path) -> list[str] | None:
     if not repo.is_dir():
         return None
     try:
-        listed = git(repo, "ls-files", "--others", "--exclude-standard")
+        listed = git(repo, "ls-files", "-z", "--others", "--exclude-standard")
     except exceptions.GIT_ERRORS:
         return None
     if listed.returncode != 0:
         return None
-    return listed.stdout.splitlines()
+    return nul_separated(listed.stdout)
+
+
+def nul_separated(out: str) -> list[str]:
+    """The paths a git command run with `-z` printed, verbatim.
+
+    Without `-z`, git quotes a path holding a tab, a newline, a quote or a
+    backslash, and a newline in a name splits it in two.
+    """
+    return [p for p in out.split("\0") if p]
 
 
 def commit_of(repo: Path, ref: str) -> str | None:
@@ -411,50 +384,6 @@ def tracked_paths(repo: Path, rels: list[str] | None) -> set[Path] | None:
     if rels is None:
         return None
     return {(repo / rel).resolve() for rel in rels}
-
-
-def path_index(repo: Path, rels: list[str] | None) -> set[str]:
-    """Every tracked path, plus every suffix of it, for citation resolution.
-
-    Prose cites package-relative (`summary.py`, `billing/rates.py`) far more
-    often than repo-relative, and a run's working directory may sit anywhere
-    under the root. Resolving against the repo root alone produces false
-    dangling reports on nearly every citation of such a repository -- an
-    annotation handed to four reviewers as settled fact.
-
-    A suffix set answers "is this citation any file in the tree" in one lookup,
-    which is the question prose is actually asking. Walking the tree once and
-    indexing beats trying N candidate roots per citation.
-
-    ! Tracked files, via `git ls-files`, whenever the index lists any. That is
-    faster than walking a tree full of generated data, and more correct: a
-    citation into gitignored runtime state is unverifiable (absent from every
-    fresh checkout), which is a different finding from a citation that
-    resolves nowhere. With no index, or an empty one, it is every file the
-    walk does not exclude.
-    """
-    out: set[str] = set()
-    if not repo.is_dir():
-        return out
-    # ! Written out rather than collapsed to `if not rels`. The two states do
-    # take the same fallback here -- an index that tracks nothing indexes the
-    # same set as no index at all -- and `git_ls_files` documents None as a
-    # third state, so a reader who saw them collapsed would learn the opposite
-    # of what that docstring says.
-    if rels is None or not rels:  # not a git repo, git unavailable, or empty
-        rels = [
-            p.relative_to(repo).as_posix()
-            for p in repo.rglob("*")
-            # ! Relative to the repo, not absolute: matched absolute, an
-            # ancestor named `venv` excludes the whole checkout. See
-            # `walk_files` below.
-            if p.is_file() and not EXCLUDED_DIRS.intersection(p.relative_to(repo).parts)
-        ]
-    for rel in rels:
-        parts = rel.split("/")
-        for i in range(len(parts)):
-            out.add("/".join(parts[i:]))
-    return out
 
 
 def walk_files(root: Path):

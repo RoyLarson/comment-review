@@ -2,8 +2,7 @@
 
 `flows.referrers.files_naming` searches the tree for them.
 
-The gather resolves what a comment cites. These names serve the other direction --
-who cites the code being edited -- which is the half that decides the
+These names answer who cites the code being edited, which decides the
 `REFERENCE ONLY` list. Without it that list is assembled from memory, and a `target`
 run has no diff to widen from at all.
 """

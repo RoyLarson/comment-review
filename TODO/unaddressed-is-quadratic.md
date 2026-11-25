@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 6 tasks closed
+Progress: 4 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -64,6 +64,6 @@ tests for the file is misled.
 - [ ] T5 | Flatten binder/addresses.unaddressed() to one pass without the
       _by_path sort
         > 2026-11-22 Check: suite green; gather's unaddressed lines byte-identical
-- [ ] T6 | Stop `gather --out` leaving an empty file behind when the gather
-      refuses
+- [x] T6 | A refused gather leaves no --out file | bf44bb44 | Stop `gather
+      --out` leaving an empty file behind when the gather refuses
         > 2026-11-22 Check: a refused gather --out X exits 1 with no file at X

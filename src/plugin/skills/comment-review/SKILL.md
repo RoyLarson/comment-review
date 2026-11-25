@@ -107,7 +107,8 @@ The author rules once, on the text that will actually be written.
 Work from the git repository at the repo root, and pass `--repo` to every command that takes it.
 
 1. **Pre-edit ref.** Record the commit `git stash create` prints, or `HEAD` when it prints
-   nothing, as it does when no tracked file has an uncommitted change. Stage 7b proves the code against it.
+   nothing, as it does when no tracked file has an uncommitted change. Stage 2's topology and
+   stage 7a's freeform check build from it.
 2. **Scope.** Use `target` when given. Otherwise take `git merge-base HEAD <upstream>` and list
    `git diff --name-only <base>..HEAD`, plus `git diff --name-only HEAD` for uncommitted work.
    When there is no upstream, scope from `git diff --name-only HEAD`.
@@ -119,10 +120,12 @@ Work from the git repository at the repo root, and pass `--repo` to every comman
    formatter config -- and how it counts. Record where you found each. When the repo cites a test that enforces the cap, confirm
    the test exists, and report whether it does.
 4. **Style sheet.** Read `style` when given; otherwise start one. It records the width stage 1
-   found, the repo's dialect, the capitalisation of domain terms, its citation form, where the
+   found, the comment wrap observed in the tree -- the median and maximum column of its comment
+   lines, marked as measured, not published -- the repo's dialect, the capitalisation of domain terms, its citation form, where the
    repo keeps code concerns -- in `TODO:` comments, or on a board or tracker its own
    instructions name -- asking the author with `AskUserQuestion` when the repo does not say,
-   and one template for each documentation format the tree actually uses: module docstring,
+   where the repo keeps removed history -- a changelog, a decision record, an ADR directory --
+   or that it has none, asked the same way, and one template for each documentation format the tree actually uses: module docstring,
    function docstring and,
    where the repo is consistent, comments. Write each template out with its slots, measured
    from the docstrings in the tree.
@@ -518,6 +521,17 @@ Every changed line belongs to a decided finding, and every decided finding has i
 other change holds the run at this stage: edit the draft until the change is gone, and audit it
 again. Nothing is presented until the audit passes. The command exits 1 when the files differ.
 
+**Sentences in no file.** List each sentence the write removes that is neither still in its own
+file nor in the file an agreed `move` sent it to. Name each stage's closed proof with `--proof`
+and the `proof` output, and add `<run-dir>/freeform/draft` when stage 5 wrote freeform drafts:
+
+```bash
+python <skill>/scripts/comment-review.py lost --repo . --proof <closed-proof> [--proof ...] \
+  <run-dir>/proof [<run-dir>/freeform/draft]
+```
+
+Present the list with the proposal, so the author can give a sentence a home before accepting.
+
 Present to the author, grouped by instruction, most consequential first. Use each stage's
 closed proof's decided text and the drafts for the proposed result. For each decided place, follow
 its filed references to the reviewer marks in the proof and read any disposition on the place.
@@ -544,9 +558,8 @@ path, or accept none.
 
 ### Stage 7b -- write
 
-Load [`references/write.md`](references/write.md) and follow it. It proves the accepted
-drafts' code unchanged in a temporary worktree, runs the repo's check on them there, and writes
-them into the working tree. `git diff <pre-edit ref>` then shows the author exactly what the run changed.
+Load [`references/write.md`](references/write.md) and follow it. It writes the accepted drafts
+into the working tree and reports what the run changed.
 
 ### Stage 8 -- review
 

@@ -10,10 +10,12 @@ import stat
 
 import pytest
 from conftest import SRC  # noqa: F401  -- conftest puts src on the path
+from helpers import git_in
 
 from comment_review.machine.repo import (
     Source,
     can_escape,
+    git_ls_files,
     read_raw,
     read_source,
     remove_tree,
@@ -114,3 +116,26 @@ def test_remove_tree_deletes_a_tree_the_platform_refuses_to_unlink(tmp_path):
     tree = _a_tree_holding_a_read_only_file(tmp_path / "tree")
     remove_tree(tree)
     assert not tree.exists()
+
+
+#: Names git quotes, or splits, when it lists without `-z`.
+AWKWARD = ["a\tb.py", "a\nb.py", 'a"b.py', "a\\b.py"]
+
+
+def test_git_ls_files_lists_an_awkward_name_verbatim(tmp_path):
+    git_in(tmp_path, "init", "-q")
+    (tmp_path / "blob").write_bytes(b"")
+    blob = git_in(tmp_path, "hash-object", "-w", "blob")
+    # The names go into the index only, so no filesystem has to allow them.
+    for name in AWKWARD:
+        info = f"100644,{blob},{name}"
+        git_in(
+            tmp_path,
+            "-c",
+            "core.protectNTFS=false",
+            "update-index",
+            "--add",
+            "--cacheinfo",
+            info,
+        )
+    assert sorted(git_ls_files(tmp_path) or []) == sorted(AWKWARD)

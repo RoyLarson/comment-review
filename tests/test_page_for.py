@@ -15,8 +15,14 @@ from conftest import SAMPLE, build, by_cue, cue, docket_from
 from helpers import RUST_ITEMS
 
 from comment_review.binder import page as page_mod
+from comment_review.binder.addresses import handed
 from comment_review.binder.binder import bind
-from comment_review.binder.page import Page, leading_between, page_for
+from comment_review.binder.page import (
+    Page,
+    RedactedPage,
+    leading_between,
+    page_for,
+)
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
@@ -28,6 +34,11 @@ from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.records import PythonRead
 from comment_review.reading.rust.records import RustRead
 from comment_review.reading.series import Kind
+
+
+def _prose(page: Page) -> list[Paragraph]:
+    """The paragraphs a role is handed: prose, addressed, not the file's matter."""
+    return handed(RedactedPage.of(page).paragraphs)
 
 
 def test_python_page_retains_complete_structured_read():
@@ -48,7 +59,7 @@ def test_python_page_retains_complete_structured_read():
         0,
     ]
     assert page.reading.reader == "python-lexical"
-    assert {b.address.rsplit("@", 1)[-1] for b in page.prose} == {"a0", "a1"}
+    assert {b.address.rsplit("@", 1)[-1] for b in _prose(page)} == {"a0", "a1"}
     assert any("x = 1" in b.anchor for b in page)
     assert any("return 1" in b.anchor for b in page)
 
@@ -231,9 +242,9 @@ def test_python_page_interpolation_comments_keep_whole_sections(text, expected):
     assert isinstance(page, Page)
     assert isinstance(page.read, PythonRead)
     assert len(page.read.source.sections) == len(expected)
-    assert [p.address.rsplit("@", 1)[-1] for p in page.prose] == expected
-    assert len(page.prose) == len(expected)
-    assert [p.raw_text for p in page.prose] == (
+    assert [p.address.rsplit("@", 1)[-1] for p in _prose(page)] == expected
+    assert len(_prose(page)) == len(expected)
+    assert [p.raw_text for p in _prose(page)] == (
         [" # first", " # second"] if len(expected) == 2 else [" # first\n\n # second"]
     )
 
@@ -269,9 +280,9 @@ def test_python_page_protected_interpolation_comments_remain_classified(literal)
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
     assert isinstance(page.read, PythonRead)
-    assert len(page.read.source.sections) == len(page.prose) == 1
+    assert len(page.read.source.sections) == len(_prose(page)) == 1
     assert page.read.source.sections[0].form == "#"
-    assert page.prose[0].text == "protected"
+    assert _prose(page)[0].text == "protected"
     assert page.read.source.reconstruct() == text
     assert page.read.protected
 
@@ -310,7 +321,7 @@ def test_python_sections_projection_is_not_used_for_other_languages(monkeypatch)
     result = page_for_mod.page_of(Path(path), source=Source(text, "held"))
     assert isinstance(result, Page)
     assert result.text == text
-    assert any("note" in paragraph.raw_text for paragraph in result.prose)
+    assert any("note" in paragraph.raw_text for paragraph in _prose(result))
 
 
 def test_empty_source_is_a_complete_page():
@@ -503,6 +514,14 @@ def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line):
     result = page_over_read(monkeypatch, found, name)
     assert isinstance(result, ReadFailure)
     assert [d.code for d in result.diagnostics] == ["documentation-declares-nothing"]
+
+
+def test_a_trailing_paragraph_on_a_line_with_no_code_is_refused(monkeypatch):
+    name = "m.rs"
+    found = [Paragraph(name, 3, 3, Kind.TRAILING, raw_lines=["// F."])]
+    result = page_over_read(monkeypatch, found, name)
+    assert isinstance(result, ReadFailure)
+    assert [d.code for d in result.diagnostics] == ["paragraph-has-no-place"]
 
 
 def test_two_paragraphs_at_one_address_refuse_the_page(monkeypatch):
@@ -734,7 +753,7 @@ def test_rust_page_inner_doc_above_nothing_is_the_module_docstring():
 
 def test_rust_page_outer_doc_above_nothing_is_a_comment():
     page = build("fn f() {\n    /// Orphan.\n}\n", "m.rs")
-    orphan = next(b for b in page.prose if "Orphan" in b.text)
+    orphan = next(b for b in _prose(page) if "Orphan" in b.text)
     assert orphan.kind == "comment"
     assert cue(orphan)[0] == "b"
 

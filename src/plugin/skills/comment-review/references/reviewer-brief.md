@@ -262,6 +262,11 @@ it.
 | **checkable** | it stays | `drop` -- it narrates what the code says |
 | **not checkable** | `move` -- real rationale, belonging where it can be read | `drop` -- history |
 
+A `drop` of history names, in its reason, the home the style sheet records for removed history.
+Where the style sheet holds no answer on it, file a `query` of shape `human-review-necessary`
+asking the author where the sentence goes; where it records that the repo has none, the `drop`
+stands.
+
 A third question: is the sentence the rule, or one instance of it? When a reader can build a
 case the code governs and the sentence leaves out, it is written too narrowly, and the ruling
 is a `patch` to the general rule.
@@ -288,8 +293,9 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
 ```
 
 What stays at the origin is the paragraph with the snippet taken out -- nothing, when the
-snippet is the whole paragraph. A destination may be an empty place. For prose that belongs
-outside the code, or in a file this run did not gather, file a `query` of shape
+snippet is the whole paragraph. A destination may be an empty place. A destination in a code
+file this run did not gather is a `move` like any other: ask `addresses find` for its place in
+that file. For prose that belongs outside the code, file a `query` of shape
 `human-review-necessary` at the origin, naming where it belongs. For a destination in a freeform
 file, see *A freeform file*.
 

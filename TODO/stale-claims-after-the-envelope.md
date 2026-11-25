@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 12 tasks closed
+Progress: 13 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -97,3 +97,21 @@ for the shape this branch changed.
 - [ ] T12 | Correct commands/taken_in.py:11-12, which says no docket carries
       `role` yet
         > 2026-11-22 Check: the sentence agrees with docket.Schedule's role field
+- [x] T13 | carry removed from the flows inventory | eb4a7f50 | Remove carry
+      from the module inventory in flows/__init__.py
+- [x] T14 | concordance/__init__.py states what the package does now | eb4a7f50 | Correct
+      concordance/__init__.py, which says the gather resolves what a comment
+      cites
+- [x] T15 | docs/design/README.md no longer lists the deleted modules | d6fa1fd2 | Remove
+      results/prove_unchanged and flows/carry from docs/design/README.md
+- [x] T16 | docs/design/results/README.md no longer lists prove_unchanged.py | d6fa1fd2 | Remove
+      prove_unchanged.py from docs/design/results/README.md
+- [x] T17 | docs/vocabulary.md: the gather attaches no annotation | d6fa1fd2 | Update
+      docs/vocabulary.md's annotation entries, now that the gather attaches none
+- [x] T18 | The tests no longer name annotate.py or Paragraph.annotations | d6fa1fd2 | Remove
+      the deleted annotate.py and Paragraph.annotations from test_docket.py and
+      test_binder.py
+- [ ] T19 | Correct binder/__init__.py's annotation entry, which vocabulary.toml
+      contradicts
+- [ ] T20 | Correct test_binder.py's redaction docstring, which names Paragraph
+      fields that are gone

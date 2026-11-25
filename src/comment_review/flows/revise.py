@@ -256,8 +256,8 @@ def _binder_over(
     `pages` are repo paths, posix and relative to `root`; nothing else under
     `root` is read.
 
-    ! Addresses only. `annotate` and `code_names` resolve citations, a
-    question this gate never asks, so building a page is as far as this goes.
+    ! Addresses only. This gate resolves no citation, so building a page is
+    as far as this goes.
 
     !! `absent=True`, so an empty place is carried too. `bind`'s default
     drops a place that holds no prose, and appended code with no comment or

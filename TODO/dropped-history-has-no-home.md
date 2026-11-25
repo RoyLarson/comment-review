@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-08 (2026-11-08 run on another repository, plugin 0.2.4-beta.7)
@@ -29,12 +29,26 @@ rule with no check that the prose arrived, leaves the loss in place.
 - [x] T1 | FINISHED -- #297: moved to an external address once that chain lands | 2255e7c9 | Decide
       where a drop of a dated, quoted or ruling sentence sends it, and what a
       run does where the repo names no home
-- [ ] T2 | Record in stage 1 the repo's home for removed history, or none
+- [x] T2 | Stage 1 records the repo's home for removed history | 4c4be613 | Record
+      in stage 1 the repo's home for removed history, or none
         > 2026-11-08 Waits on external addresses, after the code section works (#297)
         > 2026-11-09 #303: ask the author when the repo names no home; none drops
-- [ ] T3 | Update the brief so a drop of history names its destination, or
-      queries the author where none is recorded
+- [x] T3 | The brief: a history drop names its home or queries | 47835332 | Update
+      the brief so a drop of history names its destination, or queries the
+      author where none is recorded
         > 2026-11-08 Waits on external addresses, after the code section works (#297)
-- [ ] T4 | Implement a 7a list of every removed sentence the write leaves in no
-      file, matched exactly
+- [x] T4 | #420: lost lists removed sentences no file of the tree as written holds | 0c979445 | Implement
+      a 7a list of every removed sentence the write leaves in no file, matched
+      exactly
         > 2026-11-08 Waits on external addresses, after the code section works (#297)
+- [x] T5 | FINISHED -- split at line ends via Fragment.positions | 085c2f3a | Split
+      lost's sentences at line ends as well as at sentence punctuation
+- [-] T6 | SUPERSEDED -- #426: lost checks a sentence at a named place, not across the tree | 1c3c0e31 | Parse
+      in lost only the files the raw-text match could not rule out
+- [x] T7 | FINISHED -- #426: an agreed move's destination file saves it | 085c2f3a | Implement
+      in lost a check of each sentence a move removed at the move's destination,
+      reading the closed proofs
+- [ ] T8 | Add to a history drop a field naming its home, which check reads
+        > 2026-11-24 #426: later plan; history drops are listed till then
+- [ ] T9 | Implement in lost a check of each sentence a history drop removed in
+      the home the drop names

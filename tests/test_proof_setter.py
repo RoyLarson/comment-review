@@ -1573,8 +1573,8 @@ def test_roys_chain_ends_byte_identical_to_the_first_draft(tmp_path, written, th
 @pytest.mark.parametrize(
     ("name", "text", "words", "alteration", "expected"),
     [
-        ("m.rs", "", "", {"a0": "// A note."}, "// A note."),
-        ("m.py", "", "", {"a0": "# A note."}, "# A note."),
+        ("m.rs", "", "", {"a0": "// A note."}, "// A note.\n"),
+        ("m.py", "", "", {"a0": "# A note."}, "# A note.\n"),
         ("m.rs", "// a tpyo\n", "// a tpyo", {"": "// a typo"}, "// a typo\n"),
         ("m.py", "# a tpyo\n", "# a tpyo", {"": "# a typo"}, "# a typo\n"),
         (
@@ -1781,7 +1781,7 @@ class TestAnEmptyPackageInit:
             path.mkdir()
         words = '"""The package."""'
         first = _step(tmp_path, 1, self.NAME, "", {"a0": words})
-        assert first == words
+        assert first == words + "\n"
         assert _step(tmp_path, 2, self.NAME, first, {"a0": words}) == first
 
     def test_adding_code_to_it_refuses(self):

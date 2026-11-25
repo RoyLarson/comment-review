@@ -783,3 +783,44 @@ def test_a_same_line_docstring_is_set_on_its_own_line_below_the_declaration(
     assert by_cue(page)[cue].raw_lines == doc
     assert set_page(page) == expected
     assert set_page(build(expected, "m.py")) == expected
+
+
+def _set_after(text, edits):
+    page = build(text, "m.py")
+    assert galley.reset(page, edits) == []
+    return set_page(page)
+
+
+def test_an_add_and_drop_at_b0_returns_the_file_it_started_from():
+    """The blank an added `b0` takes above it goes when the `b0` goes, so
+    cycling the two grows nothing at the head of the file."""
+    added = _set_after("x = 1\n", {"b0": "# c"})
+    assert added == "\n# c\nx = 1\n"
+    assert _set_after(added, {"b0": None}) == "x = 1\n"
+
+
+def test_a_comment_added_under_a_header_then_a_blank_keeps_one_blank():
+    """The blank below `class A:` is looked up at an empty `a` before the
+    added `b1`, and it is the leading the added comment needs."""
+    out = _set_after("class A:\n\n    x = 1\n", {"b1": "    # added"})
+    assert out == "class A:\n\n    # added\n    x = 1\n"
+    assert by_cue(build(out, "m.py"))["b1"].raw_lines == ["    # added"]
+
+
+def test_dropping_the_back_matter_drops_the_blank_run_above_it():
+    assert _set_after("x = 1\n\n# back\n", {"f1": None}) == "x = 1\n"
+
+
+def test_a_b0_added_under_matter_in_a_file_with_no_code_reads_back_at_b0():
+    """With no code, the added `b0` is set with a blank above it, which keeps it
+    out of the front matter, and a blank below it, which keeps it out of the back."""
+    out = _set_after("# licence\n", {"b0": "# added"})
+    assert out == "# licence\n\n# added\n\n"
+    assert by_cue(build(out, "m.py"))["b0"].raw_lines == ["# added"]
+
+
+def test_an_add_to_an_empty_file_ends_with_a_line_break():
+    """`decision-log.md Process: #376`."""
+    out = _set_after("", {"a0": '"""Doc."""'})
+    assert out == '"""Doc."""\n'
+    assert by_cue(build(out, "m.py"))["a0"].raw_lines == ['"""Doc."""']

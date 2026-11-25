@@ -1,11 +1,11 @@
-"""Admit exact current and revision pages before comparing executable code.
+"""Admit each original and its draft as pages before comparing executable code.
+
+The original is the file as the working tree holds it, and the draft is the
+file at the same repo path under the drafts root. Neither side is read from
+git, so the work being proven need not be committed.
 
 A docstring may appear or disappear only at an `a` place the imprimatur
 `proof` wrote names for that page, which is what stage 7a's proof allowed.
-
-Each page compared is also checked for line endings against a tracked
-sibling in its directory that the run did not edit (`_sibling`); a page
-with no readable sibling is counted unchecked.
 """
 
 from collections.abc import Collection, Mapping, Sequence
@@ -17,12 +17,10 @@ from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_setter import documented_line
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
-from comment_review.flows.source import revision_source_of, source_of
-from comment_review.machine.repo import Source, git_ls_files
+from comment_review.flows.source import source_of
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.proof import UNIDENTIFIED_OWNER
-from comment_review.results.prove_unchanged import dominant_ending
 
 
 @dataclass(frozen=True)
@@ -31,38 +29,7 @@ class ProofReport:
 
     messages: tuple[str, ...]
     failures: int
-    unchecked: int
     freeform: int = 0
-
-
-def _sibling(
-    repo: Path, target: Path, edited: set[Path], tracked: list[str]
-) -> tuple[Path, Source] | None:
-    """A readable tracked file beside `target` that the write did not edit.
-
-    Skips a candidate this process cannot read as UTF-8 text. Binary or
-    non-UTF-8 siblings cannot supply a line-ending reference, so selection
-    continues until a readable candidate is found.
-
-    Args:
-        repo: the repository root.
-        target: the file being proven; never returned as its own sibling.
-        edited: every path this run was asked to prove, resolved -- none of
-            them qualifies as "untouched".
-        tracked: `git_ls_files(repo)` (or `[]`), passed in rather than
-            queried here so a multi-path run spawns git once, not per path.
-    """
-    for rel in tracked:
-        cand = (repo / rel).resolve()
-        # ! `cand == target` is covered. `edited` is built from every path this
-        # run was given and `target` is one of them, so a candidate equal to
-        # the target is already in the set the test below it uses.
-        if cand.parent != target.parent or cand in edited:
-            continue
-        held = source_of(cand)
-        if not isinstance(held, ReadFailure):
-            return cand, held
-    return None
 
 
 def _documented(
@@ -83,26 +50,25 @@ def _documented(
 
 def run(
     repo: Path,
-    base: str,
+    drafts: Path,
     paths: Sequence[Path],
     *,
     approved: Mapping[str, Collection[str]],
 ) -> ProofReport:
-    """Prove admitted pages against their exact Git baselines and sibling endings.
+    """Prove each draft's code unchanged from the original it was drafted from.
 
     Args:
-        repo: the repository root each path is named relative to.
-        base: the ref holding the pre-edit text.
-        paths: the pages and freeform files to prove.
+        repo: the repository root each path is named relative to; it holds
+            the originals.
+        drafts: the root holding each draft at its repo path.
+        paths: the pages and freeform files to prove, in the repository.
         approved: repo path -> the cues of the `a` places whose docstrings
             may appear or disappear, as `flows.imprimatur` records them. A
             page it does not name may change no docstring's presence.
     """
     repo = repo.resolve()
-    edited = {path.resolve() for path in paths}
-    tracked = git_ls_files(repo) or []
     messages: list[str] = []
-    failures = unchecked = freeform = 0
+    failures = freeform = 0
     for raw in paths:
         target = raw.resolve()
         try:
@@ -122,28 +88,20 @@ def run(
             messages.append(f"FAIL      {format_failure(context, path=rel)}")
             failures += 1
             continue
-        before = revision_source_of(repo, base, rel)
+        before = source_of(target)
         if isinstance(before, ReadFailure):
-            if any(d.code == "missing-revision-source" for d in before.diagnostics):
-                messages.append(
-                    f"UNPROVABLE {rel}: no {base}:./{rel} -- new file, or bad ref"
-                )
-                messages.append(format_failure(before, path=rel))
-            else:
-                messages.append(
-                    f"FAIL      baseline: {format_failure(before, path=rel)}"
-                )
+            messages.append(f"FAIL      original: {format_failure(before, path=rel)}")
             failures += 1
             continue
-        after = source_of(target)
+        after = source_of(drafts / rel)
         if isinstance(after, ReadFailure):
-            messages.append(f"FAIL      current: {format_failure(after, path=rel)}")
+            messages.append(f"FAIL      draft: {format_failure(after, path=rel)}")
             failures += 1
             continue
         page_b = page_of(target, rel=rel, source=before, reading_context=context)
         page_a = page_of(target, rel=rel, source=after, reading_context=context)
         failed = False
-        for side, page in (("baseline", page_b), ("current", page_a)):
+        for side, page in (("original", page_b), ("draft", page_a)):
             if isinstance(page, ReadFailure):
                 messages.append(f"FAIL      {side}: {format_failure(page, path=rel)}")
                 failed = True
@@ -182,24 +140,4 @@ def run(
             messages.append(f"FAIL      {rel}: executable code DIFFERS ({proof} proof)")
             messages.append(format_failure(ReadFailure(result.diagnostics), path=rel))
             failures += 1
-        sib = _sibling(repo, target, edited, tracked)
-        if sib is None:
-            messages.append(
-                f"UNCHECKED  {rel}: no readable untouched sibling -- line endings"
-            )
-            unchecked += 1
-        else:
-            sibling, held = sib
-            want = dominant_ending(held.text)
-            got = dominant_ending(after.text)
-            # ! Both sides are guarded against "none". A single-line file with
-            # no trailing newline has no ending to measure, so it reads "none",
-            # and against a sibling that has endings it would FAIL on an absent
-            # ending rather than a wrong one.
-            if want != "none" and got != "none" and got != want:
-                messages.append(
-                    f"FAIL      {rel}: line endings {got}, "
-                    f"sibling {sibling.name} {want}"
-                )
-                failures += 1
-    return ProofReport(tuple(messages), failures, unchecked, freeform)
+    return ProofReport(tuple(messages), failures, freeform)

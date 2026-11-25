@@ -1,8 +1,7 @@
-"""The answer set back into a file, and the line-ending measure its proof uses.
+"""The answer set back into a file.
 
     galley           updates a page with what the marks decided
     compositor       sets that page as text, top to bottom. Decides nothing
-    prove_unchanged  the line-ending measure a proof checks against a sibling
 
 Whether the executable code survived is `reading.proof`'s question, asked by
 `flows.prove_unchanged`.

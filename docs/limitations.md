@@ -79,7 +79,7 @@ measurements unchanged in the history record.
 and set -> `freeform.md`; a stage's procedure -> that
 stage's file under `references/` (`compact.md`, `write.md`, `review.md`); a rule the code
 enforces -> the docstring of the module under `src/comment_review/` that enforces it
-(`concordance/annotate.py`, `machine/repo.py`, `concordance/referrers.py`, `reading/proof.py`);
+(`machine/repo.py`, `concordance/referrers.py`, `reading/proof.py`);
 orchestration -> here. Restating one across two files is
 the antipattern this skill exists to find, and the four agents are the place it will happen --
 they read alike and invite copy-paste.

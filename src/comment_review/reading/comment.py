@@ -342,9 +342,7 @@ def _join(lines: list[str]) -> str:
     """Prose lines, their markers already cut, as ONE normalised string.
 
     Prose wraps, so a claim-bearing phrase in a real file often straddles a
-    line break. Matching line-by-line reports the fragment instead of the claim: a
-    count reads as absent, and so does `used to say`, since `annotate` matches
-    `used to` only before a verb of saying.
+    line break. Matching line-by-line reports the fragment instead of the claim.
     """
     return re.sub(r"\s+", " ", " ".join(ln.strip() for ln in lines)).strip()
 

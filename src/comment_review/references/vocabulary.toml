@@ -387,6 +387,7 @@ compact = [
   "query",
   "sheet",
   "style sheet",
+  "width",
   "manuscript",
 ]
 review = [

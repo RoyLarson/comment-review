@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-22 (code review 2026-11-22, merged findings)
@@ -20,8 +20,9 @@ Found by the code review of 2026-11-22 (M34, M37, M38).
 
 ## Tasks
 
-- [ ] T1 | Split git ls-files output on NUL with -z at machine/repo.py:233, as
-      git grep -l needs too
+- [x] T1 | git ls-files and git grep -l run with -z, split on NUL | 265a9524 | Split
+      git ls-files output on NUL with -z at machine/repo.py:233, as git grep -l
+      needs too
         > 2026-11-22 Check (M34): a name holding U+2028 comes back as one path
 - [ ] T2 | Refuse a repeated JSON key at machine/json_object.py:54 object_of
         > 2026-11-22 Check (M37): a copy with 'marks' twice is refused by check

@@ -123,6 +123,42 @@ def test_build_refuses_a_directive_the_binder_cannot_honour(
     assert "9 ways" in printed
 
 
+def test_a_refused_build_leaves_the_out_file_as_it_was(tmp_path, monkeypatch, capsys):
+    """The jacket is refused -- a new run with no `--ref` -- so `--out` keeps
+    the topology that was there."""
+    binder = _binder(tmp_path, monkeypatch, capsys)
+    t = tmp_path / "t.toml"
+    t.write_text(UNCOVERED, encoding="utf-8")
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        topology_command,
+        "--build",
+        "--binder",
+        str(binder),
+        "--out",
+        str(t),
+        "--run",
+        str(tmp_path / "run"),
+        "--stage",
+        "4a=ownership-context",
+        with_stderr=True,
+    )
+    assert code == 2, printed
+    assert t.read_text(encoding="utf-8") == UNCOVERED
+
+
+@pytest.mark.parametrize("raw", [None, b"\xff\xfe"], ids=["missing", "undecodable"])
+def test_an_unreadable_verify_file_exits_2(tmp_path, monkeypatch, capsys, raw):
+    binder = _binder(tmp_path, monkeypatch, capsys)
+    t = tmp_path / "t.toml"
+    if raw is not None:
+        t.write_bytes(raw)
+    code, printed = _verify(monkeypatch, capsys, t, binder)
+    assert code == 2
+    assert f"{t}: cannot be read" in printed
+
+
 def test_build_and_verify_together_is_a_usage_error(tmp_path, monkeypatch, capsys):
     binder = _binder(tmp_path, monkeypatch, capsys)
     t = tmp_path / "t.toml"

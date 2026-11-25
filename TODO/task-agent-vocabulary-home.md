@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 9 tasks closed
+Progress: 4 of 9 tasks closed
 Owner:    agents (the instructions) - backend (the enum they derive from)
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, filing the distribute vocabulary entry for Task 14:
@@ -44,7 +44,8 @@ The task agent has no vocabulary home and is never told the command set.
 - [ ] T7 | Name compositor and taken_in as dev-only in
       tests/gates/test_skill_commands.py
         > 2026-11-22 Check: the gate lists exactly those two as dev-only
-- [ ] T8 | Delete the carry command and flows/carry.py, which no stage runs
+- [x] T8 | carry command and flow deleted | 1e574838 | Delete the carry command
+      and flows/carry.py, which no stage runs
         > 2026-11-22 Check: grep carry in src/comment_review/commands is empty
 - [ ] T9 | Update src/plugin prose to the settled terms for statement, clean,
       sheet and finding
