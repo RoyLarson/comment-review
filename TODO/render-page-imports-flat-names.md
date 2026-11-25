@@ -4,7 +4,7 @@
 Status:   open
 Progress: 4 of 10 tasks closed
 Owner:    systems
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-25 (backend, 2026-08-25, while giving Page a sha during the write-
           chain branch)
 Updated:  2026-08-25 — A SECOND BUG, MEASURED 2026-08-25, and fixing the imports alone
@@ -47,7 +47,7 @@ render_page.py imports flat module names the 2026-08-24 reorg removed.
 - [-] T6 | SUPERSEDED by T10: src/census.py does not exist; what ships is the gather's binder | 22c3a0abcbc86509c74296319ce5b719a43338ca | Point
       rows() at how the census is invoked now. Verify: all three renderings
       report non-zero bytes over a real file
-- [ ] T7 | Rule the margin view once the script runs: an empty place's row, text
+- [?] T7 | Rule the margin view once the script runs: an empty place's row, text
       or structured, its format, the marks. Verify: in decision-log.md
         > 2026-09-13 from the-census-is-mostly-intervals T19, Process 147
         > 2026-09-13 deferred by Roy 2026-09-13 until the rest is fixed

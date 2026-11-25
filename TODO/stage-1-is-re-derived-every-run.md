@@ -2,9 +2,9 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 18 tasks closed
+Progress: 10 of 20 tasks closed
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was established
           from scratch both times and both style sheets were left in a session scratchpad)
 Sharpened: 2026-08-17 (Roy: "Figure out why twice / LSP state and name corpus -- twice /
@@ -176,8 +176,9 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [ ] T10 | T10 -- State in the sheet's format that agent resolution is NEVER
       recorded, with the reason. Verify: the exclusion and its reason are both
       in the format.
-- [ ] T11 | T11 -- Decide what stage 1 does when a persisted answer is now
-      WRONG. Verify: `SKILL.md` states what a run does with a stale answer.
+- [-] T11 | SUPERSEDED by T19 (the decision) and T20 (the SKILL.md change) | 12128409 | T11
+      -- Decide what stage 1 does when a persisted answer is now WRONG. Verify:
+      `SKILL.md` states what a run does with a stale answer.
 - [ ] T12 | T12 -- Record in the sheet the ref it was measured at, so T11's rule
       is computable. Verify: the sheet format carries the ref.
 - [ ] T13 | T13 -- Re-measure the stage-1 tool-call cost after the collapse.
@@ -197,3 +198,6 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [ ] T18 | State in reviewer-brief.md that CodeGraph's no-caller is a lead a
       grep confirms before filing
         > 2026-11-22 Check: the brief requires a grep behind a CodeGraph no-caller
+- [?] T19 | Decide what stage 1 does when a persisted answer no longer holds
+- [ ] T20 | Update SKILL.md stage 1 to state what a run does with a stale
+      persisted answer, as T19 decides

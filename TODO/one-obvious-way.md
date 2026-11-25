@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 3 of 38 tasks closed
+Progress: 4 of 40 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-11-05 (Process #281 and the three flow audits, 2026-11-05)
 ```
 
@@ -28,8 +28,9 @@ evidence is checked when the task is worked.
 - [ ] T1 | Make fill read the page an address names through page_named
 - [ ] T2 | Make held_at refuse a cue its page lacks instead of returning empty
       text
-- [ ] T3 | Make one rule, folded or exact, decide an address's path half for
-      verify, transcribe, fill, bus and check
+- [-] T3 | SUPERSEDED by T39 (folded or exact) and T40 (applying it) | 12128409 | Make
+      one rule, folded or exact, decide an address's path half for verify,
+      transcribe, fill, bus and check
 - [ ] T4 | Make master_proof and fill invert a flattened name through real_path
 - [ ] T5 | Make gather refuse a file outside --repo, as prove_unchanged does
 - [ ] T6 | Make fill split an address with cue_of
@@ -106,3 +107,6 @@ evidence is checked when the task is worked.
 - [ ] T37 | State the checked: dict ty workaround's reason in one place
         > 2026-11-23 Stated in docket, answers, edit_copy, binder; two reasons differ
 - [ ] T38 | Move each command's file reads and writes into the flow it invokes
+- [?] T39 | Decide whether an address's path half is matched folded or exact
+- [ ] T40 | Make the matching T39 chooses decide an address's path half for
+      verify, transcribe, fill, bus and check
