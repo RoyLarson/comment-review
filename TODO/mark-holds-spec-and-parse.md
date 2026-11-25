@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 10 tasks closed
+Progress: 6 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling on a review finding that mark.py announces
@@ -102,6 +102,6 @@ change -- `conventions.md`, *The vocabulary is shared*.
 - [ ] T9 | Split the wire-record helpers (`read_member`, `a_type`, `read_text`,
       `as_text`, `filled`, `E`) out of `desk/proof/mark.py`
         > 2026-11-23 comment-review 2026-11-23: helpers serve 12 modules, no mark
-- [ ] T10 | Update concordance/annotate.py's TICKED so it states the question it
-      answers
+- [-] T10 | SUPERSEDED: concordance/annotate.py and TICKED were deleted in 52131920 | 52131920 | Update
+      concordance/annotate.py's TICKED so it states the question it answers
         > 2026-11-22 Check: TICKED's comment says what it indexes, with why
