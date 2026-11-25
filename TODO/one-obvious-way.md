@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 3 of 38 tasks closed
+Progress: 3 of 40 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-11-05 (Process #281 and the three flow audits, 2026-11-05)
 ```
 
@@ -106,3 +106,6 @@ evidence is checked when the task is worked.
 - [ ] T37 | State the checked: dict ty workaround's reason in one place
         > 2026-11-23 Stated in docket, answers, edit_copy, binder; two reasons differ
 - [ ] T38 | Move each command's file reads and writes into the flow it invokes
+- [?] T39 | Decide whether an address's path half is matched folded or exact
+- [ ] T40 | Make the matching T39 chooses decide an address's path half for
+      verify, transcribe, fill, bus and check

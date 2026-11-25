@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 10 tasks closed
+Progress: 2 of 12 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "This shouldn't happen - As much as FOR REFERENCE only might make
@@ -155,3 +155,7 @@ is available.
 - [ ] T10 | Extend SKILL.md:564's same-sentence rule to say what the chief does
       when one twin is REFERENCE ONLY
         > 2026-11-22 Check: SKILL.md:564 covers a REFERENCE ONLY twin
+- [?] T11 | Decide what the chief does when one twin of a same-sentence pair is
+      REFERENCE ONLY
+- [ ] T12 | Extend SKILL.md:564's same-sentence rule with what T11 decides for a
+      REFERENCE ONLY twin
