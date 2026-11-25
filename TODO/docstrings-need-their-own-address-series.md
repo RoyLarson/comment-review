@@ -24,11 +24,11 @@ SPLIT:    2026-08-23 -- the two open boxes each held two artifacts. ORDERING spl
 
 ## Objective
 
-!! **A DOCSTRING IS ABOUT ITS DECLARATION; A COMMENT IS ABOUT WHAT SITS WITH IT.**
-Those are different questions and the `b`/`c` forms cannot express the first. `b3` means "the gap
-after code line 3", which reads as prose about what FOLLOWS -- and a Python docstring sits after
-its `def` and is about the `def`. Roy, 2026-08-18: *"a docstring is about the thing above not the
-thing below."*
+!! **A DOCSTRING IS ABOUT ITS DECLARATION; A COMMENT IS ABOUT WHAT SITS WITH
+IT.** Those are different questions and the `b`/`c` forms cannot express the
+first. `b3` means "the gap after code line 3", which reads as prose about what
+FOLLOWS -- and a Python docstring sits after its `def` and is about the `def`.
+Roy, 2026-08-18: *"a docstring is about the thing above not the thing below."*
 
 ## The series enumerates DECLARATIONS, not docstrings
 

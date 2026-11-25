@@ -12,15 +12,16 @@ Raised:   2026-08-30 (2026-08-30, a code review of `flows/collate.py` on the col
 
 ## Objective
 
-Twelve defects in `flows/collate.py`, from a review of that one file on 2026-08-30.
+Twelve defects in `flows/collate.py`, from a review of that one file on
+2026-08-30.
 
-!! **THIS IS THE PER-MODULE CLAUSE, NOT THE DEPENDENCY CLAUSE.** These twelve do not
-have to land together, and claiming they did would be the test that nearly everything
-passes -- which `conventions.md` records as what put 34 single-observation files on
-this board. What earns the file is that `src/comment_review/flows/collate.py` has no
-TODO of its own and these are general fixes to it. Roy, 2026-08-30: *"For general
-fixes a new TODO can be made per module."* Same shape as
-[`collator-defects`](collator-defects.md).
+!! **THIS IS THE PER-MODULE CLAUSE, NOT THE DEPENDENCY CLAUSE.** These twelve do
+not have to land together, and claiming they did would be the test that nearly
+everything passes -- which `conventions.md` records as what put 34
+single-observation files on this board. What earns the file is that
+`src/comment_review/flows/collate.py` has no TODO of its own and these are
+general fixes to it. Roy, 2026-08-30: *"For general fixes a new TODO can be made
+per module."* Same shape as [`collator-defects`](collator-defects.md).
 
 ## What was measured
 

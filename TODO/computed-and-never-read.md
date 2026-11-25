@@ -27,39 +27,45 @@ RE-VERIFIED: 2026-08-23 — 2026-08-23, every live claim re-read in the tree. ST
 
 ## Objective
 
-**Four values are computed on every page and read by nobody, and `dead_sweep.py` is blind to
-every one of them.** The sweep reports *"0 shipped names nothing reads"* while an unused
-PARAMETER, an unused DATACLASS FIELD, an unread TUPLE ELEMENT and an unreachable BRANCH all sit
-in the shipped tree -- because it looks for names no module imports, and none of these is a name.
+**Four values are computed on every page and read by nobody, and `dead_sweep.py`
+is blind to every one of them.** The sweep reports *"0 shipped names nothing
+reads"* while an unused PARAMETER, an unused DATACLASS FIELD, an unread TUPLE
+ELEMENT and an unreachable BRANCH all sit in the shipped tree -- because it
+looks for names no module imports, and none of these is a name.
 
-! **THE COUNT IN THIS FILE HAS NEVER AGREED WITH ITSELF**, and it is not load-bearing: the
-heading said *four*, the Objective said *five*, and the boxes name six sites. The SITES are the
-work. Nobody should re-derive the number; the list below is what to check.
+! **THE COUNT IN THIS FILE HAS NEVER AGREED WITH ITSELF**, and it is not
+load-bearing: the heading said *four*, the Objective said *five*, and the boxes
+name six sites. The SITES are the work. Nobody should re-derive the number; the
+list below is what to check.
 
-!! **PYRIGHT FOUND THREE OF THEM, ON LINES THIS SESSION HAD JUST EDITED.** `_insert` in
-`lexer.py`, `_insert_at` in `addresser.py`, `rel` in `compositor.py`. ! Two of the three were
-already spelled with a leading underscore, which is the convention for *deliberately ignored* --
-so the code was ANNOUNCING that a value it is handed is thrown away, at both consumers of the
-same tuple, and nothing asked why the tuple has three elements.
+!! **PYRIGHT FOUND THREE OF THEM, ON LINES THIS SESSION HAD JUST EDITED.**
+`_insert` in `lexer.py`, `_insert_at` in `addresser.py`, `rel` in
+`compositor.py`. ! Two of the three were already spelled with a leading
+underscore, which is the convention for *deliberately ignored* -- so the code
+was ANNOUNCING that a value it is handed is thrown away, at both consumers of
+the same tuple, and nothing asked why the tuple has three elements.
 
-! **The prose beside them was wrong in the way that keeps this invisible.** The docstring of
-`page.documentable` said the insert line is what `page.documented_by` walks up from. There is no
-`documented_by`; the walk is `lexer.document_declarations`, and it walks up from the DECLARING
-line. **A citation to a function that does not exist is what a reader checks the claim against**,
-so the three-fact tuple read as three facts for as long as the citation stood. Round 7 corrected
-the citation at BOTH sites, which is what exposed the tuple -- and that correction is a record,
-not remaining work.
+! **The prose beside them was wrong in the way that keeps this invisible.** The
+docstring of `page.documentable` said the insert line is what
+`page.documented_by` walks up from. There is no `documented_by`; the walk is
+`lexer.document_declarations`, and it walks up from the DECLARING line. **A
+citation to a function that does not exist is what a reader checks the claim
+against**, so the three-fact tuple read as three facts for as long as the
+citation stood. Round 7 corrected the citation at BOTH sites, which is what
+exposed the tuple -- and that correction is a record, not remaining work.
 
-!! **NONE OF THIS IS A COMMENT FIX, WHICH IS WHY IT IS HERE RATHER THAN IN THAT ROUND.** Each one
-changes a signature, a return type or a branch: the tuple loses an element at three sites, the
-`Cues` would have to carry what `places_on` already computed so `page_for` stops recomputing
-it, the matter branch of `attach` may have a test as its only caller, and `prose_paragraphs`
-loses the index that only a test reads.
+!! **NONE OF THIS IS A COMMENT FIX, WHICH IS WHY IT IS HERE RATHER THAN IN THAT
+ROUND.** Each one changes a signature, a return type or a branch: the tuple
+loses an element at three sites, the `Cues` would have to carry what `places_on`
+already computed so `page_for` stops recomputing it, the matter branch of
+`attach` may have a test as its only caller, and `prose_paragraphs` loses the
+index that only a test reads.
 
-! **The two repeated full-file scans are the one with a measured cost and it is small** --
-the comparable double pass in `census.py` is 21 ms over 6,429 paragraphs. **Do not work these for
-speed.** The reason to work them is that a value nobody reads is a value nobody can be wrong
-about, and it is where the next false docstring attaches.
+! **The two repeated full-file scans are the one with a measured cost and it is
+small** -- the comparable double pass in `census.py` is 21 ms over 6,429
+paragraphs. **Do not work these for speed.** The reason to work them is that a
+value nobody reads is a value nobody can be wrong about, and it is where the
+next false docstring attaches.
 
 ## The sites, with their citations
 

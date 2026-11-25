@@ -32,21 +32,24 @@ Measured: 2026-08-28 — 2026-08-28, Roy: *"probably has duplicated logic in bot
 
 ## Objective
 
-**`annotate.py` is stage 3 -- FIND REFERENCES.** `CLAUDE.md` names it *"the resolution a reviewer
-would otherwise do by hand"*: every reference each node makes, resolved -- paths, symbols, counts.
+**`annotate.py` is stage 3 -- FIND REFERENCES.** `CLAUDE.md` names it *"the
+resolution a reviewer would otherwise do by hand"*: every reference each node
+makes, resolved -- paths, symbols, counts.
 
-**That is the concordance's subject.** A concordance is an index of where things appear, and
-`src/comment_review/concordance/` already holds `referrers.py`, which answers the inbound half of
-the same question: which tracked files NAME the files under review.
+**That is the concordance's subject.** A concordance is an index of where things
+appear, and `src/comment_review/concordance/` already holds `referrers.py`,
+which answers the inbound half of the same question: which tracked files NAME
+the files under review.
 
-! **`binder/` is where it sits today, and the binder is a different subject.** `CLAUDE.md`:
-*"ONE FILE -- its paragraphs tied to the places on it"*, and the binder is what the gatherer hands
-over -- pages and the places on them. **Resolving what a paragraph POINTS AT is not a fact about
-where the paragraph SITS.**
+! **`binder/` is where it sits today, and the binder is a different subject.**
+`CLAUDE.md`: *"ONE FILE -- its paragraphs tied to the places on it"*, and the
+binder is what the gatherer hands over -- pages and the places on them.
+**Resolving what a paragraph POINTS AT is not a fact about where the paragraph
+SITS.**
 
-! **The areas each announce ONE subject, which is what `module-context` asks of any module.** A
-file whose subject belongs to a neighbouring area is the defect that role is named for, in this
-system's own source.
+! **The areas each announce ONE subject, which is what `module-context` asks of
+any module.** A file whose subject belongs to a neighbouring area is the defect
+that role is named for, in this system's own source.
 
 ## Not a rename, and not urgent
 

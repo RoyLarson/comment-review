@@ -23,8 +23,8 @@ SPLIT:    2026-08-23 -- the boxes were cut to two lines each and the `*` marker 
 
 ## Objective
 
-`scripts/dead_sweep.py --links` reports relative markdown links that resolve to nothing.
-**41 as of 2026-08-23.** The count is not the finding; the split is.
+`scripts/dead_sweep.py --links` reports relative markdown links that resolve to
+nothing. **41 as of 2026-08-23.** The count is not the finding; the split is.
 
 MEASURED 2026-08-23, by directory of the citing file:
 
@@ -37,29 +37,33 @@ MEASURED 2026-08-23, by directory of the citing file:
 
 !! **THE THREE IN LIVE FILES ARE THE FINDING.**
 [`the-harness-cannot-run-the-system-it-grades`](the-harness-cannot-run-the-system-it-grades.md)
-links `../evidence/todo-tool-full-run/` and `../evidence/todo-tool-full-v0_2/` at its lines 151
-and 152, both removed 2026-08-23. That TODO describes them as the first and second complete
-packages -- the evidence a graded case was to be built from -- so the links are load-bearing
-rather than decorative. ! And `TODO/the-census-is-mostly-intervals-nobody-rules-on.md` links
-`verdicts-py-announces-one-subject-and-holds-four.md`, which is now under `completed/`. ! That
-TODO's line 168 also quotes a number out of one of the two removed packages.
+links `../evidence/todo-tool-full-run/` and `../evidence/todo-tool-full-v0_2/`
+at its lines 151 and 152, both removed 2026-08-23. That TODO describes them as
+the first and second complete packages -- the evidence a graded case was to be
+built from -- so the links are load-bearing rather than decorative. ! And
+`TODO/the-census-is-mostly-intervals-nobody-rules-on.md` links
+`verdicts-py-announces-one-subject-and-holds-four.md`, which is now under
+`completed/`. ! That TODO's line 168 also quotes a number out of one of the two
+removed packages.
 
 ! **THE OTHER 38 ARE PRE-EXISTING AND ARCHIVAL.** None was caused by the purge.
 
-!! **AND THE REPO ALREADY HAS A STANCE ON THOSE**, stated in `dead_sweep.py:288-289`: *"Most of
-these are a completed TODO citing a sibling that was completed after it. Fixing one means
-rewriting an archived file, which this repo does not do -- read them, do not repair them."* A
-completed TODO citing a sibling that later moved is not WRONG about anything; the file moved.
+!! **AND THE REPO ALREADY HAS A STANCE ON THOSE**, stated in
+`dead_sweep.py:288-289`: *"Most of these are a completed TODO citing a sibling
+that was completed after it. Fixing one means rewriting an archived file, which
+this repo does not do -- read them, do not repair them."* A completed TODO
+citing a sibling that later moved is not WRONG about anything; the file moved.
 
-! **SO THE QUESTION IS NOT "FIX 41 LINKS".** It is whether the stance still holds, and what
-replaces the two that the purge broke. Repairing an archived file to keep a link green is the
-failure this repo names elsewhere -- editing the record so a check passes. ! A rule that
-rewrites the record to keep a link green is what T4 has to avoid, and T4 is only reachable if
-T3 narrows the stance.
+! **SO THE QUESTION IS NOT "FIX 41 LINKS".** It is whether the stance still
+holds, and what replaces the two that the purge broke. Repairing an archived
+file to keep a link green is the failure this repo names elsewhere -- editing
+the record so a check passes. ! A rule that rewrites the record to keep a link
+green is what T4 has to avoid, and T4 is only reachable if T3 narrows the
+stance.
 
-! `dead_sweep.py --links` is an INPUT and always exits 0 (confirmed 2026-08-23). The pass
-criterion is a person reading the list, not a green run -- so every task below names what the
-list must show, not that the command succeeded.
+! `dead_sweep.py --links` is an INPUT and always exits 0 (confirmed 2026-08-23).
+The pass criterion is a person reading the list, not a green run -- so every
+task below names what the list must show, not that the command succeeded.
 
 ## Two mechanisms keep making these
 

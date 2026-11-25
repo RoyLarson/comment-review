@@ -18,13 +18,14 @@ Ruled:    2026-08-19 — Roy, 2026-08-19: 'anchor -- the line of code that an ad
 
 ## Objective
 
-!! **THE ANCHOR WAS WIRED INTO THE RECORD AND NEVER POPULATED.** Roy asked for it earlier in the
-same conversation -- *"add the anchor text to the record. That will be useful for the agents to
-grep"* -- and `record.SEEDED` became `("address", "anchor")`. The field arrived; the value did
-not.
+!! **THE ANCHOR WAS WIRED INTO THE RECORD AND NEVER POPULATED.** Roy asked for
+it earlier in the same conversation -- *"add the anchor text to the record. That
+will be useful for the agents to grep"* -- and `record.SEEDED` became
+`("address", "anchor")`. The field arrived; the value did not.
 
-**Measured 2026-08-19 against the commit before the fix: 6,376 of 6,531 blocks in this repo's own
-shipped scripts carried an EMPTY anchor -- 98% of the census.**
+**Measured 2026-08-19 against the commit before the fix: 6,376 of 6,531 blocks
+in this repo's own shipped scripts carried an EMPTY anchor -- 98% of the
+census.**
 
 | kind | blocks with no anchor |
 | --- | ---: |
@@ -42,19 +43,22 @@ shipped scripts carried an EMPTY anchor -- 98% of the census.**
 - `record.seeded_problems` checked `address` against the census and did not check `anchor`,
   though both are `SEEDED`.
 
-**The two halves agreed with each other and agreed on nothing.** Roy: *"an anchor missing in a
-Record is a broken Record."*
+**The two halves agreed with each other and agreed on nothing.** Roy: *"an
+anchor missing in a Record is a broken Record."*
 
-! **AND THE FIX NEEDED NO TOOLING.** A whole exchange went into which build tools a user's project
-can be assumed to have -- cargo, go, tsc, gradle -- before Roy cut it off: *"how do we parse to
-the end of the line to find the comment and then not keep the string that is the anchor by
-definition ... the lexer either knows what is before the trailing comment and can snag the whole
-string or it is broken."* Every tier already computes where the comment opens in order to cut
-there. The characters before it were known one step earlier and thrown away.
+! **AND THE FIX NEEDED NO TOOLING.** A whole exchange went into which build
+tools a user's project can be assumed to have -- cargo, go, tsc, gradle --
+before Roy cut it off: *"how do we parse to the end of the line to find the
+comment and then not keep the string that is the anchor by definition ... the
+lexer either knows what is before the trailing comment and can snag the whole
+string or it is broken."* Every tier already computes where the comment opens in
+order to cut there. The characters before it were known one step earlier and
+thrown away.
 
-**FIXED in the same session.** This TODO exists because the finding is the reusable part: a field
-threaded end to end, a test that checks the key rather than the value, and a producer that
-DOCUMENTS the hole as intended behaviour. Everything below is what remains.
+**FIXED in the same session.** This TODO exists because the finding is the
+reusable part: a field threaded end to end, a test that checks the key rather
+than the value, and a producer that DOCUMENTS the hole as intended behaviour.
+Everything below is what remains.
 
 ## Tasks
 

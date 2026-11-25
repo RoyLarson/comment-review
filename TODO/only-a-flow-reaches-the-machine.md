@@ -44,16 +44,16 @@ the checkout, and the ends were reaching it directly.
 returns or receives text and the flow performs the I/O.
 
 !! **`desk/collator.py` IS THE INTERESTING ONE.** `Process: #62`'s 2026-08-30
-qualification PERMITS that read -- *the middle touches no PAGES; a cited evidence
-file carries no `sha` and may be read.* **That permission was about WHAT may be
-read, not about WHO reads it.** Under `#80` the read still happens; the flow
-performs it and hands the text to `verify_report`.
+qualification PERMITS that read -- *the middle touches no PAGES; a cited
+evidence file carries no `sha` and may be read.* **That permission was about
+WHAT may be read, not about WHO reads it.** Under `#80` the read still happens;
+the flow performs it and hands the text to `verify_report`.
 
-**T6 is ruled: only a flow imports `machine`** (`decision-log.md Process: #207`).
-A command is the command line alone: it passes its arguments into a flow, and the
-flow turns them into what it needs. `machine` holds the checkout's I/O and nothing
-else, so `differences`, `constants` and `exceptions` leave it for leaves of their
-own.
+**T6 is ruled: only a flow imports `machine`** (`decision-log.md Process:
+#207`). A command is the command line alone: it passes its arguments into a
+flow, and the flow turns them into what it needs. `machine` holds the checkout's
+I/O and nothing else, so `differences`, `constants` and `exceptions` leave it
+for leaves of their own.
 
 ## Tasks
 

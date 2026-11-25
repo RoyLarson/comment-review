@@ -32,19 +32,22 @@ Split:    2026-08-23 -- every box cut to two lines. The tests box was four files
 
 ## Objective
 
-!! **THE VOCABULARY AND EVERYTHING A HUMAN OR AN AGENT READS ALREADY SAY PARAGRAPH.** Done
-2026-08-19: 285 renames across 13 shipped prose files, `block` retired from `vocabulary.toml`, the
-eight count nouns in `verdicts.py`'s report, and the census listing's own header and tier table.
-Done since: the shipped CODE, where `Block` is `Paragraph` and the two readers are
-`paragraphs_stdlib` (`lexer.py:1699`) and `paragraphs_lexical` (`lexer.py:984`).
-**What remains is the TESTS and the LIVE DOCS.**
+!! **THE VOCABULARY AND EVERYTHING A HUMAN OR AN AGENT READS ALREADY SAY
+PARAGRAPH.** Done 2026-08-19: 285 renames across 13 shipped prose files, `block`
+retired from `vocabulary.toml`, the eight count nouns in `verdicts.py`'s report,
+and the census listing's own header and tier table. Done since: the shipped
+CODE, where `Block` is `Paragraph` and the two readers are `paragraphs_stdlib`
+(`lexer.py:1699`) and `paragraphs_lexical` (`lexer.py:984`). **What remains is
+the TESTS and the LIVE DOCS.**
 
-! **Three stale references to the RETIRED index went with the prose pass**: the brief's worked
-record opened `{ "block": 17,` (a seeded slot has no such key), it told reviewers to file two
-records *"with the same `block`"* where it is the same ADDRESS, and `SKILL.md` described a slot
-as carrying *"the census `block` index and the `address`"*.
+! **Three stale references to the RETIRED index went with the prose pass**: the
+brief's worked record opened `{ "block": 17,` (a seeded slot has no such key),
+it told reviewers to file two records *"with the same `block`"* where it is the
+same ADDRESS, and `SKILL.md` described a slot as carrying *"the census `block`
+index and the `address`"*.
 
-!! **RE-MEASURED 2026-08-23**, `grep -oi block <files> | wc -l`, which counts every sense:
+!! **RE-MEASURED 2026-08-23**, `grep -oi block <files> | wc -l`, which counts
+every sense:
 
 | where | uses | what they are |
 | --- | ---: | --- |
@@ -55,23 +58,24 @@ as carrying *"the census `block` index and the `address`"*.
 | `docs/history.md`, `docs/vocabulary.md` | 7 | the RECORD and the retired-terms table. Leave both |
 | `docs/superpowers/`, `docs/plans/` | 426 | dated design records. Leave |
 
-!! **LEAVE `docs/history.md`, `docs/vocabulary.md`'s retired table, and the 426 uses under
-`docs/superpowers/` and `docs/plans/`**: those are a RECORD of what was decided then, and
-correcting them stops it being one.
+!! **LEAVE `docs/history.md`, `docs/vocabulary.md`'s retired table, and the 426
+uses under `docs/superpowers/` and `docs/plans/`**: those are a RECORD of what
+was decided then, and correcting them stops it being one.
 
-! **`docs/limitations.md` is the `agents` lane's file**, so its 3 uses are a crossing to name
-and ask about rather than an edit in passing.
+! **`docs/limitations.md` is the `agents` lane's file**, so its 3 uses are a
+crossing to name and ask about rather than an edit in passing.
 
-!! **ONLY THE NOUN WAS RETIRED, and forgetting that corrupted live prose once.** `d8ccef3`:
-the VERB, a PYTHON code block and a JAVA TEXT BLOCK are current English and current terms of art.
-Undeclared, the gate flagged all four and the cheapest way to satisfy it was to make the prose
-wrong -- `SKILL.md:68` read *"it PARAGRAPHS every other verdict"*, and `prove_unchanged.py`
-described *"a Java text PARAGRAPH"*, a language feature that does not exist under that name.
+!! **ONLY THE NOUN WAS RETIRED, and forgetting that corrupted live prose once.**
+`d8ccef3`: the VERB, a PYTHON code block and a JAVA TEXT BLOCK are current
+English and current terms of art. Undeclared, the gate flagged all four and the
+cheapest way to satisfy it was to make the prose wrong -- `SKILL.md:68` read
+*"it PARAGRAPHS every other verdict"*, and `prove_unchanged.py` described *"a
+Java text PARAGRAPH"*, a language feature that does not exist under that name.
 **Any pass over the tests or the docs must leave those four senses alone.**
 
-!! **FOUR TRAPS, EACH FOUND BY BREAKING THE SUITE. THIS IS THE EXPENSIVE PART AND IT IS NOW
-KNOWN. READ THEM BEFORE ANY OF THE PASSES BELOW.** A bulk rename that does not guard all four
-leaves 60-152 tests red:
+!! **FOUR TRAPS, EACH FOUND BY BREAKING THE SUITE. THIS IS THE EXPENSIVE PART
+AND IT IS NOW KNOWN. READ THEM BEFORE ANY OF THE PASSES BELOW.** A bulk rename
+that does not guard all four leaves 60-152 tests red:
 
 | trap | why it bites |
 | --- | --- |
@@ -80,17 +84,19 @@ leaves 60-152 tests red:
 | uppercase `BLOCK` | the 0.2.x report's LINE MARKER, parsed by `FIELD = re.compile(r"^(BLOCK\|VERDICT\|...)")`. Renaming it makes every held report unreadable -- *"a record with no PARAGRAPH index"* on 173 of 173 |
 | quoted `'block'` | the OPPOSITE of a wire use: all eight are count nouns for `_n(...)`, so guarding them leaves the output saying "3 blocks unaccounted". They are already done |
 
-! **`block-context` is a ROLE NAME and is not part of this** -- a plugin agent id, a `--reviewers`
-value, a filename, and the key every held report is filed under. Roy approved renaming the roles
-to their editorial desks separately, `fact-check-editor` among them; that is its own scope.
+! **`block-context` is a ROLE NAME and is not part of this** -- a plugin agent
+id, a `--reviewers` value, a filename, and the key every held report is filed
+under. Roy approved renaming the roles to their editorial desks separately,
+`fact-check-editor` among them; that is its own scope.
 
-! **Nothing is on the wire.** Measured 2026-08-19: the census JSON has no `block` key and neither
-does a record slot. The only load-bearing uses are `Finding.block` and the `BLOCK` marker, both
-the deprecated 0.2.x record index.
+! **Nothing is on the wire.** Measured 2026-08-19: the census JSON has no
+`block` key and neither does a record slot. The only load-bearing uses are
+`Finding.block` and the `BLOCK` marker, both the deprecated 0.2.x record index.
 
-! **THE REASON IS RECORDED AT `docs/vocabulary.md:20`** -- *"`block` -> paragraph. The register is
-EDITORIAL ... Its definition -- the interval between two lines of CODE -- is also untrue of a
-prose file"* -- with `pCST` beside it at `:23`.
+! **THE REASON IS RECORDED AT `docs/vocabulary.md:20`** -- *"`block` ->
+paragraph. The register is EDITORIAL ... Its definition -- the interval between
+two lines of CODE -- is also untrue of a prose file"* -- with `pCST` beside it
+at `:23`.
 
 ## Tasks
 

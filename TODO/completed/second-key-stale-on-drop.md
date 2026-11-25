@@ -11,7 +11,8 @@ Raised:   2026-08-22 (Roy asked 2026-08-22 whether the pair key still holds for 
 
 ## Objective
 
-The leading edge keeps a stale second key after a drop, and the compositor is correct only because it never reads one.
+The leading edge keeps a stale second key after a drop, and the compositor is
+correct only because it never reads one.
 
 ## Tasks
 

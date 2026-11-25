@@ -16,31 +16,35 @@ Closed:   2026-08-23 -- re-measured and every task here is settled. Ready for
 
 ## Objective
 
-**A quote inside a block comment blanked the comment's own closer, and it is fixed.**
+**A quote inside a block comment blanked the comment's own closer, and it is
+fixed.**
 
-!! **THE DEFECT.** `_strip_strings` runs on the raw line before the comment opener is known, so
-`/* the " character */` blanked everything after the quote -- including `*/`. `run_ends`, added
-the same day, was fed the blanked text and never saw the closer. Measured: that line followed by
-`int a = 1; // note` censused as ONE paragraph spanning both lines, `int a = 1;` left
-`code_lines` entirely, and every `b` and `c` boundary below it moved. ! It hit every language
-whose `quotes` holds `'` and whose `char_quotes` is empty -- javascript, typescript, sql, lua,
-ruby -- so `/* don't */`, ordinary English, was enough.
+!! **THE DEFECT.** `_strip_strings` runs on the raw line before the comment
+opener is known, so `/* the " character */` blanked everything after the quote
+-- including `*/`. `run_ends`, added the same day, was fed the blanked text and
+never saw the closer. Measured: that line followed by `int a = 1; // note`
+censused as ONE paragraph spanning both lines, `int a = 1;` left `code_lines`
+entirely, and every `b` and `c` boundary below it moved. ! It hit every language
+whose `quotes` holds `'` and whose `char_quotes` is empty -- javascript,
+typescript, sql, lua, ruby -- so `/* don't */`, ordinary English, was enough.
 
-!! **THE FIX, `8170651`, 2026-08-22.** `lexer.py:1311-1312` cuts `tail` from `raw_line` and
-hands that to `run_ends`; `:1297-1301` states the rule and why the two questions differ --
-whether a `/*` OPENS a comment depends on whether it is inside a string, so that is asked of the
-blanked `code`, and once the comment is open a quote has no meaning at all.
+!! **THE FIX, `8170651`, 2026-08-22.** `lexer.py:1311-1312` cuts `tail` from
+`raw_line` and hands that to `run_ends`; `:1297-1301` states the rule and why
+the two questions differ -- whether a `/*` OPENS a comment depends on whether it
+is inside a string, so that is asked of the blanked `code`, and once the comment
+is open a quote has no meaning at all.
 
-! **RE-MEASURED 2026-08-23**, calling `lexer.paragraphs_lexical` on
-`/* the " character */` followed by `int a = 1; // note`: **two paragraphs** -- a `matter`
-paragraph on line 1, and a `trailing-comment` on line 2 whose anchor is `int a = 1;`, with the
-statement kept as code. The JavaScript apostrophe case answers the same way. `uv run pytest -q`:
-820 passed, 1 skipped, 734 subtests.
+! **RE-MEASURED 2026-08-23**, calling `lexer.paragraphs_lexical` on `/* the "
+character */` followed by `int a = 1; // note`: **two paragraphs** -- a `matter`
+paragraph on line 1, and a `trailing-comment` on line 2 whose anchor is `int a =
+1;`, with the statement kept as code. The JavaScript apostrophe case answers the
+same way. `uv run pytest -q`: 820 passed, 1 skipped, 734 subtests.
 
 ! **What the annotation was doing meanwhile is worth keeping:**
-`unterminated-paragraph-comment` DID fire, so `prove_unchanged` refused the file -- but stages 2
-through 5 still handed four reviewers a census saying the file had no code. A refusal at stage 7b
-does not protect the reviewers upstream of it.
+`unterminated-paragraph-comment` DID fire, so `prove_unchanged` refused the file
+-- but stages 2 through 5 still handed four reviewers a census saying the file
+had no code. A refusal at stage 7b does not protect the reviewers upstream of
+it.
 
 ## Tasks
 

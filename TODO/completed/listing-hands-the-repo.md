@@ -17,13 +17,14 @@ Demoted:  2026-08-24 — this is a LISTING defect and the JSON carries none
 
 ## Objective
 
-**92% of the LISTING is a list of files it is not reviewing.** MEASURED 2026-08-24,
-`census.py --repo . --filtered <one file>`:
+**92% of the LISTING is a list of files it is not reviewing.** MEASURED
+2026-08-24, `census.py --repo . --filtered <one file>`:
 
-! **THE HEADLINE SAID *what a reviewer reads* UNTIL THE SAME DAY**, which presumed the listing is
-what a reviewer is handed. It may not be: `--json` carries none of this block, and the reviewer's
-artifact is undecided -- the plan's P8. **The percentage is about the listing and is not a claim
-about anyone's prompt.**
+! **THE HEADLINE SAID *what a reviewer reads* UNTIL THE SAME DAY**, which
+presumed the listing is what a reviewer is handed. It may not be: `--json`
+carries none of this block, and the reviewer's artifact is undecided -- the
+plan's P8. **The percentage is about the listing and is not a claim about
+anyone's prompt.**
 
 **Re-run whenever this is argued from:**
 
@@ -38,8 +39,9 @@ uv run python scripts/measure_binder.py --listing-only \
 | `repo.py` | 41 lines, 2,716 b | 282 lines, 31,772 b | **92%** |
 | `page.py` | 204 lines, 17,371 b | 282 lines, 31,772 b | **64%** |
 
-!! **IT IS BYTE-IDENTICAL ACROSS ALL THREE, BECAUSE IT IS A FACT ABOUT THE REPO.** Every tracked
-file the name harvester cannot read, one per line, at an ABSOLUTE path:
+!! **IT IS BYTE-IDENTICAL ACROSS ALL THREE, BECAUSE IT IS A FACT ABOUT THE
+REPO.** Every tracked file the name harvester cannot read, one per line, at an
+ABSOLUTE path:
 
 ```
 NOT CHECKED -- these are gaps, not passes:
@@ -47,25 +49,29 @@ NOT CHECKED -- these are gaps, not passes:
     C:/Users/Roy/projects/comment-review/CLAUDE.md (no name harvester for unknown)
 ```
 
-!! **AND IT IS CHARGED FOUR TIMES A PAGE, IF THE LISTING IS WHAT A ROLE READS.** Stage 4 pastes
-this listing to four roles, so one page costs **31,772 x 4 = 127,088 bytes** of the same
-sentence. It grows with the REPO and not with the work: reviewing a 43-line file, 94% of the
-listing is this list. ! **Whether a role reads the listing at all is the plan's P8**, undecided.
+!! **AND IT IS CHARGED FOUR TIMES A PAGE, IF THE LISTING IS WHAT A ROLE READS.**
+Stage 4 pastes this listing to four roles, so one page costs **31,772 x 4 =
+127,088 bytes** of the same sentence. It grows with the REPO and not with the
+work: reviewing a 43-line file, 94% of the listing is this list. ! **Whether a
+role reads the listing at all is the plan's P8**, undecided.
 
-! **THE GAP REPORT IS REAL AND MUST NOT SIMPLY BE DELETED.** A reviewer that does not know name
-resolution was partial will read an UNRESOLVED annotation as a finding rather than as a gap --
-which is the distinction the block's own heading draws, *"these are gaps, not passes."* **What is
-wrong is its PLACE, not its existence.** It belongs to the run, stated once.
+! **THE GAP REPORT IS REAL AND MUST NOT SIMPLY BE DELETED.** A reviewer that
+does not know name resolution was partial will read an UNRESOLVED annotation as
+a finding rather than as a gap -- which is the distinction the block's own
+heading draws, *"these are gaps, not passes."* **What is wrong is its PLACE, not
+its existence.** It belongs to the run, stated once.
 
-! **THE ABSOLUTE PATHS ARE A SECOND DEFECT IN THE SAME BLOCK.** Every other position this system
-emits is repo-relative -- an address, a citation, a census `path` -- because a reviewer resolves
-them against `REPO ROOT`. These name a directory on one machine.
+! **THE ABSOLUTE PATHS ARE A SECOND DEFECT IN THE SAME BLOCK.** Every other
+position this system emits is repo-relative -- an address, a citation, a census
+`path` -- because a reviewer resolves them against `REPO ROOT`. These name a
+directory on one machine.
 
-!! **AND THE FILTER IS NOT THE PROBLEM, WHICH IS WHAT THE MEASUREMENT WAS FOR.** `--filtered`
-does collapse every no-prose row: `Kind.holds_no_prose` answers True for all 105 of `repo.py`'s
-115 non-prose rows. Making it DROP them outright rather than collapse them into run lines was
-tried on 2026-08-24 as a temporary edit and saved **3.7%** over three files. ! The run lines are
-not where the bytes are, and a trim aimed at them would have been measured against the wrong
+!! **AND THE FILTER IS NOT THE PROBLEM, WHICH IS WHAT THE MEASUREMENT WAS FOR.**
+`--filtered` does collapse every no-prose row: `Kind.holds_no_prose` answers
+True for all 105 of `repo.py`'s 115 non-prose rows. Making it DROP them outright
+rather than collapse them into run lines was tried on 2026-08-24 as a temporary
+edit and saved **3.7%** over three files. ! The run lines are not where the
+bytes are, and a trim aimed at them would have been measured against the wrong
 thing.
 
 ## Tasks

@@ -28,26 +28,30 @@ SPLIT:    2026-08-23 -- the KIND box held a PROHIBITION and the TEST that separa
 
 ## Objective
 
-**A cap counts LINES. Widening a line removes a line and loses nothing, so it is the cheapest
-way to satisfy a cap -- and `compact.md` says nothing about width.** Zero occurrences of
-`width`, `column` or `character` in the file, re-measured 2026-08-23.
+**A cap counts LINES. Widening a line removes a line and loses nothing, so it is
+the cheapest way to satisfy a cap -- and `compact.md` says nothing about
+width.** Zero occurrences of `width`, `column` or `character` in the file,
+re-measured 2026-08-23.
 
-Measured on the first run to reach stage 6: it returned both over-cap blocks at exactly 6 lines,
-written at **98-100 columns**, in a file whose 144 comment lines measure **median 76, max 80,
-and 0 over 80**. The published limit was wider than the habit, so nothing was violated and the
-result does not read like the file.
+Measured on the first run to reach stage 6: it returned both over-cap blocks at
+exactly 6 lines, written at **98-100 columns**, in a file whose 144 comment
+lines measure **median 76, max 80, and 0 over 80**. The published limit was
+wider than the habit, so nothing was violated and the result does not read like
+the file.
 
-!! **This is the failure `SKILL.md` 1.2 already names, arriving at the other end of the run:**
-*"matching the number while counting differently produces a file that claims to comply and does
-not."* Stage 6 matched the number it was given and counted a different thing.
+!! **This is the failure `SKILL.md` 1.2 already names, arriving at the other end
+of the run:** *"matching the number while counting differently produces a file
+that claims to comply and does not."* Stage 6 matched the number it was given
+and counted a different thing.
 
-! **It is structural, not a lapse.** Every other route to fewer lines costs information --
-cutting a clause, dropping a citation, deleting provenance -- and `compact.md` forbids all of
-them, at length and correctly. Widening costs nothing. An agent told to minimise lines and
-handed no width will take the free move every time.
+! **It is structural, not a lapse.** Every other route to fewer lines costs
+information -- cutting a clause, dropping a citation, deleting provenance -- and
+`compact.md` forbids all of them, at length and correctly. Widening costs
+nothing. An agent told to minimise lines and handed no width will take the free
+move every time.
 
-! The compact agent FLAGGED it rather than deciding it, which is what its contract asks for.
-The defect is that it had to.
+! The compact agent FLAGGED it rather than deciding it, which is what its
+contract asks for. The defect is that it had to.
 
 ## * RULED 2026-08-17: WHICHEVER IS LESS
 

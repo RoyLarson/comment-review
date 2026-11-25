@@ -32,51 +32,55 @@ SPLIT:      2026-08-23 -- the boxes were cut to two lines each. The measurements
 census.py walks the whole repo, runs git twice, and its run-flush never fires.
 
 ! **THE THREE DEFECTS THE TITLE NAMES ARE ALL FIXED** (T1, T2, T3, re-verified
-2026-08-23). What remains under this file is the four neighbouring findings the same
-rounds raised, and the title no longer describes them -- it is left as filed so the
-record stays readable, and the remaining work is what the unticked boxes say.
+2026-08-23). What remains under this file is the four neighbouring findings the
+same rounds raised, and the title no longer describes them -- it is left as
+filed so the record stays readable, and the remaining work is what the unticked
+boxes say.
 
 ### What the boxes carried -- the measurements, moved out of the tasks
 
-! **T1.** MEASURED 2026-08-22: `code_names` walked and resolved the WHOLE tree to harvest
-60 files -- 53% of a census run. 3,152 paths walked, 3,021 of them in `corpora/`, 66
-tracked -- and `resolve()` ran BEFORE the tracked test.
+! **T1.** MEASURED 2026-08-22: `code_names` walked and resolved the WHOLE tree
+to harvest 60 files -- 53% of a census run. 3,152 paths walked, 3,021 of them in
+`corpora/`, 66 tracked -- and `resolve()` ran BEFORE the tracked test.
 
-! **T2.** `git ls-files` was spawned TWICE per run (census.py:301-302), two full index
-dumps for one answer.
+! **T2.** `git ls-files` was spawned TWICE per run (census.py:301-302), two full
+index dumps for one answer.
 
-! **T3.** census.py:501 -- `flush_run()` never fired on a `b.path` change and BOTH
-continues bypassed it. VERIFIED at the time: constants.py, 43 lines, carried a row reading
-`15-72 @c2..b58 41-0` -- another file's intervals attributed to it, a NEGATIVE span, and
-any `add` composed from that row cited an address that does not exist.
+! **T3.** census.py:501 -- `flush_run()` never fired on a `b.path` change and
+BOTH continues bypassed it. VERIFIED at the time: constants.py, 43 lines,
+carried a row reading `15-72 @c2..b58 41-0` -- another file's intervals
+attributed to it, a NEGATIVE span, and any `add` composed from that row cited an
+address that does not exist.
 
 ! **T4 -- CENSUS LOADING IS WRITTEN FOUR TIMES AND THE FOURTH DIVERGES.**
-addresser.py:1137 unwraps the dict form
-(`loaded.get("paragraphs", []) if isinstance(loaded, dict) else loaded`); verdicts.py:332
-assigns `json.loads(census_text)` straight through and never unwraps it. galley.py and
-record.py accept the dict form too. ! Round 2 checked and NOTHING in the tree or the tests
-emits that dict form -- so three modules carry dead defensive code and the fourth is
-inconsistent with them. `addresser` already owns `unaddressed()` and is the vacant home
-for a `load_census`.
+addresser.py:1137 unwraps the dict form (`loaded.get("paragraphs", []) if
+isinstance(loaded, dict) else loaded`); verdicts.py:332 assigns
+`json.loads(census_text)` straight through and never unwraps it. galley.py and
+record.py accept the dict form too. ! Round 2 checked and NOTHING in the tree or
+the tests emits that dict form -- so three modules carry dead defensive code and
+the fourth is inconsistent with them. `addresser` already owns `unaddressed()`
+and is the vacant home for a `load_census`.
 
-! **T5.** `_report` is census.py:296-649, 354 lines -- it was filed at 289 and has grown.
-! SUPERSEDED IN PART: the *"--languages wrapped in redirect_stdout for no reason"* half is
-wrong now. `redirect_stdout` wraps the whole of `_report` for `--out`
-(census.py:289-292) and census.py:285-288 states the reason -- a shell redirect is refused
-outright by a worktree-isolated harness. Only the size half remains.
+! **T5.** `_report` is census.py:296-649, 354 lines -- it was filed at 289 and
+has grown. ! SUPERSEDED IN PART: the *"--languages wrapped in redirect_stdout
+for no reason"* half is wrong now. `redirect_stdout` wraps the whole of
+`_report` for `--out` (census.py:289-292) and census.py:285-288 states the
+reason -- a shell redirect is refused outright by a worktree-isolated harness.
+Only the size half remains.
 
-! **T6.** referrers.py:53 re-spells the `(".py", ".pyi")` suffix tuple that language.py:99
-already owns -- the same defect as `tier-dispatched-on-name`. ! WORSE THAN FILED:
-prove_unchanged.py:176 spells it a THIRD time, so there are two re-spellings against one
-owner.
+! **T6.** referrers.py:53 re-spells the `(".py", ".pyi")` suffix tuple that
+language.py:99 already owns -- the same defect as `tier-dispatched-on-name`. !
+WORSE THAN FILED: prove_unchanged.py:176 spells it a THIRD time, so there are
+two re-spellings against one owner.
 
-! **T7.** referrers.py:126-127 SPAWNS ONE `git grep` PER TOKEN -- the loop at :126 calls
-`_grep` (defined at :71, running `git grep -l -F` at :85) once per token, about 200
-subprocesses for a 17-file review, each one a full tree scan. MEASURED 2026-08-22: 37
-tokens took 2.288s one at a time against 0.074s batched, a 31x difference. `git grep`
-takes repeated `-e`, and `-o` preserves the per-token attribution the report prints.
-! Filed here on Roy ruling 2026-08-22 -- referrers supports the whole thing and is not
-part of the front half that will shift.
+! **T7.** referrers.py:126-127 SPAWNS ONE `git grep` PER TOKEN -- the loop at
+:126 calls `_grep` (defined at :71, running `git grep -l -F` at :85) once per
+token, about 200 subprocesses for a 17-file review, each one a full tree scan.
+MEASURED 2026-08-22: 37 tokens took 2.288s one at a time against 0.074s batched,
+a 31x difference. `git grep` takes repeated `-e`, and `-o` preserves the
+per-token attribution the report prints. ! Filed here on Roy ruling 2026-08-22
+-- referrers supports the whole thing and is not part of the front half that
+will shift.
 
 ## Tasks
 

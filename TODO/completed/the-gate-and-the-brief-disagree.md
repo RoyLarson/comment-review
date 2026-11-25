@@ -11,16 +11,19 @@ Re-filed: 2026-08-16 (Roy, on `query` needing EVIDENCE and QUOTE: "this is a TOD
 
 ## Objective
 
-**`scripts/verdicts.py` is the gate a reviewer's report has to pass, and in six places it
-enforces something the brief does not say, or accepts something the brief forbids.** Either
-direction is the same defect: a reviewer writes to the brief and the gate rules on something
-else, so a report can be correct-by-the-brief and rejected, or wrong-by-the-brief and admitted.
+**`scripts/verdicts.py` is the gate a reviewer's report has to pass, and in six
+places it enforces something the brief does not say, or accepts something the
+brief forbids.** Either direction is the same defect: a reviewer writes to the
+brief and the gate rules on something else, so a report can be
+correct-by-the-brief and rejected, or wrong-by-the-brief and admitted.
 
-! **Not vocabulary, and it sat on the vocabulary TODO for a day because the survey collected it
-while reading for terms.** Moved here so the vocabulary work could close.
+! **Not vocabulary, and it sat on the vocabulary TODO for a day because the
+survey collected it while reading for terms.** Moved here so the vocabulary work
+could close.
 
-! **The `query` row is RULED and closed, 2026-08-17.** It was the only one where the two
-actively contradicted rather than merely differed. The three left differ; none contradicts.
+! **The `query` row is RULED and closed, 2026-08-17.** It was the only one where
+the two actively contradicted rather than merely differed. The three left
+differ; none contradicts.
 
 ## Tasks
 

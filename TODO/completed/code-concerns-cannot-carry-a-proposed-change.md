@@ -51,27 +51,30 @@ Updated:  2026-08-28 — SEE THE DOUBLE-BIND NOTE ON `a-role-with-no-code-out-da
 
 ## Objective
 
-**The ruling this file waited on landed 2026-09-27, `decision-log.md Process: #199`:** a code
-concern is a `human-review-necessary` query whose `settles` reads `code concern`, answered by the
-author with `add a TODO`, `not a concern` or `leave it`; `add a TODO` lands as a `TODO:` comment
-the role adds beside the subject. No `code_concerns` field carries it, so the shape this file
-proposes has no subject.
+**The ruling this file waited on landed 2026-09-27, `decision-log.md Process:
+#199`:** a code concern is a `human-review-necessary` query whose `settles`
+reads `code concern`, answered by the author with `add a TODO`, `not a concern`
+or `leave it`; `add a TODO` lands as a `TODO:` comment the role adds beside the
+subject. No `code_concerns` field carries it, so the shape this file proposes
+has no subject.
 
-A reviewer that finds a CODE problem has one channel for it, and it carries almost nothing.
-`code_concerns` is published in the brief as *"a list of strings, one line each, no verdict"*
-(`reviewer-brief.md:255`); `record.py:883` seeds it empty and `held.py:190` reads it back as
-`[str(c) for c in ...]`, so anything structured a role emitted is flattened to its repr.
+A reviewer that finds a CODE problem has one channel for it, and it carries
+almost nothing. `code_concerns` is published in the brief as *"a list of
+strings, one line each, no verdict"* (`reviewer-brief.md:255`); `record.py:883`
+seeds it empty and `held.py:190` reads it back as `[str(c) for c in ...]`, so
+anything structured a role emitted is flattened to its repr.
 
-!! **IT IS THE ONE REVIEWER OUTPUT NO GATE CHECKS.** `verdicts.py` is stage 5 -- it joins every
-prose finding against the census, resolves every citation, and refuses what does not hold. It
-never reads `code_concerns` (verified 2026-08-23: the name does not appear in that file). So the
-channel a role is supposed to use for the findings it cannot fix is also the only channel
-nothing verifies, which is the shape [`docs/gates.md`](../docs/gates.md) is about: not *does the
-check pass*, but *could it fail*.
+!! **IT IS THE ONE REVIEWER OUTPUT NO GATE CHECKS.** `verdicts.py` is stage 5 --
+it joins every prose finding against the census, resolves every citation, and
+refuses what does not hold. It never reads `code_concerns` (verified 2026-08-23:
+the name does not appear in that file). So the channel a role is supposed to use
+for the findings it cannot fix is also the only channel nothing verifies, which
+is the shape [`docs/gates.md`](../docs/gates.md) is about: not *does the check
+pass*, but *could it fail*.
 
-! **A CODE CONCERN HAS NO ADDRESS**, so it cannot be re-run against a later tree, deduplicated
-when two roles raise it, or checked for staleness -- the three things an address buys every
-other finding.
+! **A CODE CONCERN HAS NO ADDRESS**, so it cannot be re-run against a later
+tree, deduplicated when two roles raise it, or checked for staleness -- the
+three things an address buys every other finding.
 
 ## !! THIS LANDS FIRST, AND ITS PASS CRITERION IS THAT NOTHING CHANGES
 

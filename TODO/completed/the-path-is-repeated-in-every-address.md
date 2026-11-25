@@ -18,9 +18,13 @@ Measured: 2026-08-20 — 2026-08-20, re-measured on the shipped shape over this 
 
 ## Objective
 
-!! **AN ADDRESS CARRIES ITS PAGE'S PATH, AND EVERY RECORD REPEATS IT.** Roy, 2026-08-19, relaying an earlier session: *"we could significantly reduce the payload if we gave the page its location as an attribute and then just printed out the foliations for the page, as a list of records."*
+!! **AN ADDRESS CARRIES ITS PAGE'S PATH, AND EVERY RECORD REPEATS IT.** Roy,
+2026-08-19, relaying an earlier session: *"we could significantly reduce the
+payload if we gave the page its location as an attribute and then just printed
+out the foliations for the page, as a list of records."*
 
-**Measured 2026-08-19 over this repo's own 15 shipped scripts, one reviewer's seeded record file:**
+**Measured 2026-08-19 over this repo's own 15 shipped scripts, one reviewer's
+seeded record file:**
 
 | | |
 | --- | ---: |
@@ -30,11 +34,18 @@ Measured: 2026-08-20 — 2026-08-20, re-measured on the shipped shape over this 
 | 15 pages stating their path once | 951 bytes |
 | **saving per reviewer** | **30,055 bytes** |
 
-! **For scale, every `anchor` in that file together is 20,270 bytes** -- the repeated path costs more than all the anchors combined, and the anchor is the field a reviewer greps.
+! **For scale, every `anchor` in that file together is 20,270 bytes** -- the
+repeated path costs more than all the anchors combined, and the anchor is the
+field a reviewer greps.
 
-! **It is a FORMAT change, not a defect.** The address is correct and resolvable as it stands; this is payload. Every consumer reads `record["address"]` as a whole string -- `entry_for`, the galley's `--edits`, `desk.address_problem`, the join -- so grouping by page means each of those learns which page it is reading. ! `foliator.folio_of` already splits the two halves and would be the seam.
+! **It is a FORMAT change, not a defect.** The address is correct and resolvable
+as it stands; this is payload. Every consumer reads `record["address"]` as a
+whole string -- `entry_for`, the galley's `--edits`, `desk.address_problem`, the
+join -- so grouping by page means each of those learns which page it is reading.
+! `foliator.folio_of` already splits the two halves and would be the seam.
 
-! **The census LISTING already does this**: it prints `== path` once as a heading and then rows carrying the folio alone. The record file does not.
+! **The census LISTING already does this**: it prints `== path` once as a
+heading and then rows carrying the folio alone. The record file does not.
 
 ## Tasks
 

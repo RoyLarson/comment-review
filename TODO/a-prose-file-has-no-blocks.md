@@ -26,24 +26,29 @@ SPLIT:    2026-08-23 -- every box cut to two lines. T1's four candidate answers 
 
 ## Objective
 
-!! **MEASURED 2026-08-17: 190 of the 196 files in one branch's merge-base diff were `TODO/*.md`
-and could not be reviewed at all.** The run reviewed the six that were code.
+!! **MEASURED 2026-08-17: 190 of the 196 files in one branch's merge-base diff
+were `TODO/*.md` and could not be reviewed at all.** The run reviewed the six
+that were code.
 
-! **A downstream cost from the same run:** `function-context` found the same stale sentence in a
-docstring AND in `.claude/skills/todo-tool/SKILL.md`. The `.md` is REFERENCE ONLY, so no verdict
-could target it -- **the pair is still drifted.** A prose file being uncensusable is not only a
-coverage gap; it makes the copy that a reviewer CAN see unfixable in the copy it cannot.
+! **A downstream cost from the same run:** `function-context` found the same
+stale sentence in a docstring AND in `.claude/skills/todo-tool/SKILL.md`. The
+`.md` is REFERENCE ONLY, so no verdict could target it -- **the pair is still
+drifted.** A prose file being uncensusable is not only a coverage gap; it makes
+the copy that a reviewer CAN see unfixable in the copy it cannot.
 
-**`.md`, `.rst` and `.txt` have no `LANGUAGES` record**, verified 2026-08-23 -- no row in
-`language.py` names any of the three -- **so a documentation file cannot be reviewed at all**:
-handing one in is fatal, *"1 of 1 files handed in were not censused."* They reach a run only as
-REFERENCE ONLY, which is read-to-settle and never ruled on.
+**`.md`, `.rst` and `.txt` have no `LANGUAGES` record**, verified 2026-08-23 --
+no row in `language.py` names any of the three -- **so a documentation file
+cannot be reviewed at all**: handing one in is fatal, *"1 of 1 files handed in
+were not censused."* They reach a run only as REFERENCE ONLY, which is
+read-to-settle and never ruled on.
 
-! The gap is already listed in `README.md:348` -- *"Markdown and reStructuredText | no record at
-all | prose files are where cited documentation actually lives"* -- with no owner and no plan.
-**Two independent repos hit the same consequence on 2026-08-17**, each with a run that found
-code prose attributing rules to `CLAUDE.md` that live in `conventions.md`. Six rules in one of
-them. The reviewers caught the citation from the CODE side; nothing can look at the documents.
+! The gap is already listed in `README.md:348` -- *"Markdown and
+reStructuredText | no record at all | prose files are where cited documentation
+actually lives"* -- with no owner and no plan. **Two independent repos hit the
+same consequence on 2026-08-17**, each with a run that found code prose
+attributing rules to `CLAUDE.md` that live in `conventions.md`. Six rules in one
+of them. The reviewers caught the citation from the CODE side; nothing can look
+at the documents.
 
 ## !! The file this system CANNOT review is the one every agent reads first
 

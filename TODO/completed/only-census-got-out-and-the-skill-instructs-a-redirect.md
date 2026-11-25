@@ -36,8 +36,8 @@ Landed:   2026-08-24 — T1, T2 and T4. `run_context.py` and `referrers.py` each
   merely awkward."*
 - `SKILL.md:617` -- `python <skill>/scripts/run_context.py --template > <run-dir>/context.md`
 
-! **The reasoning at 310 applies to every script whose output the run must keep**, and it has
-been acted on for two of the four. MEASURED 2026-08-23:
+! **The reasoning at 310 applies to every script whose output the run must
+keep**, and it has been acted on for two of the four. MEASURED 2026-08-23:
 
 | script | output the run needs on disk | has `--out`? |
 | --- | --- | --- |
@@ -46,32 +46,36 @@ been acted on for two of the four. MEASURED 2026-08-23:
 | `run_context.py --template` | the packet -- required, and `--check`ed | **yes**, 2026-08-24 -- and SKILL.md:617 still writes the redirect |
 | `referrers.py` | the `REFERENCE ONLY` candidates | **yes**, 2026-08-24 |
 
-! `vocabulary.py` is pasted into a prompt rather than saved, so it is outside this.
+! `vocabulary.py` is pasted into a prompt rather than saved, so it is outside
+this.
 
-!! **THE FLAG IS COPIED FROM `census.py:276` EXACTLY** -- same flag name, same help, same
-behaviour -- so there is one thing to remember rather than three.
+!! **THE FLAG IS COPIED FROM `census.py:276` EXACTLY** -- same flag name, same
+help, same behaviour -- so there is one thing to remember rather than three.
 
-!! **SUPERSEDED IN PART.** `verdicts.py` was the third script named in the original box and
-gained the flag at `verdicts.py:293`; the remainder is `run_context.py` and `referrers.py`.
+!! **SUPERSEDED IN PART.** `verdicts.py` was the third script named in the
+original box and gained the flag at `verdicts.py:293`; the remainder is
+`run_context.py` and `referrers.py`.
 
-!! **NOT WHILE A RUN IS IN FLIGHT.** Two runs were mid-join when this was raised, and one of them
-was being diagnosed for a refusal -- editing the script under a diagnosis makes the measurement
-worthless.
+!! **NOT WHILE A RUN IS IN FLIGHT.** Two runs were mid-join when this was
+raised, and one of them was being diagnosed for a refusal -- editing the script
+under a diagnosis makes the measurement worthless.
 
-! **`verdicts.py --out` as it landed was EXCLUSIVE**, because the help was copied: it read
-*"write the report to PATH, not stdout"*. The collator is read by a human at the terminal as often as
-it is captured, and `census.py --out` is silent by comparison because nobody reads a census by
-eye.
+! **`verdicts.py --out` as it landed was EXCLUSIVE**, because the help was
+copied: it read *"write the report to PATH, not stdout"*. The collator is read
+by a human at the terminal as often as it is captured, and `census.py --out` is
+silent by comparison because nobody reads a census by eye.
 
-!! **SO THE COPY RULE ABOVE HAS ONE DELIBERATE EXCEPTION, LANDED 2026-08-24.** T4 made
-`verdicts.py --out` write the file **and** print, and its help now reads *"write the report to
-PATH, and print it too"*. ! **The three that stay exclusive are the three nobody reads by eye**
--- a census, a packet and a candidate list are inputs to a later stage. The collator is the one
-stage whose output a person acts on, and a gate that goes silent when its output is captured
+!! **SO THE COPY RULE ABOVE HAS ONE DELIBERATE EXCEPTION, LANDED 2026-08-24.**
+T4 made `verdicts.py --out` write the file **and** print, and its help now reads
+*"write the report to PATH, and print it too"*. ! **The three that stay
+exclusive are the three nobody reads by eye** -- a census, a packet and a
+candidate list are inputs to a later stage. The collator is the one stage whose
+output a person acts on, and a gate that goes silent when its output is captured
 makes *saw nothing* and *found nothing* the same event there.
 
-! **The missing test is a grep.** This defect is a doc and a script disagreeing, which is the
-class this repo already tests for elsewhere, and it would have caught this the day it shipped.
+! **The missing test is a grep.** This defect is a doc and a script disagreeing,
+which is the class this repo already tests for elsewhere, and it would have
+caught this the day it shipped.
 
 ## Tasks
 

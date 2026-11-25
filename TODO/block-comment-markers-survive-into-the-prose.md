@@ -30,21 +30,23 @@ Split:    2026-08-23 -- 6 boxes became 10. The stripping box held the opener and
 
 ## Objective
 
-**`_join` strips a language's LINE comment openers and nothing else, so `/*`, `*/` and the
-per-line `*` of a Javadoc or JSDoc block reach the reviewers as prose.**
+**`_join` strips a language's LINE comment openers and nothing else, so `/*`,
+`*/` and the per-line `*` of a Javadoc or JSDoc block reach the reviewers as
+prose.**
 
 Measured on eleven files, one per language record, each fetched at a pinned tag.
 
 !! **RE-MEASURED 2026-08-23, in-tree.** `lexer.paragraphs_lexical` on
 `tests/fixtures/sample.java` returns two `docstring` paragraphs whose `text` is
-`'/** Small arithmetic helpers. */'` and `'/** Returns the sum of a and b. */'` -- markers and
-all. ! And the fixture does NOT exercise the expensive half: it has no multi-line Javadoc, so
-the continuation `*` never appears in it. A fixture can resemble its language without testing
-the shape the defect needs.
+`'/** Small arithmetic helpers. */'` and `'/** Returns the sum of a and b. */'`
+-- markers and all. ! And the fixture does NOT exercise the expensive half: it
+has no multi-line Javadoc, so the continuation `*` never appears in it. A
+fixture can resemble its language without testing the shape the defect needs.
 
-! **The examples below are INVENTED**, per `docs/limitations.md`, and they are the shape the
-measurement found rather than a quotation from it. The sources are third-party code under their
-own licences; nothing from them is reproduced here or vendored anywhere in this repo.
+! **The examples below are INVENTED**, per `docs/limitations.md`, and they are
+the shape the measurement found rather than a quotation from it. The sources are
+third-party code under their own licences; nothing from them is reproduced here
+or vendored anywhere in this repo.
 
 ```
 c-family   docstring   '/** * The retry budget. * * @param verb the idempotent verb * @re'
@@ -60,9 +62,10 @@ c-family   comment     '/* * Ownership: the scheduler owns this queue once start
 | lua * shell * sql * toml-ini * yaml * python | 284 | 0 |
 | **total** | **812** | **36** |
 
-!! **Read the concentration, not the total.** 4% of all blocks, and **96% of the c-family
-ones** -- Javadoc and JSDoc are the dominant doc styles across `.java .cs .swift .kt .cpp .ts
-.tsx .jsx`, which is the largest group of extensions this system claims.
+!! **Read the concentration, not the total.** 4% of all blocks, and **96% of the
+c-family ones** -- Javadoc and JSDoc are the dominant doc styles across `.java
+.cs .swift .kt .cpp .ts .tsx .jsx`, which is the largest group of extensions
+this system claims.
 
 ## Why it is `_join`, not the scanner
 

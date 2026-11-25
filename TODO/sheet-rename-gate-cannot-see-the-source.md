@@ -17,7 +17,8 @@ Raised:   2026-08-29 (the final review of feat/the-mark-and-the-collator, 2026-0
 
 ## Objective
 
-the sheet-rename gate reads four .md files and none of the source it was landed for.
+the sheet-rename gate reads four .md files and none of the source it was landed
+for.
 
 ## Tasks
 

@@ -9,17 +9,20 @@ Raised:   2026-08-15 (Roy, stating the workflow as "Apply, Compact, Approval")
 
 ## Objective
 
-**One word named two stages.** Applying a MARK produces replacement text at stage 5; applying
-APPROVED TEXT writes it to disk at 7b. Both were `apply`, and the system's own rule is that a
-name belongs in exactly one place. Roy's workflow sentence puts "Apply" at stage 5, and his
-framing of an edit mark puts it there too -- *"the preferred action that, **if applied**, would
-improve the comments"* -- while `sweep`'s retirement earlier the same day had put APPLY on 7b.
+**One word named two stages.** Applying a MARK produces replacement text at
+stage 5; applying APPROVED TEXT writes it to disk at 7b. Both were `apply`, and
+the system's own rule is that a name belongs in exactly one place. Roy's
+workflow sentence puts "Apply" at stage 5, and his framing of an edit mark puts
+it there too -- *"the preferred action that, **if applied**, would improve the
+comments"* -- while `sweep`'s retirement earlier the same day had put APPLY on
+7b.
 
 **Ruled B: stage 5 is `APPLY`, stage 7b is `WRITE`, and `EDIT` is retired.**
 
-! **Not a vocabulary task.** Settling which word goes where is naming, but the change is a
-stage rename across the pipeline diagram, the stage table, a reference filename and a published
-CHANGELOG entry -- so it is its own refactor and is tracked here rather than in
+! **Not a vocabulary task.** Settling which word goes where is naming, but the
+change is a stage rename across the pipeline diagram, the stage table, a
+reference filename and a published CHANGELOG entry -- so it is its own refactor
+and is tracked here rather than in
 [`eight-terms-have-no-definition-and-angle-means-five-things`](eight-terms-have-no-definition-and-angle-means-five-things.md).
 
 ## Tasks

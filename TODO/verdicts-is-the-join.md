@@ -21,30 +21,34 @@ Split:    2026-08-23 -- the two remaining boxes held seven artifacts between the
 
 ## Objective
 
-**The module is `verdicts.py` and everything calls it the collator.** One ruling settles whether the
-file is renamed.
+**The module is `verdicts.py` and everything calls it the collator.** One ruling
+settles whether the file is renamed.
 
-!! **IT IS ONE MISNOMER, MEASURED 2026-08-22 AND RE-VERIFIED 2026-08-23.** `verdicts.py` does not
-hold the verdicts: `VERDICTS` is defined at `record.py:181` and IMPORTED by `verdicts.py`. So the
-module is named for a table it does not own, while every other file calls it by what it DOES.
+!! **IT IS ONE MISNOMER, MEASURED 2026-08-22 AND RE-VERIFIED 2026-08-23.**
+`verdicts.py` does not hold the verdicts: `VERDICTS` is defined at
+`record.py:181` and IMPORTED by `verdicts.py`. So the module is named for a
+table it does not own, while every other file calls it by what it DOES.
 
-!! **THE TREE ALREADY AGREES ON THE OTHER NAME.** `grep -ro "the collator" plugins/ --include=*.md
---include=*.py --include=*.toml | wc -l` returns **31** on 2026-08-23 -- 8 in `SKILL.md`, 7 in
-`record.py`, 5 in `desk.py`, 3 in `held.py`, 2 in `reviewer-brief.md`, 2 in `re-review.md`, 1
-each in `census.py` and `language.py`, and only **twice inside `verdicts.py` itself**, where it
-describes what the file is. ! The count was **43** when this was raised on 2026-08-22, and
-`docs/vocabulary.md:85` still says 43; the command above is what to re-run rather than either
-number. The agent's own instructions call it the collator; only the filename disagrees.
+!! **THE TREE ALREADY AGREES ON THE OTHER NAME.** `grep -ro "the collator"
+plugins/ --include=*.md --include=*.py --include=*.toml | wc -l` returns **31**
+on 2026-08-23 -- 8 in `SKILL.md`, 7 in `record.py`, 5 in `desk.py`, 3 in
+`held.py`, 2 in `reviewer-brief.md`, 2 in `re-review.md`, 1 each in `census.py`
+and `language.py`, and only **twice inside `verdicts.py` itself**, where it
+describes what the file is. ! The count was **43** when this was raised on
+2026-08-22, and `docs/vocabulary.md:85` still says 43; the command above is what
+to re-run rather than either number. The agent's own instructions call it the
+collator; only the filename disagrees.
 
-! **AND `desk.py` DRAWS THE LINE BY THAT NAME**, at `desk.py:18`: *"a question that needs two
-findings -- who contradicts whom, which paragraphs nobody accounted for -- is the collator's, and
-lives in `verdicts.py`."* The sentence has to name the concept AND the file because they are
-different words for one thing.
+! **AND `desk.py` DRAWS THE LINE BY THAT NAME**, at `desk.py:18`: *"a question
+that needs two findings -- who contradicts whom, which paragraphs nobody
+accounted for -- is the collator's, and lives in `verdicts.py`."* The sentence
+has to name the concept AND the file because they are different words for one
+thing.
 
-! **IT IS THE SECOND MODULE NAMED FOR SOMETHING IT IS NOT**, and the pair is worth deciding
-together: `lexer.py` mostly reads a parse rather than lexing -- see
-[`lexer-does-not-lex`](lexer-does-not-lex.md). Both are cases of a name that was true when the
-file was created and stopped being true as the split settled.
+! **IT IS THE SECOND MODULE NAMED FOR SOMETHING IT IS NOT**, and the pair is
+worth deciding together: `lexer.py` mostly reads a parse rather than lexing --
+see [`lexer-does-not-lex`](lexer-does-not-lex.md). Both are cases of a name that
+was true when the file was created and stopped being true as the split settled.
 
 ## What the register answered, 2026-08-22
 

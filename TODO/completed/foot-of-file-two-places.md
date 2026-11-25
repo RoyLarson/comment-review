@@ -41,9 +41,9 @@ the two a paragraph attaches to is the LEXER's `matter` rule, not the walk's.
 | `{"m.py@f1": "# ADDED"}` | `...return y\n# ADDED\n` | drafted |
 
 The two compose **the same bytes** -- `test_b4_AND_f1_COMPOSE_THE_SAME_BYTES`
-pins it -- so neither the galley nor the compositor is what refuses. The
-re-read gives the prose to `f1` and leaves `b4` empty, and `_reread` compares
-against the cue it was given.
+pins it -- so neither the galley nor the compositor is what refuses. The re-read
+gives the prose to `f1` and leaves `b4` empty, and `_reread` compares against
+the cue it was given.
 
 ! **IT IS NOT ALWAYS `f1` THAT WINS.** Measured over 3,293 pages in this
 checkout's `corpora/`: **9** have a closing `b` holding prose -- doc-comment
@@ -59,17 +59,17 @@ sacrifice**, Roy 2026-08-21: *"I know f0 is going to grab b0 lines. It is a
 sacrifice I am willing to make."* The foot has had no such ruling.
 
 **WHAT THIS WAVE DID AND DID NOT DO.** `_reread` still refuses, and now names
-the place that does hold the text -- `b4: holds [], was given ['# ADDED'] --
-f1 holds it`. That makes the refusal actionable and nothing more. Reading the
+the place that does hold the text -- `b4: holds [], was given ['# ADDED'] -- f1
+holds it`. That makes the refusal actionable and nothing more. Reading the
 notation as satisfied because the text is SOMEWHERE would be the verification
 step agreeing with the edit step instead of checking it, which is the shape
 `docs/gates.md` records the round trip scoring 699 of 699 on.
 
 ! **A DECISION IS OWED BEFORE ANY CODE MOVES.** Roy ruled the closing `b` into
-existence, 2026-08-22: *"the last `b` triggers on EOF and records either
-`<eof>` or `<module>`, and its anchor and where it is placed becomes a
-determined fact by the compositor."* Deleting it is not this lane's to choose,
-and neither is demoting `f1`.
+existence, 2026-08-22: *"the last `b` triggers on EOF and records either `<eof>`
+or `<module>`, and its anchor and where it is placed becomes a determined fact
+by the compositor."* Deleting it is not this lane's to choose, and neither is
+demoting `f1`.
 
 ## Tasks
 

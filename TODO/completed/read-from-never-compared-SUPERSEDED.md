@@ -12,7 +12,8 @@ Raised:   2026-08-30 (found 2026-08-30 while specifying SP-1; flows/marks.py:136
 
 ## Objective
 
-Nothing compares a returned edit_copy's read_from against the binder it was seeded from.
+Nothing compares a returned edit_copy's read_from against the binder it was
+seeded from.
 
 ## Tasks
 

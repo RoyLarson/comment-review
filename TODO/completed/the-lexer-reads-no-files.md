@@ -20,29 +20,33 @@ Re-split: 2026-08-23 -- the nine boxes still over two lines were cut again. `con
 
 ## Objective
 
-**The lexer reads no files, nine other places do, and the round-trip identity passes on text it
-translated on the way in.**
+**The lexer reads no files, nine other places do, and the round-trip identity
+passes on text it translated on the way in.**
 
-!! **A DESIGN ANSWERS THIS FILE.** `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md`,
-ruled with Roy in session 2026-08-23, names it as *"the file it answers"*. It proposes one door
-(`io.py`) owning the whole byte<->text boundary, and two chains of `Doc -> Doc` steps --
-`READ [language, read_text, lexer, addresser, page]` and `WRITE [edit, set, draft, lossless,
-identity, prove_unchanged, approve]` -- so the ORDER is a list rather than a convention.
-! The spec is not scheduled; whether it joins the 0.2.4 plan is a separate decision, and no task
-below waits on that decision.
+!! **A DESIGN ANSWERS THIS FILE.**
+`docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md`, ruled with Roy
+in session 2026-08-23, names it as *"the file it answers"*. It proposes one door
+(`io.py`) owning the whole byte<->text boundary, and two chains of `Doc -> Doc`
+steps -- `READ [language, read_text, lexer, addresser, page]` and `WRITE [edit,
+set, draft, lossless, identity, prove_unchanged, approve]` -- so the ORDER is a
+list rather than a convention. ! The spec is not scheduled; whether it joins the
+0.2.4 plan is a separate decision, and no task below waits on that decision.
 
-**What the design gets right about the cause.** `page_for(path, text, lang, rel)` takes TEXT
-(`page.py:674`), so by the time anyone reaches the reading code somebody else has already read
-the file. The rule -- only the lexer and the compositor touch source -- has no seam that enforces
-it, so following it means every author remembering it. Roy, 2026-08-23: *"The fact that claude
-stated it made something happen and then didn't tells me there is a design problem because it is
-hard to do in the current system."*
+**What the design gets right about the cause.** `page_for(path, text, lang,
+rel)` takes TEXT (`page.py:674`), so by the time anyone reaches the reading code
+somebody else has already read the file. The rule -- only the lexer and the
+compositor touch source -- has no seam that enforces it, so following it means
+every author remembering it. Roy, 2026-08-23: *"The fact that claude stated it
+made something happen and then didn't tells me there is a design problem because
+it is hard to do in the current system."*
 
-!! **ONE CORRECTION TO THE SPEC, AND IT DOES NOT WEAKEN IT.** The spec's evidence table says *"the
-newline-safe reader has ZERO callers"*. Measured 2026-08-23, `repo.read_raw` has FOUR call sites
-in two modules -- `galley.py:430`, `prove_unchanged.py:254`, `:324` and `:325` -- exactly the two
-callers its own docstring names, both *"about comparing a file to itself"*. What is true, and is
-what the seam is for, is that **nine reads of SOURCE bypass it**.
+!! **ONE CORRECTION TO THE SPEC, AND IT DOES NOT WEAKEN IT.** The spec's
+evidence table says *"the newline-safe reader has ZERO callers"*. Measured
+2026-08-23, `repo.read_raw` has FOUR call sites in two modules --
+`galley.py:430`, `prove_unchanged.py:254`, `:324` and `:325` -- exactly the two
+callers its own docstring names, both *"about comparing a file to itself"*. What
+is true, and is what the seam is for, is that **nine reads of SOURCE bypass
+it**.
 
 ## The measurements this file was filed on -- re-taken 2026-08-23, and not tasks
 

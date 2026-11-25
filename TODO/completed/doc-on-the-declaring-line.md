@@ -11,11 +11,12 @@ Raised:   2026-08-29 (found while fixing the docstring-closing-comment double em
 
 ## Objective
 
-A docstring written on its declaration's own line takes no address, and the round trip invents a
-blank line.
+A docstring written on its declaration's own line takes no address, and the
+round trip invents a blank line.
 
-!! **THE TITLE AND THE 2026-08-29 MEASUREMENT BELOW ARE BOTH SUPERSEDED, AND ARE KEPT AS THE
-RECORD OF WHY THIS WAS FILED.** RE-MEASURED 2026-09-03 through `tests/conftest.build`:
+!! **THE TITLE AND THE 2026-08-29 MEASUREMENT BELOW ARE BOTH SUPERSEDED, AND ARE
+KEPT AS THE RECORD OF WHY THIS WAS FILED.** RE-MEASURED 2026-09-03 through
+`tests/conftest.build`:
 
 | | 2026-08-29 | 2026-09-03 |
 | --- | --- | --- |
@@ -24,37 +25,43 @@ RECORD OF WHY THIS WAS FILED.** RE-MEASURED 2026-09-03 through `tests/conftest.b
 | `lossless` | *line invented: ''* | **`None`** |
 | `set_page` | 1 line in, 2 out | **byte-exact** |
 
-! **SO THE THREE BROKEN INVARIANTS BELOW ARE NO LONGER BROKEN**, and the addressing rebuild is
-what fixed them; no box on this file was worked. T1 and T2 are superseded because their verifies
-PASS and because `Addressing: #20` then answered the question underneath them.
+! **SO THE THREE BROKEN INVARIANTS BELOW ARE NO LONGER BROKEN**, and the
+addressing rebuild is what fixed them; no box on this file was worked. T1 and T2
+are superseded because their verifies PASS and because `Addressing: #20` then
+answered the question underneath them.
 
-!! **WHAT SURVIVES IS A DIFFERENT DEFECT THE OLD MEASUREMENT COULD NOT SEE.** `b0` is the GAP
-series, whose pair is `comment`/`interval`, and it is holding `docstring` -- the `a` series' kind
--- while `a0` reports `undocumented`. That is
-[`a-doc-comment-is-cued-a-and-typed-b`](a-doc-comment-is-cued-a-and-typed-b.md) inverted, and the
-strict-xfail tripwire cannot see it for the same reason the original defect survived: the shape
-is in neither `SOURCES` nor `FORMS`. **T3 is the live box.**
+!! **WHAT SURVIVES IS A DIFFERENT DEFECT THE OLD MEASUREMENT COULD NOT SEE.**
+`b0` is the GAP series, whose pair is `comment`/`interval`, and it is holding
+`docstring` -- the `a` series' kind -- while `a0` reports `undocumented`. That
+is
+[`a-doc-comment-is-cued-a-and-typed-b`](a-doc-comment-is-cued-a-and-typed-b.md)
+inverted, and the strict-xfail tripwire cannot see it for the same reason the
+original defect survived: the shape is in neither `SOURCES` nor `FORMS`. **T3 is
+the live box.**
 
-!! **AND IT IS NOT THE `ast` MODULE.** Roy, 2026-09-03, offering the likely cause: *"Probably
-because we are using the ast module to get the Python stuff instead of the lexer."* MEASURED the
-same day by calling `lexer.paragraphs_stdlib` directly and comparing it to the assembled page:
+!! **AND IT IS NOT THE `ast` MODULE.** Roy, 2026-09-03, offering the likely
+cause: *"Probably because we are using the ast module to get the Python stuff
+instead of the lexer."* MEASURED the same day by calling
+`lexer.paragraphs_stdlib` directly and comparing it to the assembled page:
 
 | | the AST reader emits | the assembled page holds |
 | --- | --- | --- |
 | two-line form | `a1` `docstring` anchor `g` | `a1` `docstring` anchor `def g():` |
 | **same-line form** | `a1` `docstring` anchor `g` | **`b0` `docstring` anchor `<eof>`** |
 
-**The AST reader is RIGHT in both cases** -- same cue, same anchor. What loses it is the PAGE
-ASSEMBLY, and it loses the anchor as well as the cue: `g` becomes `<eof>`, which is the fallback
-for a paragraph with nowhere to land.
+**The AST reader is RIGHT in both cases** -- same cue, same anchor. What loses
+it is the PAGE ASSEMBLY, and it loses the anchor as well as the cue: `g` becomes
+`<eof>`, which is the fallback for a paragraph with nowhere to land.
 
-! **THE REASON IS VISIBLE IN THE LISTING.** The same-line page carries no `a1` place and no `c0`
--- **the walk emitted no `a` place for `def g():` at all** -- so the AST's correctly-addressed
-paragraph had nothing to attach to. The two-line page carries both.
+! **THE REASON IS VISIBLE IN THE LISTING.** The same-line page carries no `a1`
+place and no `c0` -- **the walk emitted no `a` place for `def g():` at all** --
+so the AST's correctly-addressed paragraph had nothing to attach to. The
+two-line page carries both.
 
-!! **SO `Addressing: #20` NEEDS AN `a` PLACE TO MOVE THE DOCSTRING INTO, AND THERE IS NONE.**
-That is work T23 must do and its own text does not name: the walk has to emit the place before
-the compositor can set anything below the declaration.
+!! **SO `Addressing: #20` NEEDS AN `a` PLACE TO MOVE THE DOCSTRING INTO, AND
+THERE IS NONE.** That is work T23 must do and its own text does not name: the
+walk has to emit the place before the compositor can set anything below the
+declaration.
 
 ## The root cause: the lexer does not say the docstring shares a line -- T4
 

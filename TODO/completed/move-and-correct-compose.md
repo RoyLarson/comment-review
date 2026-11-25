@@ -27,9 +27,10 @@ says so that is a prediction. ! The count belongs in
 [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md),
 as the load that procedure actually carries.
 
-**`contradictions()` flags `drop`/`move` against `correct`/`patch` as a collision. On a `move`
-it is not one.** Prose can belong somewhere else AND be false; those are two findings about one
-sentence and both get applied. Measured on the 2026-08-17 run:
+**`contradictions()` flags `drop`/`move` against `correct`/`patch` as a
+collision. On a `move` it is not one.** Prose can belong somewhere else AND be
+false; those are two findings about one sentence and both get applied. Measured
+on the 2026-08-17 run:
 
 | shape | blocks | a contradiction? |
 | --- | --- | --- |
@@ -37,13 +38,15 @@ sentence and both get applied. Measured on the 2026-08-17 run:
 | different sentences in one block | 981 | **no** -- see [`the-unit-of-review-is-the-statement-not-the-block`](completed/the-unit-of-review-is-the-statement-not-the-block.md) |
 | `drop` vs `correct`, same sentence | 728, 1575 | **yes** |
 
-**Two genuine contradictions out of eight flagged.** The other six sent both roles a re-review
-asking them to resolve something the skill already knows how to do -- `SKILL.md`'s synthesis
-order applies every `move` at step 2 and every `correct` at step 3, which composes them
-correctly without anyone being asked anything.
+**Two genuine contradictions out of eight flagged.** The other six sent both
+roles a re-review asking them to resolve something the skill already knows how
+to do -- `SKILL.md`'s synthesis order applies every `move` at step 2 and every
+`correct` at step 3, which composes them correctly without anyone being asked
+anything.
 
-! `drop` against `correct` on the SAME sentence stays a real contradiction: one role says the
-sentence should not exist, the other says it should exist and be fixed. Nothing composes those.
+! `drop` against `correct` on the SAME sentence stays a real contradiction: one
+role says the sentence should not exist, the other says it should exist and be
+fixed. Nothing composes those.
 
 ## !! The ORDER is settled: MOVE FIRST, and it was re-stated wrong during the run
 

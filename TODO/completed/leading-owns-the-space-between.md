@@ -21,34 +21,39 @@ Triaged:  2026-08-23 — BOTH REMAINING BOXES CLOSE, one superseded and one fini
 
 ## Objective
 
-**The space between two paragraphs belonged to nobody, so a page could not be set back.** A
-fifth series, `leading`, owns it. Roy, 2026-08-21: *"I like the leading solution even though it
-added another cues and the anchors are empty."*
+**The space between two paragraphs belonged to nobody, so a page could not be
+set back.** A fifth series, `leading`, owns it. Roy, 2026-08-21: *"I like the
+leading solution even though it added another cues and the anchors are empty."*
 
-!! **THE TRADE WORD IS `leading`** -- the strips of lead a compositor puts BETWEEN lines of type
-to space them. Confirmed by Roy after the register check: a LEADER is the row of dots carrying
-the eye across a table of contents, a different thing. **The series letter is `d`**, ruled the
-same day: *"and d works."* ! `l` was the obvious choice and the worst possible character --
-`m.py@l0` reads as `@10`, and the whole scheme rests on a cue being unmistakable.
+!! **THE TRADE WORD IS `leading`** -- the strips of lead a compositor puts
+BETWEEN lines of type to space them. Confirmed by Roy after the register check:
+a LEADER is the row of dots carrying the eye across a table of contents, a
+different thing. **The series letter is `d`**, ruled the same day: *"and d
+works."* ! `l` was the obvious choice and the worst possible character --
+`m.py@l0` reads as `@10`, and the whole scheme rests on a cue being
+unmistakable.
 
-**THE RULE, in Roy's words:** *"it covers all empty space between two different types of
-paragraphs. If the new line is internal to the paragraph then the two paragraphs + the newlines
-are in fact one paragraph."* So a blank run BETWEEN types is leading; a blank INSIDE a run stays
-prose, and two runs separated by one are one paragraph -- which is what the lexer already does,
-since only code ends a run.
+**THE RULE, in Roy's words:** *"it covers all empty space between two different
+types of paragraphs. If the new line is internal to the paragraph then the two
+paragraphs + the newlines are in fact one paragraph."* So a blank run BETWEEN
+types is leading; a blank INSIDE a run stays prose, and two runs separated by
+one are one paragraph -- which is what the lexer already does, since only code
+ends a run.
 
-!! **IT IS NOT CITABLE.** Roy: *"it does not need to be citable at all. There is no information
-to rule on. It is just there for document preservation."* So it is excluded from `Page.prose`,
-from record seeding, and from what a reviewer is handed.
+!! **IT IS NOT CITABLE.** Roy: *"it does not need to be citable at all. There is
+no information to rule on. It is just there for document preservation."* So it
+is excluded from `Page.prose`, from record seeding, and from what a reviewer is
+handed.
 
-!! **AND IT ENDED UP WITH NO ADDRESS AT ALL, which is further than the original design went.**
-`addresser.py:206-213`: `LEAD` is not one of the four series `cue` emits, since 2026-08-22. Roy:
-*"it has no anchor, and so by the LSR -- any child class has to be able to answer its parent
-class's answers as well, correctly -- it breaks that rule."* `places` is `cue -> the line of code
-it is attached to`; every other series answers, and a `d` answered `""`, which is the absence of
-an answer rather than a different one. `page.py:197-207` then made *names no place* the whole
-test for what a reviewer is owed a record on, replacing a list of series letters that had to be
-kept current.
+!! **AND IT ENDED UP WITH NO ADDRESS AT ALL, which is further than the original
+design went.** `addresser.py:206-213`: `LEAD` is not one of the four series
+`cue` emits, since 2026-08-22. Roy: *"it has no anchor, and so by the LSR -- any
+child class has to be able to answer its parent class's answers as well,
+correctly -- it breaks that rule."* `places` is `cue -> the line of code it is
+attached to`; every other series answers, and a `d` answered `""`, which is the
+absence of an answer rather than a different one. `page.py:197-207` then made
+*names no place* the whole test for what a reviewer is owed a record on,
+replacing a list of series letters that had to be kept current.
 
 ## Tasks
 

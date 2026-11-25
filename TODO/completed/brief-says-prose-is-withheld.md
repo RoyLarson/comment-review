@@ -11,7 +11,8 @@ Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
 
 ## Objective
 
-The brief promises a safeguard that no longer exists: the seeded mark carries the paragraph's prose.
+The brief promises a safeguard that no longer exists: the seeded mark carries
+the paragraph's prose.
 
 ## Tasks
 

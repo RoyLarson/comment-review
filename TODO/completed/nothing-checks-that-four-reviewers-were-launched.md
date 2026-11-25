@@ -22,8 +22,9 @@ Split:    2026-08-23 -- the box making `--reviewers` default to four carried a r
 
 ## Objective
 
-**`!! Every verdict is available on every run, and all four roles run every time`** is stated in
-`SKILL.md` and enforced by nothing at the moment it matters.
+**`!! Every verdict is available on every run, and all four roles run every
+time`** is stated in `SKILL.md` and enforced by nothing at the moment it
+matters.
 
 ! The gap is real; the incident that raised it was not. See the record at T6.
 
@@ -36,23 +37,26 @@ What exists today, and where each check sits:
 | every expected reviewer REPORTED | `verdicts.py --reviewers` | stage 5, after the reports are in |
 | a report stem is a published role name | `verdicts.py` | stage 5 |
 
-! **1.6 proves the agents can be dispatched; the seed proves four files were CREATED; nothing
-proves four were DISPATCHED.** The gap is the dispatch itself, and it is the one step the skill
-cannot inspect: `run_context.py` runs before it and `verdicts.py` runs after.
+! **1.6 proves the agents can be dispatched; the seed proves four files were
+CREATED; nothing proves four were DISPATCHED.** The gap is the dispatch itself,
+and it is the one step the skill cannot inspect: `run_context.py` runs before it
+and `verdicts.py` runs after.
 
-!! **`--reviewers` catches it LATE, and nothing earlier has an artifact to read.** A three-role
-dispatch is detected only once three reviewers have read the census and written their reports --
-on a large run that is several hundred thousand tokens and twenty minutes before the run learns it
-was invalid. And it is only caught at all if the task agent passes `--reviewers`, which is
-optional. MEASURED 2026-08-23: still optional (verdicts.py:296), and its absence is still only
-announced -- *"whether every expected reviewer reported was NOT checked"* (verdicts.py:516) -- and
-an announcement in a wall of output is not a gate.
+!! **`--reviewers` catches it LATE, and nothing earlier has an artifact to
+read.** A three-role dispatch is detected only once three reviewers have read
+the census and written their reports -- on a large run that is several hundred
+thousand tokens and twenty minutes before the run learns it was invalid. And it
+is only caught at all if the task agent passes `--reviewers`, which is optional.
+MEASURED 2026-08-23: still optional (verdicts.py:296), and its absence is still
+only announced -- *"whether every expected reviewer reported was NOT checked"*
+(verdicts.py:516) -- and an announcement in a wall of output is not a gate.
 
-! Why the invariant is not a formality: `SKILL.md` records that **a single-role run ratifies
-falsehoods** -- one role reading a false absence claim writes that it is true, where another
-refutes it by grep. A three-role run is the same defect, weaker. And the missing role's blocks
-are not gaps the collator can see: it computes coverage from the reviewers that REPORTED, so three
-complete reports read as complete coverage unless `--reviewers` names the fourth.
+! Why the invariant is not a formality: `SKILL.md` records that **a single-role
+run ratifies falsehoods** -- one role reading a false absence claim writes that
+it is true, where another refutes it by grep. A three-role run is the same
+defect, weaker. And the missing role's blocks are not gaps the collator can see:
+it computes coverage from the reviewers that REPORTED, so three complete reports
+read as complete coverage unless `--reviewers` names the fourth.
 
 ## The four candidates for WHERE the check goes, and the recommendation
 

@@ -16,29 +16,31 @@ Pending:  2026-08-30 — the `Schedule.role` delete (task 7) is SUPERSEDED IN PA
 
 ## Objective
 
-Eight tasks over six defects in `docket/docket.py`, found on 2026-08-30 by running the
-write chain end to end through a temp repo -- `page_of`, `docket.read` and
-`proof_setter.run`.
+Eight tasks over six defects in `docket/docket.py`, found on 2026-08-30 by
+running the write chain end to end through a temp repo -- `page_of`,
+`docket.read` and `proof_setter.run`.
 
-!! **ONE OF THEM REACHES A USER'S FILE.** A docket carrying schedules for `pkg/a.py`
-and `./pkg/a.py` produces ZERO refusals: `read` answers `''` for both,
-`flows/proof_setter.py:361` resolves both to one draft file, one page's approved text
-is discarded, `commands/proof.py:143` prints `2 page(s) drafted for review` and the
-process returns 0. `pkg\a.py`, `PKG/A.py` and `pkg/../pkg/a.py` are accepted too. That
-is verbatim the failure the guard's own comment at `docket.py:134-145` claims to
-prevent, and the same outcome `proof_setter.py:354-360` records as MEASURED and FIXED
-on 2026-08-25 for basename flattening. `revise.pull`'s address-set assertion cannot
-see it -- a lost alteration moves no addresses.
+!! **ONE OF THEM REACHES A USER'S FILE.** A docket carrying schedules for
+`pkg/a.py` and `./pkg/a.py` produces ZERO refusals: `read` answers `''` for
+both, `flows/proof_setter.py:361` resolves both to one draft file, one page's
+approved text is discarded, `commands/proof.py:143` prints `2 page(s) drafted
+for review` and the process returns 0. `pkg\a.py`, `PKG/A.py` and
+`pkg/../pkg/a.py` are accepted too. That is verbatim the failure the guard's own
+comment at `docket.py:134-145` claims to prevent, and the same outcome
+`proof_setter.py:354-360` records as MEASURED and FIXED on 2026-08-25 for
+basename flattening. `revise.pull`'s address-set assertion cannot see it -- a
+lost alteration moves no addresses.
 
-!! **THESE LAND TOGETHER, WHICH IS WHAT EARNS THE FILE.** The normalisation cannot
-close that finding alone: the test guarding it today, `tests/test_docket.py:130`
-(`test_TWO_SCHEDULES_FOR_ONE_PAGE_are_refused`), feeds two BYTE-IDENTICAL paths -- the
-one case the guard already handles -- so it CANNOT FAIL on the shape the guard is
-written against, and a normalisation landed without the test rewrite is a fix nothing
-can hold. `docs/gates.md` states the rule: the question is not whether the check
-passes but whether it could fail. The sort-order defect is reachable through `read`
-only until the normalisation lands, so the two are ordered by the same mechanism, and
-the `Schedule.role` delete is the field the null-role defect poisons.
+!! **THESE LAND TOGETHER, WHICH IS WHAT EARNS THE FILE.** The normalisation
+cannot close that finding alone: the test guarding it today,
+`tests/test_docket.py:130` (`test_TWO_SCHEDULES_FOR_ONE_PAGE_are_refused`),
+feeds two BYTE-IDENTICAL paths -- the one case the guard already handles -- so
+it CANNOT FAIL on the shape the guard is written against, and a normalisation
+landed without the test rewrite is a fix nothing can hold. `docs/gates.md`
+states the rule: the question is not whether the check passes but whether it
+could fail. The sort-order defect is reachable through `read` only until the
+normalisation lands, so the two are ordered by the same mechanism, and the
+`Schedule.role` delete is the field the null-role defect poisons.
 
 ## The rest of what was measured
 

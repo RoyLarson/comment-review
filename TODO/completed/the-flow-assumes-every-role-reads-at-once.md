@@ -12,19 +12,20 @@ Raised:   2026-08-28, reviewing the draft plan for the mark and the collator. Ro
 
 ## Objective
 
-**The shipped skill has never worked that way and the code has no word for it.** `SKILL.md`
-stage 4 runs `ownership-context` ALONE at 4a and the other three at 4c, and Roy expects at least
-one more agent before those three. But `flows.marks.seed(binder, role)` is a function of the
-binder and a role -- there is no stage, no prior marks, and no way to say WHICH page a role is
-holding.
+**The shipped skill has never worked that way and the code has no word for it.**
+`SKILL.md` stage 4 runs `ownership-context` ALONE at 4a and the other three at
+4c, and Roy expects at least one more agent before those three. But
+`flows.marks.seed(binder, role)` is a function of the binder and a role -- there
+is no stage, no prior marks, and no way to say WHICH page a role is holding.
 
     stage 1   ownership-context           reads the original
     stage 2   <an enriching agent>        reads the original
     stage 3   block / function / module   reads ... the original?
 
-! **Today the answer is yes, and it is the wrong one.** `SKILL.md:578` says the three receive
-`ownership-context`'s *"resolved PLACEMENT, not its findings"* -- so a role at stage 3 cannot
-know an earlier role already ruled a sentence false, and will re-derive it or contradict it.
+! **Today the answer is yes, and it is the wrong one.** `SKILL.md:578` says the
+three receive `ownership-context`'s *"resolved PLACEMENT, not its findings"* --
+so a role at stage 3 cannot know an earlier role already ruled a sentence false,
+and will re-derive it or contradict it.
 
 ## What a later stage reads instead
 

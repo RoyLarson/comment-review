@@ -20,8 +20,8 @@ Measured: 2026-08-25 — on the CHAIN, not the 7b gate: flows/proof_setter.run r
 
 ## Objective
 
-**Stage 7b proves executable code unchanged by comparing `ast.dump`. A docstring is an AST node,
-so adding or deleting one fails the proof.** Measured:
+**Stage 7b proves executable code unchanged by comparing `ast.dump`. A docstring
+is an AST node, so adding or deleting one fails the proof.** Measured:
 
 | edit | CODE CHECK |
 | --- | --- |
@@ -30,13 +30,14 @@ so adding or deleting one fails the proof.** Measured:
 | **ADD a docstring** | **FAIL** |
 | **DELETE a docstring** | **FAIL** |
 
-!! **`add` cannot land on a docstring, and `add` is defined as "a constraint exists in code and
-NOWHERE in prose".** A function with no docstring is the case the verdict exists for, and the
-repair is a docstring. `drop` has the same hole from the other side.
+!! **`add` cannot land on a docstring, and `add` is defined as "a constraint
+exists in code and NOWHERE in prose".** A function with no docstring is the case
+the verdict exists for, and the repair is a docstring. `drop` has the same hole
+from the other side.
 
-! It went unnoticed because **7b had never run.** Two runs today stopped at 7a, as designed; the
-first one to cross applied a docstring `add`, failed the proof, and restored -- correctly, the
-rail says restore -- losing an approved edit.
+! It went unnoticed because **7b had never run.** Two runs today stopped at 7a,
+as designed; the first one to cross applied a docstring `add`, failed the proof,
+and restored -- correctly, the rail says restore -- losing an approved edit.
 
 ## ! The rule is deliberate and half-right
 

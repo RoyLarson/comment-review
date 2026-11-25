@@ -26,13 +26,14 @@ Triaged:  2026-08-23 — THREE CLAIMS IN THIS FILE ARE NOW FALSE, and the shape 
 
 ## Objective
 
-!! **THE SHIPPED CONVERTER CANNOT DO IT, AND A ONE-OFF SCRIPT CAN.** Roy, 2026-08-19: *"because
-we have recorded the hash and because we can clone the data we can eventually one-off move the old
-records into the new format -- but that is definitely a one-off script thing and not worth doing
-'right' now."*
+!! **THE SHIPPED CONVERTER CANNOT DO IT, AND A ONE-OFF SCRIPT CAN.** Roy,
+2026-08-19: *"because we have recorded the hash and because we can clone the
+data we can eventually one-off move the old records into the new format -- but
+that is definitely a one-off script thing and not worth doing 'right' now."*
 
-!! **THE GAP IS AN ADDRESS, AND THAT HAS NOT CHANGED -- WHAT CHANGED IS BOTH ENDS OF IT.**
-A held report names a place by LINE RANGE and today's reader wants a CUE.
+!! **THE GAP IS AN ADDRESS, AND THAT HAS NOT CHANGED -- WHAT CHANGED IS BOTH
+ENDS OF IT.** A held report names a place by LINE RANGE and today's reader wants
+a CUE.
 
 | | held, `evidence/cycle-0.2.3/records/*.json` | current, `record.py` |
 | --- | --- | --- |
@@ -41,7 +42,8 @@ A held report names a place by LINE RANGE and today's reader wants a CUE.
 | the file | repeated on every record | named once, by the page |
 | the reader that bridged them | `record.convert` / `record.parse_report` | **GONE** -- neither symbol exists in this tree |
 
-**What closes the gap is the SOURCE**, and every held run records the hash to get it.
+**What closes the gap is the SOURCE**, and every held run records the hash to
+get it.
 
 | held run | subject, as its own README states | in this tree |
 | --- | --- | --- |
@@ -49,11 +51,12 @@ A held report names a place by LINE RANGE and today's reader wants a CUE.
 | `evidence/todo-tool-full-run/` | `redacted_corpus`, `todo-requires-roy` @ `REDACTED_SHA_D` | no |
 | `evidence/redacted-corpus-full-v0_2/` | `redacted-branch-b` @ `REDACTED_SHA_F`, base `REDACTED_SHA_E` | no |
 
-! **`cycle-0.2.3` is not merely the cheap first case, it is the only one here**: `1ad4ba7` is in
-this repo's own history -- `git log --oneline -1 1ad4ba7` resolves -- so it needs no clone and the
-answer can be checked by reading. MEASURED 2026-08-23: it holds four reports, one per role, in
-`records/`. The other two rows are kept because a held run may be brought back; they are not work
-this tree can start.
+! **`cycle-0.2.3` is not merely the cheap first case, it is the only one here**:
+`1ad4ba7` is in this repo's own history -- `git log --oneline -1 1ad4ba7`
+resolves -- so it needs no clone and the answer can be checked by reading.
+MEASURED 2026-08-23: it holds four reports, one per role, in `records/`. The
+other two rows are kept because a held run may be brought back; they are not
+work this tree can start.
 
 **The recipe, which is why this is a script and not a feature:**
 
@@ -66,24 +69,28 @@ this tree can start.
 5. Re-emit under a `pages` envelope with that cue, and run the shipped shape check over the
    result.
 
-! **Step 4 needs a stated rule and does not have one.** Block boundaries moved between census
-versions -- the held census has no `margin` and no `undocumented` -- so a held range need not
-correspond to one of today's places. The obvious rule is *the place whose EDIT range contains the
-held start line*, and it is a guess until something checks it against a run whose answer is known.
+! **Step 4 needs a stated rule and does not have one.** Block boundaries moved
+between census versions -- the held census has no `margin` and no `undocumented`
+-- so a held range need not correspond to one of today's places. The obvious
+rule is *the place whose EDIT range contains the held start line*, and it is a
+guess until something checks it against a run whose answer is known.
 
-! **SUPERSEDED, and kept so the error stays legible.** This file used to say the script must read
-the held report's RAW text because `record.parse_report` discards `LOCATION`. Neither half
-survives: MEASURED 2026-08-23, `parse_report` and `convert` exist nowhere in `plugins/`,
-`scripts/` or `tests/`, and the held reports are already JSON -- `records[*]` each carrying
-`"address": "path:start-end"`. The reading problem is now the ENVELOPE and the address FORM.
+! **SUPERSEDED, and kept so the error stays legible.** This file used to say the
+script must read the held report's RAW text because `record.parse_report`
+discards `LOCATION`. Neither half survives: MEASURED 2026-08-23, `parse_report`
+and `convert` exist nowhere in `plugins/`, `scripts/` or `tests/`, and the held
+reports are already JSON -- `records[*]` each carrying `"address":
+"path:start-end"`. The reading problem is now the ENVELOPE and the address FORM.
 
-!! **NOT WORTH DOING NOW, AND THE REASON IS THAT NOTHING DEPENDS ON IT.** Replay was the cheap way
-to validate a change; 0.2.4 onward holds addressed reports, so the cheapness returns without this.
-This buys back the runs already in `evidence/`, and only those.
+!! **NOT WORTH DOING NOW, AND THE REASON IS THAT NOTHING DEPENDS ON IT.** Replay
+was the cheap way to validate a change; 0.2.4 onward holds addressed reports, so
+the cheapness returns without this. This buys back the runs already in
+`evidence/`, and only those.
 
-! **IT LIVES IN `scripts/`, NOT `plugins/`.** Nothing a user installs should carry it, and it runs
-once per held run rather than once per review. ! Stated here rather than carried as a box, because
-it is a constraint on the work and not a checkpoint of its own.
+! **IT LIVES IN `scripts/`, NOT `plugins/`.** Nothing a user installs should
+carry it, and it runs once per held run rather than once per review. ! Stated
+here rather than carried as a box, because it is a constraint on the work and
+not a checkpoint of its own.
 
 ## Tasks
 

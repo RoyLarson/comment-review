@@ -31,8 +31,8 @@ SPLIT:    2026-08-23 -- every box cut to two lines and the evidence each carried
 
 ## Objective
 
-!! **`b0` AND `b1` WERE MUTUALLY EXCLUSIVE, AND WHICH ONE EXISTED DEPENDED ON WHETHER THE FILE
-HAD A LICENCE.** Measured 2026-08-19 over five file shapes:
+!! **`b0` AND `b1` WERE MUTUALLY EXCLUSIVE, AND WHICH ONE EXISTED DEPENDED ON
+WHETHER THE FILE HAD A LICENCE.** Measured 2026-08-19 over five file shapes:
 
 | file | `b0` | `b1` |
 | --- | --- | --- |
@@ -42,9 +42,10 @@ HAD A LICENCE.** Measured 2026-08-19 over five file shapes:
 | shebang, no module docstring | `b0` | **--** |
 | plain comment above code | -- | `b1` |
 
-So the gap above the first line of code was called `b1` on one file and `b0` on another, and
-**adding a module docstring flipped it mid-run**. ! That is fixed -- see T1 to T7 -- and what is
-left is the wake: Roy's marks, and the tests that survived the renumbering.
+So the gap above the first line of code was called `b1` on one file and `b0` on
+another, and **adding a module docstring flipped it mid-run**. ! That is fixed
+-- see T1 to T7 -- and what is left is the wake: Roy's marks, and the tests that
+survived the renumbering.
 
 ## What it cost, end to end
 

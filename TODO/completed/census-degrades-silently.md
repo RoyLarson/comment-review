@@ -37,61 +37,72 @@ Measured: 2026-08-29 — 2026-08-29 -- T1 DONE, and the mechanism was one layer 
 
 ## Objective
 
-!! **FOUR INPUTS PRODUCE A CENSUS THAT IS WRONG RATHER THAN REFUSED, EACH EXITING 0.** The run
-reads as complete, the addresses are nonsense, and nothing says so. `census.py` already holds the
-opposite rule -- *"Every file handed in is censused, or this errors"* -- and these are the cases
-that slip past it by parsing far enough to produce blocks.
+!! **FOUR INPUTS PRODUCE A CENSUS THAT IS WRONG RATHER THAN REFUSED, EACH
+EXITING 0.** The run reads as complete, the addresses are nonsense, and nothing
+says so. `census.py` already holds the opposite rule -- *"Every file handed in
+is censused, or this errors"* -- and these are the cases that slip past it by
+parsing far enough to produce blocks.
 
-**A Python file that fails `ast.parse` is censused with NO ADDRESSES AT ALL.** MEASURED
-2026-08-23 on `'# one\nx = = 1\n# two\n\n# three\ny = 2\n'`: three paragraphs come back --
-`matter`, `unparsed`, `comment` -- and every one has an empty `address`. `page.py:708` is the
-branch: `if not any(b.kind == "unparsed" for b in got)` guards the whole of the addressing pass,
-so no place is emitted, `document_declarations` never runs, and the prose is handed on unaddressed.
-! **That is a CHANGE from what this file recorded**, which was three blocks collapsed onto `@b0`.
-An empty address is worse in one way and better in another: nothing is misfiled onto a place that
-belongs to something else, and nothing can be cited at all. ! Two failure modes for one
-condition: a `TokenError` (`def f(:`) is a hard NOT CENSUSED at rc 1, a `SyntaxError` (`x = = 1`)
-is a soft `unparsed` block at rc 0.
+**A Python file that fails `ast.parse` is censused with NO ADDRESSES AT ALL.**
+MEASURED 2026-08-23 on `'# one\nx = = 1\n# two\n\n# three\ny = 2\n'`: three
+paragraphs come back -- `matter`, `unparsed`, `comment` -- and every one has an
+empty `address`. `page.py:708` is the branch: `if not any(b.kind == "unparsed"
+for b in got)` guards the whole of the addressing pass, so no place is emitted,
+`document_declarations` never runs, and the prose is handed on unaddressed. !
+**That is a CHANGE from what this file recorded**, which was three blocks
+collapsed onto `@b0`. An empty address is worse in one way and better in
+another: nothing is misfiled onto a place that belongs to something else, and
+nothing can be cited at all. ! Two failure modes for one condition: a
+`TokenError` (`def f(:`) is a hard NOT CENSUSED at rc 1, a `SyntaxError` (`x = =
+1`) is a soft `unparsed` block at rc 0.
 
-! **AND `references/compact.md:100` DESCRIBES A THIRD THING.** It says of `unparsed` *"the file
-did not parse, so nothing was censused"* -- false, re-verified 2026-08-23: the comment blocks ARE
-censused and handed to reviewers; they simply have no addresses.
+! **AND `references/compact.md:100` DESCRIBES A THIRD THING.** It says of
+`unparsed` *"the file did not parse, so nothing was censused"* -- false,
+re-verified 2026-08-23: the comment blocks ARE censused and handed to reviewers;
+they simply have no addresses.
 
-**A UTF-8 BOM makes any Python file unparseable** -- the readers open with `encoding="utf-8"`
-rather than `utf-8-sig` (`repo.py:52`, `census.py:336`, `census.py:177`), and the BOM survives
-into `ast.parse`. VERIFIED 2026-08-20 and again 2026-08-23 on a BOM'd module holding a module
-docstring: one `unparsed` paragraph, EMPTY address, no places, exit 0 -- the docstring is in the
-file and absent from the census. **That breaks the contract `CLAUDE.md` calls absolute** -- every
-file handed in is censused or the run stops. Routine on Windows, which is where this repo is
-developed. ! The lexical half of the same encoding bug is filed as
-[`bom-is-read-as-source`](bom-is-read-as-source.md); one change fixes both.
+**A UTF-8 BOM makes any Python file unparseable** -- the readers open with
+`encoding="utf-8"` rather than `utf-8-sig` (`repo.py:52`, `census.py:336`,
+`census.py:177`), and the BOM survives into `ast.parse`. VERIFIED 2026-08-20 and
+again 2026-08-23 on a BOM'd module holding a module docstring: one `unparsed`
+paragraph, EMPTY address, no places, exit 0 -- the docstring is in the file and
+absent from the census. **That breaks the contract `CLAUDE.md` calls absolute**
+-- every file handed in is censused or the run stops. Routine on Windows, which
+is where this repo is developed. ! The lexical half of the same encoding bug is
+filed as [`bom-is-read-as-source`](bom-is-read-as-source.md); one change fixes
+both.
 
-**A one-line `def f(): pass` has an `a` place that writes ABOVE the `def`.** MEASURED end to end
-2026-08-23: `page_for` gives `a1` an anchor of `def f(): pass` and a range of `0-0`, and putting
-`"""What f does."""` at `m.py@a1` through `galley.reset` and `compositor.set_page` returns
+**A one-line `def f(): pass` has an `a` place that writes ABOVE the `def`.**
+MEASURED end to end 2026-08-23: `page_for` gives `a1` an anchor of `def f():
+pass` and a range of `0-0`, and putting `"""What f does."""` at `m.py@a1`
+through `galley.reset` and `compositor.set_page` returns
 
 ```
 """What f does."""
 def f(): pass
 ```
 
--- the docstring is now the MODULE's. `galley.reset` reported no problem. Also hits `@overload`
-and `class C: pass`.
+-- the docstring is now the MODULE's. `galley.reset` reported no problem. Also
+hits `@overload` and `class C: pass`.
 
-! **NO APPLICATION ORDER FIXES IT, and it is not a collision with `a0`:** an address is not an
-edit range, and the f -> a -> b -> c order settles two places that share an insertion point. This
-is different -- there is no line INSIDE the body to write on, and making one needs the line
-SPLIT, which is a code change stage 7b forbids. ! So the shape of the answer is that the place is
-UNWRITABLE and an `add` on it is REFUSED with a reason, rather than landing above the `def`.
+! **NO APPLICATION ORDER FIXES IT, and it is not a collision with `a0`:** an
+address is not an edit range, and the f -> a -> b -> c order settles two places
+that share an insertion point. This is different -- there is no line INSIDE the
+body to write on, and making one needs the line SPLIT, which is a code change
+stage 7b forbids. ! So the shape of the answer is that the place is UNWRITABLE
+and an `add` on it is REFUSED with a reason, rather than landing above the
+`def`.
 
-**An empty file yields zero blocks and has no `a0`** -- CLOSED 2026-08-20, see the header.
+**An empty file yields zero blocks and has no `a0`** -- CLOSED 2026-08-20, see
+the header.
 
-! **AND ONE BOUNDARY DEFECT IS FIXED.** `--filtered` used to drop a whole file from the listing a
-reviewer is handed: the no-prose run was never flushed at a file boundary and `flush_run` prints
-under `heading(first.path)`, so censusing `a.py` then `b.py` printed one run spanning both under
-`== a.py` and `b.py` never appeared. `census.py:566-568` now flushes when `b.path != run_path`.
-VERIFIED 2026-08-23: `--filtered` over three fixtures printed three headings, each run under its
-own file.
+! **AND ONE BOUNDARY DEFECT IS FIXED.** `--filtered` used to drop a whole file
+from the listing a reviewer is handed: the no-prose run was never flushed at a
+file boundary and `flush_run` prints under `heading(first.path)`, so censusing
+`a.py` then `b.py` printed one run spanning both under `== a.py` and `b.py`
+never appeared. `census.py:566-568` now flushes when `b.path != run_path`.
+VERIFIED 2026-08-23: `--filtered` over three fixtures printed three headings,
+each run under its own file.
 
 ## Tasks
 

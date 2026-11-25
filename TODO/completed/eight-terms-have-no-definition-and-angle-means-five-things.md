@@ -9,24 +9,28 @@ Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 
 ## Objective
 
-The system's own vocabulary is not stated where its readers meet it. NINE terms were used
-with a fixed sense and defined nowhere -- `angle` was the worst, at roughly forty sites in
-`SKILL.md` alone plus every script and agent file, carrying six distinct senses. Fifteen
-more words carry two or three meanings each, and a word may do that as long as each meaning
-is clarified up front, which none of them are. Roy ruled the first two: **`angle` is retired
-in favour of `editorial role`** (identifiers say `reviewer`), and **`sweep` is not a term --
-stage 7b is `APPLY`**. Both are applied. The rest is deciding,
-per term, whether to state the meaning, split the word, or delete the use.
+The system's own vocabulary is not stated where its readers meet it. NINE terms
+were used with a fixed sense and defined nowhere -- `angle` was the worst, at
+roughly forty sites in `SKILL.md` alone plus every script and agent file,
+carrying six distinct senses. Fifteen more words carry two or three meanings
+each, and a word may do that as long as each meaning is clarified up front,
+which none of them are. Roy ruled the first two: **`angle` is retired in favour
+of `editorial role`** (identifiers say `reviewer`), and **`sweep` is not a term
+-- stage 7b is `APPLY`**. Both are applied. The rest is deciding, per term,
+whether to state the meaning, split the word, or delete the use.
 
-The settled state: [`docs/vocabulary.md`](../docs/vocabulary.md), and the terms agents are
-given: `plugins/comment-review/skills/comment-review/references/vocabulary.toml`.
-! **The two survey documents are gone, 2026-08-16** -- a twelve-agent collection, per-bundle
-tables and 1,590 line citations were the apparatus for FINDING the terms, and the terms are
-settled. They converged on one file, which is what that convergence was always for.
+The settled state: [`docs/vocabulary.md`](../docs/vocabulary.md), and the terms
+agents are given:
+`plugins/comment-review/skills/comment-review/references/vocabulary.toml`. !
+**The two survey documents are gone, 2026-08-16** -- a twelve-agent collection,
+per-bundle tables and 1,590 line citations were the apparatus for FINDING the
+terms, and the terms are settled. They converged on one file, which is what that
+convergence was always for.
 
-!! **This file settles MEANINGS, not placement.** Where a term is defined in a file most of its
-readers cannot load, that is an observation for the distribution pass, not a move to make here.
-See the standing rule in [`README.md`](README.md).
+!! **This file settles MEANINGS, not placement.** Where a term is defined in a
+file most of its readers cannot load, that is an observation for the
+distribution pass, not a move to make here. See the standing rule in
+[`README.md`](README.md).
 
 ## Tasks
 

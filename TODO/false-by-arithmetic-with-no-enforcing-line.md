@@ -20,20 +20,23 @@ Split:    2026-08-23 -- 3 boxes became 4; the register box held the entry and th
 
 ## Objective
 
-!! **`block-context` COULD NOT HAVE CAUGHT THE DEFECT ROY FOUND IN THIS REPO'S OWN
-DOCS**, and the reason is precise rather than an oversight. Its constraint check, verbatim at
-`plugins/comment-review/agents/comment-review-block-context.md:82-83`, reads: *"Find the line
-that enforces the bound and compare four things: the VALUE, the DIRECTION (`>` vs `>=`), the
-UNITS, and what happens at the boundary."* That needs an ENFORCING LINE. The claim had none.
+!! **`block-context` COULD NOT HAVE CAUGHT THE DEFECT ROY FOUND IN THIS REPO'S
+OWN DOCS**, and the reason is precise rather than an oversight. Its constraint
+check, verbatim at
+`plugins/comment-review/agents/comment-review-block-context.md:82-83`, reads:
+*"Find the line that enforces the bound and compare four things: the VALUE, the
+DIRECTION (`>` vs `>=`), the UNITS, and what happens at the boundary."* That
+needs an ENFORCING LINE. The claim had none.
 
 **The claim:** *"The number to beat is zero blocks missed."* Blocks are counted
 in whole numbers, so nothing lies below zero and there is nothing to beat. Roy,
 2026-08-18: *"you can't 'beat' zero blocks missed. These are whole number counts
 only not real number counts."*
 
-! It was in `evidence/tier-measurement.md` and repeated in `docs/parsing.md`, and
-every gate this repo runs was green over both. ! **Both sentences have since been rewritten by
-hand** -- see the `Triaged:` note -- so the instance is closed and the CLASS is what is left.
+! It was in `evidence/tier-measurement.md` and repeated in `docs/parsing.md`,
+and every gate this repo runs was green over both. ! **Both sentences have since
+been rewritten by hand** -- see the `Triaged:` note -- so the instance is closed
+and the CLASS is what is left.
 
 ## Why the shape is worth naming
 

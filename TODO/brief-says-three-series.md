@@ -11,10 +11,11 @@ Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
 
 ## Objective
 
-`reviewer-brief.md:69` says *"The three series are counted by three separate addressers"* and
-`:221` offers a `--series` flag naming only `a`, `b` and `c`. `reading/series.py`'s `ADDRESSED`
-is `('a', 'b', 'c', 'f')` and `SKILL.md:378` says four -- so a role cannot resolve the `@f0`
-place the same brief tells it to cite at `:74`.
+`reviewer-brief.md:69` says *"The three series are counted by three separate
+addressers"* and `:221` offers a `--series` flag naming only `a`, `b` and `c`.
+`reading/series.py`'s `ADDRESSED` is `('a', 'b', 'c', 'f')` and `SKILL.md:378`
+says four -- so a role cannot resolve the `@f0` place the same brief tells it to
+cite at `:74`.
 
 ## Tasks
 

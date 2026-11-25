@@ -13,10 +13,10 @@ Raised:   2026-08-30 (2026-08-30, a fix round on flows/carry.py surfaced the sam
 
 A present-but-null key becomes the four characters `None`.
 
-**`str(d.get(k, ""))` IS NOT A NULL GUARD.** The default fires only when the key is
-ABSENT. A key that is PRESENT and holds `null` -- which is what a parsed artifact
-carries when a serialiser failed, or when a writer omitted a value it had -- reaches
-`str()` as `None` and comes out as the string `"None"`.
+**`str(d.get(k, ""))` IS NOT A NULL GUARD.** The default fires only when the key
+is ABSENT. A key that is PRESENT and holds `null` -- which is what a parsed
+artifact carries when a serialiser failed, or when a writer omitted a value it
+had -- reaches `str()` as `None` and comes out as the string `"None"`.
 
 **MEASURED 2026-08-30 across `src/comment_review/`:**
 
@@ -25,35 +25,35 @@ carries when a serialiser failed, or when a writer omitted a value it had -- rea
 | `str(d.get(k, ""))` | **26** | `"None"` |
 | `str(d.get(k) or "")` | 8 | `""` |
 
-Two spellings for one intent, mixed through the same modules, and nothing says which
-is the form.
+Two spellings for one intent, mixed through the same modules, and nothing says
+which is the form.
 
 !! **THE FIX COMMENT SITS DIRECTLY BELOW AN UNFIXED INSTANCE OF THE BUG IT
-DESCRIBES.** `6b2695f` guarded `sha` in `flows/distribute.py` and wrote a comment
-explaining the hazard -- *"unlike `flows.carry` there is no `str()` here to turn it
-into the word `None`"*. The line immediately ABOVE that comment is
-`"path": str(page.get("path", ""))`, which has exactly that `str()`. ! The reason it
-was missed is the reason it is worth a file: the pattern is invisible at the site,
-because every instance reads as an ordinary default.
+DESCRIBES.** `6b2695f` guarded `sha` in `flows/distribute.py` and wrote a
+comment explaining the hazard -- *"unlike `flows.carry` there is no `str()` here
+to turn it into the word `None`"*. The line immediately ABOVE that comment is
+`"path": str(page.get("path", ""))`, which has exactly that `str()`. ! The
+reason it was missed is the reason it is worth a file: the pattern is invisible
+at the site, because every instance reads as an ordinary default.
 
-! **NOT ALL 26 ARE DEFECTS, AND THE WORK IS DECIDING WHICH.** A site whose dict was
-built by this codebase two lines earlier cannot receive a null; a site reading a
-binder, a docket or an edit copy can. **The task is to separate them, not to rewrite
-all 26** -- a mechanical sweep would churn the safe sites and prove nothing about
-the unsafe ones.
+! **NOT ALL 26 ARE DEFECTS, AND THE WORK IS DECIDING WHICH.** A site whose dict
+was built by this codebase two lines earlier cannot receive a null; a site
+reading a binder, a docket or an edit copy can. **The task is to separate them,
+not to rewrite all 26** -- a mechanical sweep would churn the safe sites and
+prove nothing about the unsafe ones.
 
 ! **IT IS THE SAME CLASS AS TWO ALREADY-FIXED DEFECTS, WHICH IS WHY IT RECURS.**
-`results/verdicts.py` once admitted a citation whose `verbatim` was `null` because
-it rendered as the word `None` and the cited line happened to contain it;
-`commands/collate.py` carried it for a `sha` and a `stage` until `d708750`. ! A
-defect fixed three times at three sites and never once as a pattern is a defect
-that will be fixed a fourth time.
+`results/verdicts.py` once admitted a citation whose `verbatim` was `null`
+because it rendered as the word `None` and the cited line happened to contain
+it; `commands/collate.py` carried it for a `sha` and a `stage` until `d708750`.
+! A defect fixed three times at three sites and never once as a pattern is a
+defect that will be fixed a fourth time.
 
 ! **RELATED BUT NOT THE SAME QUESTION:**
-[`null-is-not-a-decision`](null-is-not-a-decision.md) asks what a `null` MEANS in a
-docket -- a serialisation failure and an approved drop are the same bytes. This asks
-what a `null` BECOMES when something stringifies it. The first is semantics, the
-second is a guard.
+[`null-is-not-a-decision`](null-is-not-a-decision.md) asks what a `null` MEANS
+in a docket -- a serialisation failure and an approved drop are the same bytes.
+This asks what a `null` BECOMES when something stringifies it. The first is
+semantics, the second is a guard.
 
 ## Tasks
 

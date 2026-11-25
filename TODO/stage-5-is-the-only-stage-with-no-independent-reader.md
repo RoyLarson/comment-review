@@ -40,8 +40,8 @@ a report; the human sees the proposal and nothing before it.
 
 ## Objective
 
-**Every stage but one was read by somebody who did not write it, and the exception now has two
-readers.**
+**Every stage but one was read by somebody who did not write it, and the
+exception now has two readers.**
 
 | stage | who checks it |
 | --- | --- |
@@ -51,21 +51,24 @@ readers.**
 | 7b WRITE | the CODE CHECK, against the pre-edit ref |
 | 8 REVIEW | a separate agent, reading the finished page |
 
-!! `compact.md` already made the argument, for its own stage: *"An agent that never saw the
-argument cannot keep a sentence because it remembers writing it -- which is what makes this pass
-safe... **The contract only buys anything if the reader is not the writer.**"* That reasoning
-applied to stage 5 verbatim and was not applied there: stage 5 wrote the replacement text and
-then ran the residue check on its own output.
+!! `compact.md` already made the argument, for its own stage: *"An agent that
+never saw the argument cannot keep a sentence because it remembers writing it --
+which is what makes this pass safe... **The contract only buys anything if the
+reader is not the writer.**"* That reasoning applied to stage 5 verbatim and was
+not applied there: stage 5 wrote the replacement text and then ran the residue
+check on its own output.
 
-! **What shipped is (e), the recommendation below.** `SKILL.md:39`: *"5b and 6b are the same
-mechanism asking DIFFERENT questions"*; `:101-104` says they are what make every stage's output
-read by somebody who did not write it, and records that APPLY still runs the residue check on
-its own output as well. ! `re-review.md:145`: **nothing has yet reached a second round**, so
-none of it is measured in a live run.
+! **What shipped is (e), the recommendation below.** `SKILL.md:39`: *"5b and 6b
+are the same mechanism asking DIFFERENT questions"*; `:101-104` says they are
+what make every stage's output read by somebody who did not write it, and
+records that APPLY still runs the residue check on its own output as well. !
+`re-review.md:145`: **nothing has yet reached a second round**, so none of it is
+measured in a live run.
 
-! **THE ALTERNATIVES ARE KEPT FOR THE RECORD**, since the ruling that chose (e) arrived
-2026-08-17 and the losers explain the shape: (a) stage 8 alone, (b) a residue-check agent, (c) a
-re-derivation agent, (d) stage 8 before the write -- which stays live as T5 and T6.
+! **THE ALTERNATIVES ARE KEPT FOR THE RECORD**, since the ruling that chose (e)
+arrived 2026-08-17 and the losers explain the shape: (a) stage 8 alone, (b) a
+residue-check agent, (c) a re-derivation agent, (d) stage 8 before the write --
+which stays live as T5 and T6.
 
 ## ! Measured: the self-administered rails were read and not run
 

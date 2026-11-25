@@ -40,21 +40,24 @@ Baseline: 2026-08-24 — P1 landed. scripts/measure_binder.py is the
 
 ## Objective
 
-A census row carries 19 fields and an empty place fills 7, with three different spellings of absent.
+A census row carries 19 fields and an empty place fills 7, with three different
+spellings of absent.
 
-The 19 keys, from a run on 2026-08-23: `address`, `anchor`, `anchor_line`, `anchor_num`,
-`annotations`, `declares`, `end`, `kind`, `lines`, `notes`, `original_column`,
-`original_end`, `original_start`, `path`, `raw_lines`, `start`, `symbol`, `text`, `tier`.
+The 19 keys, from a run on 2026-08-23: `address`, `anchor`, `anchor_line`,
+`anchor_num`, `annotations`, `declares`, `end`, `kind`, `lines`, `notes`,
+`original_column`, `original_end`, `original_start`, `path`, `raw_lines`,
+`start`, `symbol`, `text`, `tier`.
 
-!! **THE RULING IS WHAT THE FILE IS FOR.** Which fields a reviewer actually needs decides
-the shape stage 4 pastes into four prompts, so an unused field is paid for four times per
-page. ! **AND THE `lines` QUESTION COMES BEFORE THE TRIM**, because `lines` matches neither
-derivation: a trim cannot tell a third fact from a stale field, so removing it either way is
-a guess.
+!! **THE RULING IS WHAT THE FILE IS FOR.** Which fields a reviewer actually
+needs decides the shape stage 4 pastes into four prompts, so an unused field is
+paid for four times per page. ! **AND THE `lines` QUESTION COMES BEFORE THE
+TRIM**, because `lines` matches neither derivation: a trim cannot tell a third
+fact from a stale field, so removing it either way is a guess.
 
-!! **RULED 2026-08-24, AND `lines` WAS ANSWERED BY NEITHER OPTION** -- see the ruling below. The
-sentence above is kept because it is what the deferral rested on, and the way it resolved is the
-point: the NAME could not tell you which fact it held, so the field does not ship.
+!! **RULED 2026-08-24, AND `lines` WAS ANSWERED BY NEITHER OPTION** -- see the
+ruling below. The sentence above is kept because it is what the deferral rested
+on, and the way it resolved is the point: the NAME could not tell you which fact
+it held, so the field does not ship.
 
 ## The measurements, all re-run 2026-08-23
 

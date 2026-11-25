@@ -17,9 +17,9 @@ Split:    2026-08-23 -- the box holding the three CONDITIONAL entries was one ru
 
 ## Objective
 
-**Both lists are gone from `reviewer-brief.md`. This file holds what was inside them**, because
-several entries carry real checks and one carries a real measurement, and none of that survives
-in the tree any more.
+**Both lists are gone from `reviewer-brief.md`. This file holds what was inside
+them**, because several entries carry real checks and one carries a real
+measurement, and none of that survives in the tree any more.
 
 Why they went, in order of weight:
 

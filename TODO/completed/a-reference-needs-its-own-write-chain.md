@@ -11,12 +11,12 @@ Raised:   2026-08-27 (Roy, answering whether a `references` page is settable: "Y
 
 ## Objective
 
-**A `references` page is settable, and the chain that sets a code page cannot set it.** Roy ruled
-both halves in one sentence -- the capability is wanted, and it is a SEPARATE flow with its own
-galley and its own compositor.
+**A `references` page is settable, and the chain that sets a code page cannot
+set it.** Roy ruled both halves in one sentence -- the capability is wanted, and
+it is a SEPARATE flow with its own galley and its own compositor.
 
-! **Two of the three checks have no subject on a reference**, which is what makes it a second
-chain rather than a flag on the first:
+! **Two of the three checks have no subject on a reference**, which is what
+makes it a second chain rather than a flag on the first:
 
 | the check | on a code page | on a reference |
 | --- | --- | --- |
@@ -24,21 +24,23 @@ chain rather than a flag on the first:
 | the compositor | set these lines back where the CUES say | **no cues.** A reference is `path:line` |
 | `prove_unchanged` | the executable code is byte-identical | **no code.** See [`prove-refuses-a-doc`](prove-refuses-a-doc.md) |
 
-! **AND THE TEXT MAY REFLOW.** Roy, 2026-08-27: *"because it doesn't have the constraints that
-require exact addresses that program files do can probably be `file_address:line_number` / And a
-modification in those docs can flow the text to the required line-width."* A code compositor sets
-a paragraph back into the room the cues name; a reference compositor may rewrap it. **Those are
-different contracts, not one contract with an option.**
+! **AND THE TEXT MAY REFLOW.** Roy, 2026-08-27: *"because it doesn't have the
+constraints that require exact addresses that program files do can probably be
+`file_address:line_number` / And a modification in those docs can flow the text
+to the required line-width."* A code compositor sets a paragraph back into the
+room the cues name; a reference compositor may rewrap it. **Those are different
+contracts, not one contract with an option.**
 
 ### The signal is undecided, and is to be decided WHILE building
 
-Roy: *"Docket probably needs a code/reference schedule split to be the appropriate signal for the
-flow that needs to happen but maybe there is a different way of signaling and should be discussed
-while implementing."*
+Roy: *"Docket probably needs a code/reference schedule split to be the
+appropriate signal for the flow that needs to happen but maybe there is a
+different way of signaling and should be discussed while implementing."*
 
-So what is settled is that **something must tell the flow which chain a schedule belongs to**. The
-candidate is a `code`/`reference` split on the docket, mirroring the binder's `pages`/`pulled` /
-`references`. It is not ruled, and the alternatives have not been laid out.
+So what is settled is that **something must tell the flow which chain a schedule
+belongs to**. The candidate is a `code`/`reference` split on the docket,
+mirroring the binder's `pages`/`pulled` / `references`. It is not ruled, and the
+alternatives have not been laid out.
 
 ### What is NOT in scope here
 
@@ -48,10 +50,11 @@ candidate is a `code`/`reference` split on the docket, mirroring the binder's `p
   [`reference-only-misses-the-documentation`](reference-only-misses-the-documentation.md), an
   `agents` question about SELECTION. This file is about the WRITE side of one already selected.
 
-!! **WHY IT WAITS, AND IT IS THE STANDING PRACTICE.** `CLAUDE.md`: *a thing whose dependencies are
-broken is not worked on, it is refused.* A second galley-compositor pair written now would be
-shaped by a middle that has not settled -- the same cost the six recorded refusals name, most
-directly *"there was no reason to try to fix the galley as it was."*
+!! **WHY IT WAITS, AND IT IS THE STANDING PRACTICE.** `CLAUDE.md`: *a thing
+whose dependencies are broken is not worked on, it is refused.* A second
+galley-compositor pair written now would be shaped by a middle that has not
+settled -- the same cost the six recorded refusals name, most directly *"there
+was no reason to try to fix the galley as it was."*
 
 ## Tasks
 

@@ -24,9 +24,9 @@ SPLIT:    2026-08-23 -- each of the four `*` boxes carried the measurement that 
 files.** Roy, 2026-08-18: *"keep track of these and have a place to specifically
 decide on them when we want to review them."*
 
-! **This is where a proposed rule GOES, not where it is decided in passing.** A finding that
-implies a role should say something new is filed here and left; the batch is ruled deliberately,
-in one sitting, with the others visible.
+! **This is where a proposed rule GOES, not where it is decided in passing.** A
+finding that implies a role should say something new is filed here and left; the
+batch is ruled deliberately, in one sitting, with the others visible.
 
 ## !! A RULE PAYS FOR ITS OWN LINES -- IT DOES NOT HAVE TO DISPLACE ONE
 

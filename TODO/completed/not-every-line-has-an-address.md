@@ -39,24 +39,27 @@ CORRECTED: 2026-08-23 — the Objective said [[leaf-means-two-things]] *"stays l
 
 ## Objective
 
-**595 real lines carry no address, every one of them `leading`, under a docstring stating that
-every line has exactly one.** MEASURED 2026-08-23 on the 19 shipped scripts: 8,746 paragraphs
-over 11,009 lines, 401 with no address. So `addresser.py:28` -- *"EVERY LINE HAS EXACTLY ONE
-ADDRESS, AND A PARAGRAPH IS JUST THE LINES THAT SHARE ONE"* -- was false in its own directory.
+**595 real lines carry no address, every one of them `leading`, under a
+docstring stating that every line has exactly one.** MEASURED 2026-08-23 on the
+19 shipped scripts: 8,746 paragraphs over 11,009 lines, 401 with no address. So
+`addresser.py:28` -- *"EVERY LINE HAS EXACTLY ONE ADDRESS, AND A PARAGRAPH IS
+JUST THE LINES THAT SHARE ONE"* -- was false in its own directory.
 
-!! **RULED 2026-08-23: THE SENTENCE IS NARROWED. LEADING DOES NOT GET A PLACE.** Roy, closing it:
-*"We tried leading getting a place. We tried several different ways. The constraints of coding AND
-editing do not allow it. It makes the shifting impossible to correctly determine and lay the prose
-back in."*
+!! **RULED 2026-08-23: THE SENTENCE IS NARROWED. LEADING DOES NOT GET A PLACE.**
+Roy, closing it: *"We tried leading getting a place. We tried several different
+ways. The constraints of coding AND editing do not allow it. It makes the
+shifting impossible to correctly determine and lay the prose back in."*
 
-! **THAT IS THE OPERATIVE REASON AND IT WAS NOT IN THE RECORD.** `c27ea1d` already carries three
-others -- a `d` has no anchor so it fails the substitution, `""` being the ABSENCE of an answer
-rather than one; every other place exists because the walk reached a trigger and THE TRIGGER IS
-THE ANCHOR, while a `d` exists only because the lexer found blank lines; and publishing agreeing
-independently, since leading is a MEASUREMENT of the type it accompanies ("10 on 12") and a
-measurement cannot be anchored, only the thing measured can. **What none of them said is what
-breaks downstream**, and it is two failures rather than one. Roy: *"It makes the shifting
-impossible to correctly determine and lay the prose back in ... or deterministically put the
+! **THAT IS THE OPERATIVE REASON AND IT WAS NOT IN THE RECORD.** `c27ea1d`
+already carries three others -- a `d` has no anchor so it fails the
+substitution, `""` being the ABSENCE of an answer rather than one; every other
+place exists because the walk reached a trigger and THE TRIGGER IS THE ANCHOR,
+while a `d` exists only because the lexer found blank lines; and publishing
+agreeing independently, since leading is a MEASUREMENT of the type it
+accompanies ("10 on 12") and a measurement cannot be anchored, only the thing
+measured can. **What none of them said is what breaks downstream**, and it is
+two failures rather than one. Roy: *"It makes the shifting impossible to
+correctly determine and lay the prose back in ... or deterministically put the
 leading back in where people would expect it."*
 
 | | what cannot be determined |
@@ -64,27 +67,31 @@ leading back in where people would expect it."*
 | **position** | where everything below an edit has shifted to, once the slack between places is itself editable |
 | **amount** | how much blank belongs where afterwards -- a comment growing from two lines to six, a paragraph dropped between two blanks. *"Where people would expect it"* is a typographic judgement, and no rule computes it |
 
-!! **THE SECOND IS WHY THE EDGE SHAPE IS THE ONLY ONE THAT WORKS.** Keyed on the place it FOLLOWS
--- `f0 -> d0` -- the system never decides an amount; it replays what it read. Make leading a place
-and an edit can target it, and then something has to CHOOSE the right blank. Nothing can.
+!! **THE SECOND IS WHY THE EDGE SHAPE IS THE ONLY ONE THAT WORKS.** Keyed on the
+place it FOLLOWS -- `f0 -> d0` -- the system never decides an amount; it replays
+what it read. Make leading a place and an edit can target it, and then something
+has to CHOOSE the right blank. Nothing can.
 
-!! **SO THE OPPOSITE FIX IS CLOSED, AND THIS FILE HELD IT OPEN FOR THREE HOURS.** It was filed
-with *"do not correct the sentence before ruling"*, on the reading that if leading took a place the
-universal would become true and `path@cue` would become PAGE AND LINE, the way a proof is cited.
-**It cannot.** ! The trade shape was real and the constraint beats it: this system cannot cite by
-line, because a prose edit moves every line below it, and it cannot make the slack citable either.
-**Both halves of the trade's own address are unavailable here**, which is why the `@` half is a
-coinage and not a borrowing.
+!! **SO THE OPPOSITE FIX IS CLOSED, AND THIS FILE HELD IT OPEN FOR THREE
+HOURS.** It was filed with *"do not correct the sentence before ruling"*, on the
+reading that if leading took a place the universal would become true and
+`path@cue` would become PAGE AND LINE, the way a proof is cited. **It cannot.**
+! The trade shape was real and the constraint beats it: this system cannot cite
+by line, because a prose edit moves every line below it, and it cannot make the
+slack citable either. **Both halves of the trade's own address are unavailable
+here**, which is why the `@` half is a coinage and not a borrowing.
 
-! **AND BOTH CORRECTIONS HAVE LANDED.** The narrowed sentence is at `addresser.py:18-19` and
-Roy's two downstream reasons are at `addresser.py:1361-1377`, in `owes_address`, which
-`addresser.py:30` points to from the sentence itself.
+! **AND BOTH CORRECTIONS HAVE LANDED.** The narrowed sentence is at
+`addresser.py:18-19` and Roy's two downstream reasons are at
+`addresser.py:1361-1377`, in `owes_address`, which `addresser.py:30` points to
+from the sentence itself.
 
-! **`cue` GOT ITS WORD ELSEWHERE.** This file said `leaf-means-two-things` *"stays live rather
-than dissolving"*; MEASURED 2026-08-23, it is `TODO/completed/leaf-means-two-things.md` at 19 of
-19 -- *"the binder model closes it -- no leaf in the picture, cue becomes cue, and Cues needs no
-exotic noun because completeness is in the tabbing practice."* The reasoning is kept because it
-was the live question when this file was written.
+! **`cue` GOT ITS WORD ELSEWHERE.** This file said `leaf-means-two-things`
+*"stays live rather than dissolving"*; MEASURED 2026-08-23, it is
+`TODO/completed/leaf-means-two-things.md` at 19 of 19 -- *"the binder model
+closes it -- no leaf in the picture, cue becomes cue, and Cues needs no exotic
+noun because completeness is in the tabbing practice."* The reasoning is kept
+because it was the live question when this file was written.
 
 ## Tasks
 

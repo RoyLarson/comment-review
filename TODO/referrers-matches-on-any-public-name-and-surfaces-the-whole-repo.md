@@ -26,27 +26,29 @@ SPLIT:    2026-08-23 -- the boxes were cut to two lines each and every one was g
 
 ## Objective
 
-**`referrers.py` returned roughly every document in the repo, and the operator hand-picked 28.**
-Reported from that run: generic public names -- `run`, `main`, `lift`, `schedule` -- *"pulled in
-~490 files, essentially every doc in the repo, so I selected 28 rather than passing its output
-through."*
+**`referrers.py` returned roughly every document in the repo, and the operator
+hand-picked 28.** Reported from that run: generic public names -- `run`, `main`,
+`lift`, `schedule` -- *"pulled in ~490 files, essentially every doc in the repo,
+so I selected 28 rather than passing its output through."*
 
-!! **Both 0.2.0 runs hit it independently, on the same day and the same repo.** It is the
-tool's normal behaviour, not one unlucky scope:
+!! **Both 0.2.0 runs hit it independently, on the same day and the same repo.**
+It is the tool's normal behaviour, not one unlucky scope:
 
 | run | files under review | returned | handed to reviewers |
 | --- | --- | --- | --- |
 | builder (`redacted-branch-b`) | 24 | ~490 | 28 |
 | todo-tool (`todo-requires-roy`) | 3 | 337 | ~20, via 46 |
 
-! The todo-tool run narrowed in TWO steps (337 -> 46 -> ~20) and only the endpoints were
-reported. Neither the rule used at each step nor the files dropped is recoverable.
+! The todo-tool run narrowed in TWO steps (337 -> 46 -> ~20) and only the
+endpoints were reported. Neither the rule used at each step nor the files
+dropped is recoverable.
 
-!! **The hand-selection is the real defect, not the noise.** The tool is stage 3's INBOUND
-half, and its output becomes the `REFERENCE ONLY` list in the stage-4 packet. A list narrowed
-from 490 to 28 by unrecorded judgement means the reviewers' inputs cannot be reconstructed from
-the package, and the next run cannot be compared with this one. A tool whose output must be
-hand-filtered has moved the decision out of the tool and into a place nothing records.
+!! **The hand-selection is the real defect, not the noise.** The tool is stage
+3's INBOUND half, and its output becomes the `REFERENCE ONLY` list in the
+stage-4 packet. A list narrowed from 490 to 28 by unrecorded judgement means the
+reviewers' inputs cannot be reconstructed from the package, and the next run
+cannot be compared with this one. A tool whose output must be hand-filtered has
+moved the decision out of the tool and into a place nothing records.
 
 ## Where it comes from
 

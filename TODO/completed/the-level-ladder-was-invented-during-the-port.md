@@ -12,22 +12,24 @@ Re-filed: 2026-08-16 (Roy: "Make certain to todo covers the removal of this
 
 ## Objective
 
-**`level` gates which verdicts a reviewer may emit, and it has no provenance.** Traced with
-`git log -S`: the ladder exists at **zero commits** in `redacted_corpus`, on any branch. It
-was invented during the 2026-08-14 port, and its whole stated justification was one budget
-measurement.
+**`level` gates which verdicts a reviewer may emit, and it has no provenance.**
+Traced with `git log -S`: the ladder exists at **zero commits** in
+`redacted_corpus`, on any branch. It was invented during the 2026-08-14 port,
+and its whole stated justification was one budget measurement.
 
-! **It is load-bearing where it exists.** `verdicts.py:281` refuses a verdict outside the level's
-set, so at `fact-check` a true-but-misplaced block cannot be `move`d and becomes `query`; at
-`line` no reviewer may `patch`. Removing it is not deleting a table -- it is deciding that every
-verdict is admissible on every run, and then removing the rules written to work around the
-restriction.
+! **It is load-bearing where it exists.** `verdicts.py:281` refuses a verdict
+outside the level's set, so at `fact-check` a true-but-misplaced block cannot be
+`move`d and becomes `query`; at `line` no reviewer may `patch`. Removing it is
+not deleting a table -- it is deciding that every verdict is admissible on every
+run, and then removing the rules written to work around the restriction.
 
-! **Ruled NOT a vocabulary question**, which is why it needed a home of its own. This is it.
+! **Ruled NOT a vocabulary question**, which is why it needed a home of its own.
+This is it.
 
-! **Recorded because it was nearly lost.** It was item 6 of `TODO/README`'s branch status, and
-the 2026-08-16 re-derivation dropped it -- nothing else in the tree carried the finding. Filed
-here so a status rewrite cannot lose it again.
+! **Recorded because it was nearly lost.** It was item 6 of `TODO/README`'s
+branch status, and the 2026-08-16 re-derivation dropped it -- nothing else in
+the tree carried the finding. Filed here so a status rewrite cannot lose it
+again.
 
 ## Ruling, 2026-08-16
 

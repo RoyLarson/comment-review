@@ -37,16 +37,18 @@ Re-asked: 2026-08-24 — the 2026-08-18 filtered-view ruling is RE-OPENED
 
 ## Objective
 
-Every place between two lines of code is enumerated so that `add` and `move` have an index to
-cite -- ruled 2026-08-17. **Measured 2026-08-18, that artifact was the largest single thing a
-reviewer was handed.**
+Every place between two lines of code is enumerated so that `add` and `move`
+have an index to cite -- ruled 2026-08-17. **Measured 2026-08-18, that artifact
+was the largest single thing a reviewer was handed.**
 
-Roy, 2026-08-18: a tool retrieves the correct spot from the enumerated spots, the agents are
-sent only the FILTERED places, and they call the tool when they need a place outside the filter.
+Roy, 2026-08-18: a tool retrieves the correct spot from the enumerated spots,
+the agents are sent only the FILTERED places, and they call the tool when they
+need a place outside the filter.
 
-!! **THIS DOES NOT REVERSE THE 2026-08-17 RULING; IT DEPENDS ON IT.** Roy, 2026-08-18: *"We had
-to enumerate everything first -- I was right about that. We had to get here before we could get
-back to the cheaper answer."* Three things follow, and they are the frame for everything below:
+!! **THIS DOES NOT REVERSE THE 2026-08-17 RULING; IT DEPENDS ON IT.** Roy,
+2026-08-18: *"We had to enumerate everything first -- I was right about that. We
+had to get here before we could get back to the cheaper answer."* Three things
+follow, and they are the frame for everything below:
 
 - **`add` was not expressible before it.** The finding is about an EMPTY place, and with no index
   for one, an `add` had to borrow a neighbouring paragraph's. Enumeration is what made the verdict
@@ -57,8 +59,9 @@ back to the cheaper answer."* Three things follow, and they are the frame for ev
 - **The measurement could only be taken here.** Which gaps get cited, by which role, is a fact
   about runs -- and there were no runs until the census could express the whole pipeline.
 
-! So what changed is not the ARTIFACT but WHO CARRIES IT. The census on disk stays fully
-enumerated; the copy pasted into a reviewer's prompt is not the whole thing.
+! So what changed is not the ARTIFACT but WHO CARRIES IT. The census on disk
+stays fully enumerated; the copy pasted into a reviewer's prompt is not the
+whole thing.
 
 ## What has SHIPPED, verified 2026-08-23
 

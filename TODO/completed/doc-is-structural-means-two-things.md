@@ -21,17 +21,18 @@ SPLIT:     2026-08-23 -- the first box held a CODE change (which reader reads wh
 
 ## Objective
 
-!! **ONE FLAG, TWO PROPERTIES, AND THE DOCSTRING NAMES ONLY ONE.** `lexer.block_text`
-(`lexer.py:609-649`) documents `structural` as *"whether this language's doc is a STRING IN A
-DECLARATION'S BODY (Python) rather than a marked comment run"* (`:634-635`), and states outright
-at `:643-644`: *"Only Python's docstring is a string in a declaration's body, which is what
-`doc_is_structural` records."*
+!! **ONE FLAG, TWO PROPERTIES, AND THE DOCSTRING NAMES ONLY ONE.**
+`lexer.block_text` (`lexer.py:609-649`) documents `structural` as *"whether this
+language's doc is a STRING IN A DECLARATION'S BODY (Python) rather than a marked
+comment run"* (`:634-635`), and states outright at `:643-644`: *"Only Python's
+docstring is a string in a declaration's body, which is what `doc_is_structural`
+records."*
 
-MEASURED 2026-08-23 over `language.LANGUAGES` (18 records): exactly three set the flag --
-`python`, `go`, `ruby`. Two of them are not strings in a body. What Go and Ruby actually share is
-that **docs attach BY POSITION** -- a run touching a declaration is documentation -- which is a
-different property, and it is the property `lexer.flag_structural_docs` (`:1453-1494`) reads the
-same flag for.
+MEASURED 2026-08-23 over `language.LANGUAGES` (18 records): exactly three set
+the flag -- `python`, `go`, `ruby`. Two of them are not strings in a body. What
+Go and Ruby actually share is that **docs attach BY POSITION** -- a run touching
+a declaration is documentation -- which is a different property, and it is the
+property `lexer.flag_structural_docs` (`:1453-1494`) reads the same flag for.
 
 | language | a string in a declaration's body | docs attach by position |
 | --- | --- | --- |
@@ -40,8 +41,8 @@ same flag for.
 | ruby | **no** | yes |
 
 ! The two readers are `grep -n "doc_is_structural"
-plugins/comment-review/skills/comment-review/scripts/*.py`, and each is reading the flag for a
-different one of the two properties.
+plugins/comment-review/skills/comment-review/scripts/*.py`, and each is reading
+the flag for a different one of the two properties.
 
 ## Not live, and one row away from being live
 

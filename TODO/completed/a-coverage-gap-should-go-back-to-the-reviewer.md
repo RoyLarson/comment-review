@@ -21,28 +21,31 @@ SPLIT:    2026-08-23 -- one action per box, and the code box became two: sending
 
 ## Objective
 
-**A paragraph a reviewer never accounted for is unfinished work, not a finding about the run.**
-Today `verdicts.py` computes the addresses no reviewer accounted for, prints a COVERAGE GAP
-naming the role, and counts each one fatal. The run stops and a human reads a list of addresses.
+**A paragraph a reviewer never accounted for is unfinished work, not a finding
+about the run.** Today `verdicts.py` computes the addresses no reviewer
+accounted for, prints a COVERAGE GAP naming the role, and counts each one fatal.
+The run stops and a human reads a list of addresses.
 
-RE-MEASURED 2026-08-23: `coverage_gaps` is `verdicts.py:117-134`, and its report is
-`verdicts.py:520-529` -- *"COVERAGE GAPS - addresses no reviewer accounted for"*, one `fatal += 1`
-per reviewer.
+RE-MEASURED 2026-08-23: `coverage_gaps` is `verdicts.py:117-134`, and its report
+is `verdicts.py:520-529` -- *"COVERAGE GAPS - addresses no reviewer accounted
+for"*, one `fatal += 1` per reviewer.
 
-Roy ruled the other way: send those paragraphs back to the reviewer that skipped them and let it
-rule. The gate keeps its job -- nothing passes unaccounted for -- but the outcome is a completed
-census instead of a report that one is incomplete.
+Roy ruled the other way: send those paragraphs back to the reviewer that skipped
+them and let it rule. The gate keeps its job -- nothing passes unaccounted for
+-- but the outcome is a completed census instead of a report that one is
+incomplete.
 
-! **The function itself is still needed.** Computing what is missing is how you know what to send
-back; what changes is what happens to the answer.
+! **The function itself is still needed.** Computing what is missing is how you
+know what to send back; what changes is what happens to the answer.
 
-! **Why it groups with the two deleted lists.** Both of those let a reviewer stop early and have
-the stopping recorded as a result: the acquittal list gave named reasons to pass a paragraph over,
-the suppression list withheld low-precision hits. A coverage gap is the same shape one level up
--- the reviewer stopped, and the system files the stopping rather than fixing it.
+! **Why it groups with the two deleted lists.** Both of those let a reviewer
+stop early and have the stopping recorded as a result: the acquittal list gave
+named reasons to pass a paragraph over, the suppression list withheld
+low-precision hits. A coverage gap is the same shape one level up -- the
+reviewer stopped, and the system files the stopping rather than fixing it.
 
-! **Not vocabulary.** The word was found by the 2026-08-16 re-sweep, which is how the ruling
-came up, but what changes here is control flow.
+! **Not vocabulary.** The word was found by the 2026-08-16 re-sweep, which is
+how the ruling came up, but what changes here is control flow.
 
 ### Where the prose actually is -- the cited lines were stale
 
@@ -58,11 +61,13 @@ came up, but what changes here is control flow.
 
 ### One of the six was already fixed
 
-Filed as *"one line: `prose_blocks` excludes `FRONT_MATTER`, as `verdicts.py` already does"*.
-VERIFIED 2026-08-23: `record.prose_paragraphs` (`record.py:667-673`) filters `series_of(b) !=
-COVERS` with `COVERS = "f"` (`addresser.py:178`), and its docstring at `record.py:653-659` records
-the reason -- *"a slot for one is a question nobody can answer -- it stays `null` and reports as a
-COVERAGE GAP, on every run, for as long as the file has a licence."*
+Filed as *"one line: `prose_blocks` excludes `FRONT_MATTER`, as `verdicts.py`
+already does"*. VERIFIED 2026-08-23: `record.prose_paragraphs`
+(`record.py:667-673`) filters `series_of(b) != COVERS` with `COVERS = "f"`
+(`addresser.py:178`), and its docstring at `record.py:653-659` records the
+reason -- *"a slot for one is a question nobody can answer -- it stays `null`
+and reports as a COVERAGE GAP, on every run, for as long as the file has a
+licence."*
 
 ## Tasks
 

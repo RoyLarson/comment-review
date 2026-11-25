@@ -10,7 +10,8 @@ Raised:   2026-08-17 (the first full run of 0.1.7 hit eight contradicted blocks 
 
 ## Objective
 
-**Ten sites tell the task agent to send a block back for re-review. Not one says what that is.**
+**Ten sites tell the task agent to send a block back for re-review. Not one says
+what that is.**
 
 - `SKILL.md` x 7 -- *"never to a tie-break"*, *"Re-review is normal"*, *"send the block back"*,
   *"you do not rule it here"*
@@ -18,11 +19,12 @@ Raised:   2026-08-17 (the first full run of 0.1.7 hit eight contradicted blocks 
 - `references/` held `compact.md`, `residue-check.md`, `review.md`, `reviewer-brief.md`,
   `write.md` and no `re-review.md`. ! It has one as of 2026-08-17 -- see the tasks below.
 
-Every one of them says what a re-review is NOT, and who must not decide it. None says who reads
-it, what they are given, what comes back, or when it stops.
+Every one of them says what a re-review is NOT, and who must not decide it. None
+says who reads it, what they are given, what comes back, or when it stops.
 
-! **A version was run on 2026-08-17 and it worked, which is why this is a decision and not a
-bug.** It is one version among several and was invented mid-run. What it did:
+! **A version was run on 2026-08-17 and it worked, which is why this is a
+decision and not a bug.** It is one version among several and was invented
+mid-run. What it did:
 
 - **Channel** -- `SendMessage` to the reviewers still holding their context, not a fresh
   `Agent` dispatch. Measured: both roles answered in ~2 minutes with **zero tool calls**. A
@@ -36,9 +38,9 @@ bug.** It is one version among several and was invented mid-run. What it did:
   sentence and the join keys on the block, so the collision may not exist.
 - **Return** -- `HOLD` or `REVISE`, one clause of reason, full payload on a revise.
 
-Measured on those eight blocks: 8 HOLD from one role; 4 HOLD and 2 REVISE from the other. Both
-revisions kept the verdict and shortened the payload, and neither role could have reached that
-answer alone.
+Measured on those eight blocks: 8 HOLD from one role; 4 HOLD and 2 REVISE from
+the other. Both revisions kept the verdict and shortened the payload, and
+neither role could have reached that answer alone.
 
 ## Tasks
 

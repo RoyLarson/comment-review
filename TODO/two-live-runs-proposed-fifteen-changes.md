@@ -21,28 +21,31 @@ Split:    2026-08-23 -- P6 named FOUR defects in one box and is now four; P4 hel
 
 ## Objective
 
-**Two sessions ran this system end to end on real repositories and wrote up what they had to
-work around.** They were field reports, not design notes -- both had to NAVIGATE the tool to get
-work done, and every claim in them was measured on a run whose artifacts sat in the same
-directory.
+**Two sessions ran this system end to end on real repositories and wrote up what
+they had to work around.** They were field reports, not design notes -- both had
+to NAVIGATE the tool to get work done, and every claim in them was measured on a
+run whose artifacts sat in the same directory.
 
 !! **THE ARTIFACTS ARE NOT IN THIS TREE ANY MORE.** Verified 2026-08-23:
-`evidence/todo-tool-full-v0_2/` and `evidence/redacted-corpus-full-v0_2/` are both removed, and
-the only surviving packages are `evidence/cycle-0.2.3/` and
-`evidence/comment-review-skill-023-dev-review/`. **Every measurement quoted below is therefore
-un-re-derivable here**, and is kept for the same reason `CLAUDE.md` keeps its 31-defect run: the
-numbers are specific enough to be checked against a NEW run, which is the only thing that would
-settle them. The same absence is tracked in
+`evidence/todo-tool-full-v0_2/` and `evidence/redacted-corpus-full-v0_2/` are
+both removed, and the only surviving packages are `evidence/cycle-0.2.3/` and
+`evidence/comment-review-skill-023-dev-review/`. **Every measurement quoted
+below is therefore un-re-derivable here**, and is kept for the same reason
+`CLAUDE.md` keeps its 31-defect run: the numbers are specific enough to be
+checked against a NEW run, which is the only thing that would settle them. The
+same absence is tracked in
 [`dangling-links-resolve-nowhere`](dangling-links-resolve-nowhere.md) and
 [`held-runs-need-a-one-off-migration`](held-runs-need-a-one-off-migration.md).
 
-!! **That provenance is why they outranked reasoning from outside.** The 83 refusals spent on
-transcription fidelity, the 213 citations resolving to nothing, the 31 defects stage 8 found
-while every mechanical gate was green -- none of those is derivable from reading the code.
+!! **That provenance is why they outranked reasoning from outside.** The 83
+refusals spent on transcription fidelity, the 213 citations resolving to
+nothing, the 31 defects stage 8 found while every mechanical gate was green --
+none of those is derivable from reading the code.
 
-! **What they agreed on is worth more than either alone.** Both raised the work list being
-withheld; both raised the record format; both found the reviewers are NOT the weak stage.
-redacted-corpus stated it flatly: *"every failure this run is downstream of MARK."*
+! **What they agreed on is worth more than either alone.** Both raised the work
+list being withheld; both raised the record format; both found the reviewers are
+NOT the weak stage. redacted-corpus stated it flatly: *"every failure this run
+is downstream of MARK."*
 
 ## What the runs established, and what must not be broken while fixing the rest
 

@@ -21,17 +21,18 @@ SPLIT:    2026-08-23 -- "design and land the hierarchy" was one box over five tu
 
 ## Objective
 
-The exception tuples are a surface, not a hierarchy. `exceptions.py` holds one class,
-`Refused(ValueError)`, and five tuples of stdlib classes -- `READ_ERRORS`, `TOML_ERRORS`,
-`TOKENIZE_ERRORS`, `PARSE_ERRORS`, `GIT_ERRORS`. A caller catches a list of stdlib classes that
-happen to co-occur, not one of our concepts.
+The exception tuples are a surface, not a hierarchy. `exceptions.py` holds one
+class, `Refused(ValueError)`, and five tuples of stdlib classes --
+`READ_ERRORS`, `TOML_ERRORS`, `TOKENIZE_ERRORS`, `PARSE_ERRORS`, `GIT_ERRORS`. A
+caller catches a list of stdlib classes that happen to co-occur, not one of our
+concepts.
 
-**THE SHAPE ROY ASKED FOR**, 2026-08-22: *"a human would not have just moved the tuples, they
-would have properly created the exception hierarchy and used that to catch the expected
-exceptions."* A `CommentReviewError(Exception)` root over `Refused` (we declined this page),
-`Unreadable` (the bytes could not be got), `Undecodable` (the bytes came, the TOML would not
-decode), `Unparsable` (the source came, it would not parse) and `GitSilent` (git could not
-answer).
+**THE SHAPE ROY ASKED FOR**, 2026-08-22: *"a human would not have just moved the
+tuples, they would have properly created the exception hierarchy and used that
+to catch the expected exceptions."* A `CommentReviewError(Exception)` root over
+`Refused` (we declined this page), `Unreadable` (the bytes could not be got),
+`Undecodable` (the bytes came, the TOML would not decode), `Unparsable` (the
+source came, it would not parse) and `GitSilent` (git could not answer).
 
 ## Why this is a TODO and not a patch
 

@@ -12,28 +12,29 @@ Raised:   2026-08-30 (2026-08-30, a code review of `results/differences.py` that
 
 ## Objective
 
-Ten defects in `results/differences.py`, found on 2026-08-30. Every one of them is
-about what this module REPORTS or DOCUMENTS. None is in its arithmetic.
+Ten defects in `results/differences.py`, found on 2026-08-30. Every one of them
+is about what this module REPORTS or DOCUMENTS. None is in its arithmetic.
 
-!! **THE ARITHMETIC WAS EXERCISED AND HELD: 0 disagreements over 3,191,784 cases.**
-74,088 exhaustive two-side cases, 3,111,696 exhaustive three-side cases and 6,000
-randomized cases were run against an independently written merge oracle -- zero
-compositions over a real overlap, and zero texts differing from the oracle's. **Order
-independence holds structurally**: 120 permutations of a five-side dict give one
-distinct result, and 79,507 two-side cases with the roles renamed to reverse the sort
-give zero disagreements. **`compose` could not be made to produce a wrong
-composition**, which was the severe direction the review was pointed at.
+!! **THE ARITHMETIC WAS EXERCISED AND HELD: 0 disagreements over 3,191,784
+cases.** 74,088 exhaustive two-side cases, 3,111,696 exhaustive three-side cases
+and 6,000 randomized cases were run against an independently written merge
+oracle -- zero compositions over a real overlap, and zero texts differing from
+the oracle's. **Order independence holds structurally**: 120 permutations of a
+five-side dict give one distinct result, and 79,507 two-side cases with the
+roles renamed to reverse the sort give zero disagreements. **`compose` could not
+be made to produce a wrong composition**, which was the severe direction the
+review was pointed at.
 
-! **THAT PARAGRAPH IS HERE SO A READER OF THIS FILE'S TITLE DOES NOT INFER THE MERGE
-IS UNSOUND.** Ten reporting defects on a module whose merge was verified over three
-million cases is a different situation from ten defects in the merge.
+! **THAT PARAGRAPH IS HERE SO A READER OF THIS FILE'S TITLE DOES NOT INFER THE
+MERGE IS UNSOUND.** Ten reporting defects on a module whose merge was verified
+over three million cases is a different situation from ten defects in the merge.
 
-!! **THE TEN LAND TOGETHER, BECAUSE THE REPORTING HALF CANNOT BE FINISHED PIECEWISE.**
-The span fix corrects a message nothing reads; the `span`/`roles` attributes give that
-message a machine-readable form; carrying `CannotCompose` out of `_composition` makes
-anything able to read it; and the address is what a send-back to a role needs. Landing
-the span fix alone corrects a message nothing reads; landing the carry alone carries a
-span that renders `2-1`.
+!! **THE TEN LAND TOGETHER, BECAUSE THE REPORTING HALF CANNOT BE FINISHED
+PIECEWISE.** The span fix corrects a message nothing reads; the `span`/`roles`
+attributes give that message a machine-readable form; carrying `CannotCompose`
+out of `_composition` makes anything able to read it; and the address is what a
+send-back to a role needs. Landing the span fix alone corrects a message nothing
+reads; landing the carry alone carries a span that renders `2-1`.
 
 ## What was measured
 

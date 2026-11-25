@@ -12,8 +12,8 @@ Raised:   2026-08-28 (2026-08-28, Roy asking what `claim.shape` is: 'because it 
 
 ## Objective
 
-**One word, three jobs, none of them declared** -- and the middle one is the only one that
-reaches an agent, as a field name it is instructed to fill.
+**One word, three jobs, none of them declared** -- and the middle one is the
+only one that reaches an agent, as a field name it is instructed to fill.
 
 | sense | where it is used |
 | --- | --- |
@@ -21,9 +21,10 @@ reaches an agent, as a field name it is instructed to fill.
 | **a QUERY'S KIND** | `claim.shape`, `QUERY_SHAPES`, and `comment-review-module-context.md:108`, which tells a role to set it |
 | **the FORM A CLASSIFIER TAKES** | `docs/the-mark.md:171`, the third column of the classifier table |
 
-! `docs/vocabulary.md` carries a polysemy rule, and this is what it is for: **the undeclared
-meaning is the defect**, not the ambiguity. A reader who meets `shape` in this tree cannot tell
-which question is being asked without checking which file they are in.
+! `docs/vocabulary.md` carries a polysemy rule, and this is what it is for:
+**the undeclared meaning is the defect**, not the ambiguity. A reader who meets
+`shape` in this tree cannot tell which question is being asked without checking
+which file they are in.
 
 ## !! AND THE SECOND QUESTION FOUND MORE THAN THE FIRST
 

@@ -32,17 +32,20 @@ SPLIT:    2026-08-24 -- second pass, fourteen boxes to fifteen. The `Language.de
 
 ## Objective
 
-**Thirteen spellings on one stem, and the vocabulary defines one of them.** Roy, 2026-08-21,
-reading a census entry that said `comment ... declares=-1`: *"in a system that is a lot of having
-one-name for a thing, 3 things called declares seems like a code smell."*
+**Thirteen spellings on one stem, and the vocabulary defines one of them.** Roy,
+2026-08-21, reading a census entry that said `comment ... declares=-1`: *"in a
+system that is a lot of having one-name for a thing, 3 things called declares
+seems like a code smell."*
 
-MEASURED 2026-08-21, across the shipped tree: `declaration` 98, `declares` 41, `declarations` 16,
-`declared` 13, `declaring` 11, `_declared` 8, `declare` 8, `declares_scope` 5, `can_declare_scope`
-4, `document_declarations` 4, `_declares_here` 2, `Declaring` 1, `declared_at` 1.
+MEASURED 2026-08-21, across the shipped tree: `declaration` 98, `declares` 41,
+`declarations` 16, `declared` 13, `declaring` 11, `_declared` 8, `declare` 8,
+`declares_scope` 5, `can_declare_scope` 4, `document_declarations` 4,
+`_declares_here` 2, `Declaring` 1, `declared_at` 1.
 
-`references/vocabulary.toml` settles **`declaration`** -- *"Something that can carry DOCUMENTATION
--- a module, class, function, method, struct -- and so what an `a` place is about."* **That
-definition is correct and STAYS.** Three relatives borrowed the stem for other jobs:
+`references/vocabulary.toml` settles **`declaration`** -- *"Something that can
+carry DOCUMENTATION -- a module, class, function, method, struct -- and so what
+an `a` place is about."* **That definition is correct and STAYS.** Three
+relatives borrowed the stem for other jobs:
 
 | now | where | what it holds | proposed |
 | --- | --- | --- | --- |
@@ -50,16 +53,18 @@ definition is correct and STAYS.** Three relatives borrowed the stem for other j
 | `Language.declares` | `language.py:89` | a tuple of **keywords** that introduce one | `introduces` |
 | `desk.declares_scope` | `desk.py:701` | a `query` **announcing** the paragraph is not this role's | `reports_remit` |
 
-!! **`Paragraph.declares` STATES THE RELATIONSHIP BACKWARDS**, and it is the one that misleads
-rather than merely crowds. A docstring declares nothing; `def f():` is the declaration and the
-prose documents it. ! `Cues.documents(ordinal)` already answers that exact question in the
-right word -- `page.py:318` calls it with the value of `declares` -- so one module asks in one
-vocabulary and another answers in a second.
+!! **`Paragraph.declares` STATES THE RELATIONSHIP BACKWARDS**, and it is the one
+that misleads rather than merely crowds. A docstring declares nothing; `def
+f():` is the declaration and the prose documents it. ! `Cues.documents(ordinal)`
+already answers that exact question in the right word -- `page.py:318` calls it
+with the value of `declares` -- so one module asks in one vocabulary and another
+answers in a second.
 
-! **`declares_scope` is the same class of error as `acquittal` and `jurisdiction`**: a word from
-outside publishing, checked for collisions and never for register. `remit` is what replaced
-`jurisdiction` for this reason, and it is the word this predicate wants. CLAUDE.md's rule is to
-check the register BEFORE proposing.
+! **`declares_scope` is the same class of error as `acquittal` and
+`jurisdiction`**: a word from outside publishing, checked for collisions and
+never for register. `remit` is what replaced `jurisdiction` for this reason, and
+it is the word this predicate wants. CLAUDE.md's rule is to check the register
+BEFORE proposing.
 
 ## The sites
 

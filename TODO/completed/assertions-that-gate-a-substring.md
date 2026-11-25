@@ -16,10 +16,10 @@ TRIAGED:  2026-08-23 -- every box was a real task; all ten were RE-VERIFIED agai
 
 ## Objective
 
-Ten assertions gate a substring or an incidental field, not the property. **The test for each is
-the same: name the mutation that must turn the test red, apply it, and check that it does.** A
-test that stays green under the mutation its own comment forbids is not covering the property it
-claims.
+Ten assertions gate a substring or an incidental field, not the property. **The
+test for each is the same: name the mutation that must turn the test red, apply
+it, and check that it does.** A test that stays green under the mutation its own
+comment forbids is not covering the property it claims.
 
 ## ! What the re-verification of 2026-08-23 retired, and why
 

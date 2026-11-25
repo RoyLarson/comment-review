@@ -30,50 +30,59 @@ SPLIT:    2026-08-24 -- second pass, eight boxes to ten. RUN and GRADE were one 
 
 ## Objective
 
-**How much of the improvement is the code, and not the orchestration.** Roy, 2026-08-22: *"I was
-hoping to be able to measure how much better they are just because the code is usable and not
-orchestration."* The orchestration improvements landed in 0.2.1, 0.2.2 and 0.2.3, so they are the
-constant and the code is the variable.
+**How much of the improvement is the code, and not the orchestration.** Roy,
+2026-08-22: *"I was hoping to be able to measure how much better they are just
+because the code is usable and not orchestration."* The orchestration
+improvements landed in 0.2.1, 0.2.2 and 0.2.3, so they are the constant and the
+code is the variable.
 
-**The two arms.** Arm A is v0.2.3 code with v0.2.3 agents exactly as tagged. Arm B is 0.2.4 code
-with those SAME agents, reworded to the new dictionary and nothing else. Both are graded on the
-twelve planted hazards; the difference is what the code bought.
+**The two arms.** Arm A is v0.2.3 code with v0.2.3 agents exactly as tagged. Arm
+B is 0.2.4 code with those SAME agents, reworded to the new dictionary and
+nothing else. Both are graded on the twelve planted hazards; the difference is
+what the code bought.
 
-! **Arm B's agents cannot be v0.2.3's unchanged.** v0.2.3's agents say `block` and `pcst`; the
-0.2.4 census emits `paragraph`, `page` and an ADDRESS. And any wording change beyond that
-substitution is a potential ORCHESTRATION change, which is the variable being held constant.
+! **Arm B's agents cannot be v0.2.3's unchanged.** v0.2.3's agents say `block`
+and `pcst`; the 0.2.4 census emits `paragraph`, `page` and an ADDRESS. And any
+wording change beyond that substitution is a potential ORCHESTRATION change,
+which is the variable being held constant.
 
-!! **IT CANNOT BE RUN TODAY, AND THAT IS THE ONE THING TO KNOW BEFORE PLANNING AROUND IT.**
-MEASURED 2026-08-23: `evals/` holds `generator_split.py` and `test-cases.jsonl`. The grader
-(`grade_hazards.py`), the twelve hazards (`evals.json`) and what separates a hit from a near miss
-(`discriminators.md`) are none of them here. `CLAUDE.md` says why -- they were tied to a corpus
-this repo cannot ship -- and rebuilding them is
+!! **IT CANNOT BE RUN TODAY, AND THAT IS THE ONE THING TO KNOW BEFORE PLANNING
+AROUND IT.** MEASURED 2026-08-23: `evals/` holds `generator_split.py` and
+`test-cases.jsonl`. The grader (`grade_hazards.py`), the twelve hazards
+(`evals.json`) and what separates a hit from a near miss (`discriminators.md`)
+are none of them here. `CLAUDE.md` says why -- they were tied to a corpus this
+repo cannot ship -- and rebuilding them is
 [`the-harness-cannot-run-the-system-it-grades`](the-harness-cannot-run-the-system-it-grades.md).
-**Both arms of this experiment are scored by that instrument, so both wait on it.**
+**Both arms of this experiment are scored by that instrument, so both wait on
+it.**
 
-! **SUPERSEDED AS WRITTEN**: this file used to say *"`evals/grade_hazards.py <worktree>` is the
-instrument"* and that `evals/evals.json` and `evals/discriminators.md` hold the twelve hazards.
-None of the three files exists.
+! **SUPERSEDED AS WRITTEN**: this file used to say *"`evals/grade_hazards.py
+<worktree>` is the instrument"* and that `evals/evals.json` and
+`evals/discriminators.md` hold the twelve hazards. None of the three files
+exists.
 
-! **THE RULE THE GRADER ENFORCED STANDS AND HAS NOWHERE TO RUN: GRADE FROM THE DIFF, NEVER FROM
-THE RUN'S OWN REPORT.** Self-reported confidence has been measured here not to discriminate a real
-finding from a fabricated one. Whatever replaces `grade_hazards.py` reads what was WRITTEN.
+! **THE RULE THE GRADER ENFORCED STANDS AND HAS NOWHERE TO RUN: GRADE FROM THE
+DIFF, NEVER FROM THE RUN'S OWN REPORT.** Self-reported confidence has been
+measured here not to discriminate a real finding from a fabricated one. Whatever
+replaces `grade_hazards.py` reads what was WRITTEN.
 
-!! **THERE IS NO BASELINE EITHER.** `evidence/cycle-0.2.3/` is a MECHANICAL run -- census, galley,
-edits, join, and four role reports -- and carries no hazard grade. Both arms have to be run; there
-is nothing to compare a single new arm against.
+!! **THERE IS NO BASELINE EITHER.** `evidence/cycle-0.2.3/` is a MECHANICAL run
+-- census, galley, edits, join, and four role reports -- and carries no hazard
+grade. Both arms have to be run; there is nothing to compare a single new arm
+against.
 
-! **THE TAGS ARE ANNOTATED**, so `git rev-parse v0.2.3` returns the TAG OBJECT and not the commit.
-Use `v0.2.3^{}` wherever a commit is wanted -- this is the trap anyone re-deriving which code
-produced a measurement hits first.
+! **THE TAGS ARE ANNOTATED**, so `git rev-parse v0.2.3` returns the TAG OBJECT
+and not the commit. Use `v0.2.3^{}` wherever a commit is wanted -- this is the
+trap anyone re-deriving which code produced a measurement hits first.
 
-!! **AND WHAT THE ANSWER CANNOT BE.** A difference between the arms is the code's contribution ON
-THE TWELVE HAZARDS, over the codebase those hazards are planted in -- not a general claim about
-the tool. ! The hazards live in ONE codebase, which is the confound `corpora/` exists to widen.
-**That confound has narrowed since this was filed**: all ten corpora are materialised on disk as
-of 2026-08-23, where this file said nine of ten were unfetched manifest rows. The scoping
-statement stands; the count does not. Widening the hazard set across them is still work nobody
-has done.
+!! **AND WHAT THE ANSWER CANNOT BE.** A difference between the arms is the
+code's contribution ON THE TWELVE HAZARDS, over the codebase those hazards are
+planted in -- not a general claim about the tool. ! The hazards live in ONE
+codebase, which is the confound `corpora/` exists to widen. **That confound has
+narrowed since this was filed**: all ten corpora are materialised on disk as of
+2026-08-23, where this file said nine of ten were unfetched manifest rows. The
+scoping statement stands; the count does not. Widening the hazard set across
+them is still work nobody has done.
 
 ## Tasks
 

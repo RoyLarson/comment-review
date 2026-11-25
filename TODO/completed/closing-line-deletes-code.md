@@ -52,32 +52,37 @@ Updated:  2026-08-25 — MEASURED 2026-08-25 on the write-chain branch, and it n
 
 ## Objective
 
-An edit to a comment whose run closes mid-line DELETES the code after the closer.
+An edit to a comment whose run closes mid-line DELETES the code after the
+closer.
 
-!! **MEASURED 2026-08-21.** On `int a = 1;\n/* note\n   more */ int x = 5;\nint b = 2;\n`
-the paragraph is `start=2 end=3` with text `/* note more */` but
-`raw_lines[1] == "   more */ int x = 5;"`. A `patch` through `galley.splice` writes:
-line 1 `int a = 1;`, line 2 the new prose, line 3 `int b = 2;` -- `int x = 5;` is GONE.
+!! **MEASURED 2026-08-21.** On `int a = 1;\n/* note\n   more */ int x = 5;\nint
+b = 2;\n` the paragraph is `start=2 end=3` with text `/* note more */` but
+`raw_lines[1] == "   more */ int x = 5;"`. A `patch` through `galley.splice`
+writes: line 1 `int a = 1;`, line 2 the new prose, line 3 `int b = 2;` -- `int x
+= 5;` is GONE.
 
-! **THE CAUSE IS A HALF-CUT.** The 2026-08-20 fix trims the paragraph's TEXT at the closer
-and leaves `raw_lines` holding the whole physical span; `galley.splice` replaces
-`start..end` wholesale, preserving the head of the FIRST line at `column` and nothing on
-the last.
+! **THE CAUSE IS A HALF-CUT.** The 2026-08-20 fix trims the paragraph's TEXT at
+the closer and leaves `raw_lines` holding the whole physical span;
+`galley.splice` replaces `start..end` wholesale, preserving the head of the
+FIRST line at `column` and nothing on the last.
 
-! **`prove_unchanged._delimiter_shares_the_line` DOES catch it** -- prove_unchanged.py:79,
-called at :153, and the file comes back unprovable -- but only AFTER stage 7b has written
-to disk. The write happens; the proof reports it afterwards.
+! **`prove_unchanged._delimiter_shares_the_line` DOES catch it** --
+prove_unchanged.py:79, called at :153, and the file comes back unprovable -- but
+only AFTER stage 7b has written to disk. The write happens; the proof reports it
+afterwards.
 
-! **THE OPTIONS ARE UNCHANGED**: a field for where the paragraph's text ENDS on its last
-line; a kind for comment-then-code, symmetric to `trailing-comment`; or refuse the file
-the way `prove_unchanged` already does, BEFORE the write rather than after.
+! **THE OPTIONS ARE UNCHANGED**: a field for where the paragraph's text ENDS on
+its last line; a kind for comment-then-code, symmetric to `trailing-comment`; or
+refuse the file the way `prove_unchanged` already does, BEFORE the write rather
+than after.
 
-!! **CLOSE THIS WITH THE GALLEY, not before.** The composition step sees the whole file,
-so a splice that would drop a line of code is checkable there -- and prove_unchanged
-already knows how to spot it, just too late. **A repair to a splice that is about to be
-replaced is shaped by the thing being replaced.** See `galley-is-still-index-keyed` and
-`the-author-approves-blocks-and-never-sees-the-page`, which is where the whole-document
-read before approval is being designed.
+!! **CLOSE THIS WITH THE GALLEY, not before.** The composition step sees the
+whole file, so a splice that would drop a line of code is checkable there -- and
+prove_unchanged already knows how to spot it, just too late. **A repair to a
+splice that is about to be replaced is shaped by the thing being replaced.** See
+`galley-is-still-index-keyed` and
+`the-author-approves-blocks-and-never-sees-the-page`, which is where the
+whole-document read before approval is being designed.
 
 ## What the re-ruling is about, and why the file disagrees with itself
 

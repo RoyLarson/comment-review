@@ -10,8 +10,8 @@ Raised:   2026-08-17 (ownership-context diagnosed the mechanism during a live ru
 
 ## Objective
 
-**One sentence, two blocks, and the second half is read against the wrong declaration.**
-Reproduced:
+**One sentence, two blocks, and the second half is read against the wrong
+declaration.** Reproduced:
 
 ```python
 x = 1  # a claim that
@@ -24,16 +24,18 @@ trailing-comment   lines 1-1   text='a claim that'
 comment            lines 2-2   text='wraps onto the next line'
 ```
 
-The tail becomes a leading comment for `y = 2` and every role measures it against `y`.
+The tail becomes a leading comment for `y = 2` and every role measures it
+against `y`.
 
-! **The census is not wrong by its own definition.** A block is the interval between two lines
-of CODE. Line 1 holds code, line 3 holds code, so line 2 is an interval of its own and gets its
-own block. The definition and the prose disagree, and the prose is one sentence regardless.
+! **The census is not wrong by its own definition.** A block is the interval
+between two lines of CODE. Line 1 holds code, line 3 holds code, so line 2 is an
+interval of its own and gets its own block. The definition and the prose
+disagree, and the prose is one sentence regardless.
 
-! The mechanism is deliberate. `blocks_stdlib` flushes on a trailing comment, and the reason is
-recorded there: without it a trailing comment merged with the next leading run across two blank
-lines, "gluing `raise original DoesNotExist` to an unrelated `TODO` four lines down". That fix
-is right and this is its cost.
+! The mechanism is deliberate. `blocks_stdlib` flushes on a trailing comment,
+and the reason is recorded there: without it a trailing comment merged with the
+next leading run across two blank lines, "gluing `raise original DoesNotExist`
+to an unrelated `TODO` four lines down". That fix is right and this is its cost.
 
 ## !! Why it matters more than a mis-split
 

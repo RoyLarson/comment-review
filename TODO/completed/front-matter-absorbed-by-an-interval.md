@@ -27,28 +27,31 @@ Triaged:  2026-08-23 — RE-VERIFIED IN THE CODE, and the last box is closed. `p
 
 ## Objective
 
-**Front matter was absorbed by an interval, and the galley then deleted it.** The fix landed
-2026-08-20 by giving front matter its own series, `f`, rather than by naming it in the gap
-filler.
+**Front matter was absorbed by an interval, and the galley then deleted it.**
+The fix landed 2026-08-20 by giving front matter its own series, `f`, rather
+than by naming it in the gap filler.
 
-!! **THE RULING IS THE OBJECTIVE, and it is Roy's, 2026-08-20**: *"we should have just made the
-front matter its own foliation -- then the rule that b owns all the lines that are not another
-foliation's lines would explicitly stay true. Treating the front matter as regular comments, even
-though they are not, is the mistake."*
+!! **THE RULING IS THE OBJECTIVE, and it is Roy's, 2026-08-20**: *"we should
+have just made the front matter its own foliation -- then the rule that b owns
+all the lines that are not another foliation's lines would explicitly stay true.
+Treating the front matter as regular comments, even though they are not, is the
+mistake."*
 
-! **THE TWO CANDIDATES THE LAST BOX HELD OPEN ARE BOTH ANSWERED BY IT.** The box asked whether
-`fill_the_gaps` should exclude a paragraph whose cue is not the gap's own (a one-line fix) or
-whether `b0` should stop being in the `b` series (a design change). **The design change is what
-happened**, and it went further than the box proposed: front matter is not a `b` at all.
-VERIFIED 2026-08-23 at `page.py:914-922` -- `exact` collects every paragraph whose series is not
-`GAP`, so the rule reads *every series but `b`* and names nothing. `page.py:901-906` records why
-`f` is in that list: *"because it is a SERIES, not because it is front matter."*
+! **THE TWO CANDIDATES THE LAST BOX HELD OPEN ARE BOTH ANSWERED BY IT.** The box
+asked whether `fill_the_gaps` should exclude a paragraph whose cue is not the
+gap's own (a one-line fix) or whether `b0` should stop being in the `b` series
+(a design change). **The design change is what happened**, and it went further
+than the box proposed: front matter is not a `b` at all. VERIFIED 2026-08-23 at
+`page.py:914-922` -- `exact` collects every paragraph whose series is not `GAP`,
+so the rule reads *every series but `b`* and names nothing. `page.py:901-906`
+records why `f` is in that list: *"because it is a SERIES, not because it is
+front matter."*
 
-! **AND LEADING JOINED THAT LIST BY ITS SYMBOL RATHER THAN ITS ADDRESS**, since `d` gave up its
-address -- `page.py:908-913`. Read from `address` alone the walk returned `""` for a `d`, the
-gap took the blank lines a run of leading already held, and they were set TWICE. That is a
-separate defect, already closed, and it is recorded here only because it is the same line of
-code.
+! **AND LEADING JOINED THAT LIST BY ITS SYMBOL RATHER THAN ITS ADDRESS**, since
+`d` gave up its address -- `page.py:908-913`. Read from `address` alone the walk
+returned `""` for a `d`, the gap took the blank lines a run of leading already
+held, and they were set TWICE. That is a separate defect, already closed, and it
+is recorded here only because it is the same line of code.
 
 ## Tasks
 

@@ -37,12 +37,14 @@ Updated:  2026-08-28 — T5 ticked. The three ruled shapes now replace the old s
 
 ## Objective
 
-**A finding whose subject is the RELATION between two places needs no new field, and nothing
-tells a role that.** The shape already carries it: mark the place that is wrong, state the
-contradiction in `reason`, and cite the other place in `sources`.
+**A finding whose subject is the RELATION between two places needs no new field,
+and nothing tells a role that.** The shape already carries it: mark the place
+that is wrong, state the contradiction in `reason`, and cite the other place in
+`sources`.
 
-!! **MEASURED, TWICE, INDEPENDENTLY.** `module-context` produced exactly that shape in rounds 2
-and 3 of the 2026-08-27 experiment, on the same place, without being told it could:
+!! **MEASURED, TWICE, INDEPENDENTLY.** `module-context` produced exactly that
+shape in rounds 2 and 3 of the 2026-08-27 experiment, on the same place, without
+being told it could:
 
     address   src:comment_review:results:compositor.py@a0
     mark      correct
@@ -51,50 +53,56 @@ and 3 of the 2026-08-27 experiment, on the same place, without being told it cou
     sources   src/comment_review/commands/compositor.py:5  | <the banner>
               src/comment_review/commands/compositor.py:15 | def main(argv: ...) -> int:
 
-! **THE RISK IS NOT THAT IT FAILS -- IT IS THAT IT DEPENDS ON NERVE.** The brief never says a
-source may cite a place other than the mark's own. A role that hesitates files
-`query: outside my role` instead, which is a BOUNDARY REPORT and not work -- so the
-best-corroborated finding of the run is downgraded to a note about scope. **The shape permitted
-it; the instructions were silent; survival depended on temperament.**
+! **THE RISK IS NOT THAT IT FAILS -- IT IS THAT IT DEPENDS ON NERVE.** The brief
+never says a source may cite a place other than the mark's own. A role that
+hesitates files `query: outside my role` instead, which is a BOUNDARY REPORT and
+not work -- so the best-corroborated finding of the run is downgraded to a note
+about scope. **The shape permitted it; the instructions were silent; survival
+depended on temperament.**
 
-!! **AND SILENCE ON A FIELD IS THE MEASURED CAUSE OF EVERY OTHER SHAPE DEFECT.** Same
-experiment: `change` returned as a string where the spec wanted a line array (one role returned a
-paragraph with its `#` markers gone, which would have made the file a `SyntaxError`); `sources`
-returned as `path:line | text` strings rather than checkable pairs; bare cues written where the
-row carried a full address. Each is a role reading prose and filling it in plausibly. **A prose
+!! **AND SILENCE ON A FIELD IS THE MEASURED CAUSE OF EVERY OTHER SHAPE DEFECT.**
+Same experiment: `change` returned as a string where the spec wanted a line
+array (one role returned a paragraph with its `#` markers gone, which would have
+made the file a `SyntaxError`); `sources` returned as `path:line | text` strings
+rather than checkable pairs; bare cues written where the row carried a full
+address. Each is a role reading prose and filling it in plausibly. **A prose
 template cannot be wrong at the role; it can only be misread.**
 
 ### The proposed instruction, for review
 
-For `sources`: *a source may cite any place in the LIBRARY -- every file in the project under
-review -- including another place on this page. Where your claim is that two places disagree,
-mark the one that is WRONG and cite the other as the evidence that it is.*
+For `sources`: *a source may cite any place in the LIBRARY -- every file in the
+project under review -- including another place on this page. Where your claim
+is that two places disagree, mark the one that is WRONG and cite the other as
+the evidence that it is.*
 
-The corollary, which is the part that keeps it honest: *if you cannot tell which side is wrong,
-that is a `query`, not two `correct`s.*
+The corollary, which is the part that keeps it honest: *if you cannot tell which
+side is wrong, that is a `query`, not two `correct`s.*
 
-!! **THE SCOPE IS THE LIBRARY AND NOT THE CHECKOUT.** Roy, 2026-08-27, on a first draft that
-said *"any place in the checkout"*: *"project/library Not just checkout."* ! The two are not the
-same set, and the run data settles which one roles actually use: **382 source citations across
-nine roots** -- `src`, `scripts`, `corpora`, `prototype`, `TODO`, `docs`, `CLAUDE.md`, `plugins`
-and `tests` -- and `corpora/` is GITIGNORED while `prototype/` does not run. Roles were already
-citing both before anything told them they could.
+!! **THE SCOPE IS THE LIBRARY AND NOT THE CHECKOUT.** Roy, 2026-08-27, on a
+first draft that said *"any place in the checkout"*: *"project/library Not just
+checkout."* ! The two are not the same set, and the run data settles which one
+roles actually use: **382 source citations across nine roots** -- `src`,
+`scripts`, `corpora`, `prototype`, `TODO`, `docs`, `CLAUDE.md`, `plugins` and
+`tests` -- and `corpora/` is GITIGNORED while `prototype/` does not run. Roles
+were already citing both before anything told them they could.
 
-! **CORRECTED 2026-08-27, from 292 across six.** The first count was taken over the four role
-STEMS and so excluded every fan-out agent, whose files are named for the file they read.
-Re-derivable: `uv run python evidence/the-loop-measured-2026-08-27/derive.py`.
+! **CORRECTED 2026-08-27, from 292 across six.** The first count was taken over
+the four role STEMS and so excluded every fan-out agent, whose files are named
+for the file they read. Re-derivable: `uv run python
+evidence/the-loop-measured-2026-08-27/derive.py`.
 
-! **AND THE NARROWER WORD WOULD HAVE RETIRED REAL EVIDENCE.** `prototype/` does not run and
-`corpora/` is fetched rather than tracked; both are where a claim about what this system USED to
-do, or how it behaves on real source, is settled. A rule saying *the checkout* invites a role to
-drop exactly those.
+! **AND THE NARROWER WORD WOULD HAVE RETIRED REAL EVIDENCE.** `prototype/` does
+not run and `corpora/` is fetched rather than tracked; both are where a claim
+about what this system USED to do, or how it behaves on real source, is settled.
+A rule saying *the checkout* invites a role to drop exactly those.
 
 ### What this does NOT cover
 
-! **`move` is a separate, narrower defect and it is `backend`'s.** A `move` names two places in
-one mark (`from:` + `to:`) -- it is the existing proof that two-endedness is expressible -- but
-`collate` buckets on a single `mark["address"]`, so a `move` out of `a0` into `a8` lands in the
-`a0` bucket while another role's mark on `a8` lands in its own. The two never meet and the
+! **`move` is a separate, narrower defect and it is `backend`'s.** A `move`
+names two places in one mark (`from:` + `to:`) -- it is the existing proof that
+two-endedness is expressible -- but `collate` buckets on a single
+`mark["address"]`, so a `move` out of `a0` into `a8` lands in the `a0` bucket
+while another role's mark on `a8` lands in its own. The two never meet and the
 merge-or-fight table never sees the overlap. Filed as
 [`collate-buckets-a-move-at-one-end`](collate-buckets-a-move-at-one-end.md).
 

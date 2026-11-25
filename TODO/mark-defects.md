@@ -12,21 +12,22 @@ Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `pars
 
 ## Objective
 
-Eleven defects in `desk/mark.py`, found on 2026-08-30 by running its `parse` against
-the claims in `docs/the-mark.md` and in the module's own docstrings.
+Eleven defects in `desk/mark.py`, found on 2026-08-30 by running its `parse`
+against the claims in `docs/the-mark.md` and in the module's own docstrings.
 
-!! **PER-MODULE, NOT A DESIGN OBJECTIVE.** `conventions.md` sanctions one TODO per
-module for general fixes, and the together-or-not-at-all test is NOT claimed here --
-these eleven are independent. Precedent is [`collator-defects`](collator-defects.md),
-opened the same day for the same shape.
+!! **PER-MODULE, NOT A DESIGN OBJECTIVE.** `conventions.md` sanctions one TODO
+per module for general fixes, and the together-or-not-at-all test is NOT claimed
+here -- these eleven are independent. Precedent is
+[`collator-defects`](collator-defects.md), opened the same day for the same
+shape.
 
-! **WHY NOT [`mark-holds-spec-and-parse`](mark-holds-spec-and-parse.md):** that file's
-subject is the SPLIT and every one of its boxes is the extraction, so eleven unrelated
-defects there would stop its `Progress:` being a claim about whether the split has
-happened. ! The tasks below therefore name SYMBOLS wherever the split will move them
--- `allowed()`, `ROLE_FIELDS`, `Mark.seed`, the row flags -- so that file landing
-first does not stale them. A line number is quoted only as evidence of what was
-measured.
+! **WHY NOT [`mark-holds-spec-and-parse`](mark-holds-spec-and-parse.md):** that
+file's subject is the SPLIT and every one of its boxes is the extraction, so
+eleven unrelated defects there would stop its `Progress:` being a claim about
+whether the split has happened. ! The tasks below therefore name SYMBOLS
+wherever the split will move them -- `allowed()`, `ROLE_FIELDS`, `Mark.seed`,
+the row flags -- so that file landing first does not stale them. A line number
+is quoted only as evidence of what was measured.
 
 ## What was measured
 

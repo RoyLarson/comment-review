@@ -83,40 +83,43 @@ Updated:  2026-08-28 — SECOND INSTANCE OF THE SAME BIND, 2026-08-28, and it is
 
 ## Objective
 
-`code_concerns` is defined in the shared brief every role reads, and named in only ONE of
-the four reviewer files -- `function-context`. It is absent from `module-context`, whose whole
-remit is whether a module announces ONE subject, which is the finding that most needs a code
-out.
+`code_concerns` is defined in the shared brief every role reads, and named in
+only ONE of the four reviewer files -- `function-context`. It is absent from
+`module-context`, whose whole remit is whether a module announces ONE subject,
+which is the finding that most needs a code out.
 
-!! **RE-MEASURED 2026-08-23, and every part still holds.** `grep -rn code_concerns
-plugins/comment-review/` answers with `reviewer-brief.md:251` and `:255`, the two `held.py`
-sites that read the field, `record.py:883` which seeds it empty, and
-`comment-review-function-context.md:32` and `:75` -- **and nothing else**. The other three
-reviewer files do not contain the string.
+!! **RE-MEASURED 2026-08-23, and every part still holds.** `grep -rn
+code_concerns plugins/comment-review/` answers with `reviewer-brief.md:251` and
+`:255`, the two `held.py` sites that read the field, `record.py:883` which seeds
+it empty, and `comment-review-function-context.md:32` and `:75` -- **and nothing
+else**. The other three reviewer files do not contain the string.
 
-!! **MEASURED IN THE HARNESS.** `module-context-widens-a-two-subject-docstring` -- the first
-record in `evals/test-cases.jsonl`, `"outcome": "miss"` -- detected that `verdicts.py` holds
-four subjects, had no verdict for *split this module*, and emitted a prose `patch` widening the
-docstring to announce TWO -- the exact defect its own trigger is named for. `code_concerns` came
-back empty. Roy, 2026-08-23: *"we can't tell the agents to review all of this and not give them
-an out for properly resolving the issues. Several times they were overly restricted by what they
-could do and that caused tension in the recommendations."*
+!! **MEASURED IN THE HARNESS.** `module-context-widens-a-two-subject-docstring`
+-- the first record in `evals/test-cases.jsonl`, `"outcome": "miss"` -- detected
+that `verdicts.py` holds four subjects, had no verdict for *split this module*,
+and emitted a prose `patch` widening the docstring to announce TWO -- the exact
+defect its own trigger is named for. `code_concerns` came back empty. Roy,
+2026-08-23: *"we can't tell the agents to review all of this and not give them
+an out for properly resolving the issues. Several times they were overly
+restricted by what they could do and that caused tension in the
+recommendations."*
 
 ! **AND THE CAUSE THE CASE NAMES IS STILL IN THE FILE.**
-`comment-review-module-context.md:25-29` heads a section *"The finding is a module announcing
-more than one subject"* and lists three triggers, the third being *"a summary line that
-describes one half of what the file contains"*. The section names no verdict, so the role
-reached for the only one it had.
+`comment-review-module-context.md:25-29` heads a section *"The finding is a
+module announcing more than one subject"* and lists three triggers, the third
+being *"a summary line that describes one half of what the file contains"*. The
+section names no verdict, so the role reached for the only one it had.
 
-**T1 ruled 2026-09-27, `decision-log.md Process: #199`:** a role describes a code problem as a
-`human-review-necessary` query whose `settles` reads `code concern`; the author answers `add a
-TODO`, `not a concern` or `leave it`, and on `add a TODO` the role adds a `TODO:` comment beside
-the whole of its subject. No code change is proposed as a mark, and no `code_concerns` field
-carries it.
+**T1 ruled 2026-09-27, `decision-log.md Process: #199`:** a role describes a
+code problem as a `human-review-necessary` query whose `settles` reads `code
+concern`; the author answers `add a TODO`, `not a concern` or `leave it`, and on
+`add a TODO` the role adds a `TODO:` comment beside the whole of its subject. No
+code change is proposed as a mark, and no `code_concerns` field carries it.
 
-! **What T1 decides.** Today a role can only DESCRIBE the problem in `code_concerns`; Roy's
-vision is that a code change is SUGGESTED. That is a scope decision, not a wording fix, and it
-decides the shape the backend half has to carry.
+! **What T1 decides.** Today a role can only DESCRIBE the problem in
+`code_concerns`; Roy's vision is that a code change is SUGGESTED. That is a
+scope decision, not a wording fix, and it decides the shape the backend half has
+to carry.
 
 ## !! THIS LANDS SECOND, AND IT IS THE MEASUREMENT
 

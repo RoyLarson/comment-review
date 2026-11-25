@@ -9,14 +9,16 @@ Raised:   2026-08-15 (Roy, while reviewing the placement precedence before merge
 
 ## Objective
 
-The verdicts are named for operations -- `drop`, `patch`, `add`, `move`, `split` -- and a
-verdict is a **mark, not an action**. Roy: *"The editorial mark is not the
-action. And because words aren't physical things that have to be picked up and moved it is in
-some sense meaningless to make the final action resolution action be considered a move."* The
-system already separates MARK from EDIT because a reviewer that fixes what it finds destroys
-the finding; naming verdicts for operations works against that split. `reanchor` is the
-clearest case and is ruled: it is `move` carrying the reason *this belongs to X*, and whether
-X is another line, another module or another package is payload, not a second judgment.
+The verdicts are named for operations -- `drop`, `patch`, `add`, `move`, `split`
+-- and a verdict is a **mark, not an action**. Roy: *"The editorial mark is not
+the action. And because words aren't physical things that have to be picked up
+and moved it is in some sense meaningless to make the final action resolution
+action be considered a move."* The system already separates MARK from EDIT
+because a reviewer that fixes what it finds destroys the finding; naming
+verdicts for operations works against that split. `reanchor` is the clearest
+case and is ruled: it is `move` carrying the reason *this belongs to X*, and
+whether X is another line, another module or another package is payload, not a
+second judgment.
 
 The vocabulary as it stands: [`docs/vocabulary.md`](../docs/vocabulary.md).
 

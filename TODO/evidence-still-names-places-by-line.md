@@ -16,35 +16,38 @@ RE-CHECKED: 2026-08-23 -- 2026-08-23. Every one of the nine claims was checked a
 
 ## Objective
 
-!! **THE ADDRESS REACHED THE RECORD KEY AND A `move`'s DESTINATION, AND STOPPED.** `SOURCES` --
-the field the whole evidentiary contract rests on -- is 100% line-form, and four further
-artifacts name a place by nothing at all.
+!! **THE ADDRESS REACHED THE RECORD KEY AND A `move`'s DESTINATION, AND
+STOPPED.** `SOURCES` -- the field the whole evidentiary contract rests on -- is
+100% line-form, and four further artifacts name a place by nothing at all.
 
-!! **THE VERIFICATION HOLE IS THE WHOLE FILE, NOT THE +/-3 WINDOW.** VERIFIED 2026-08-23:
-`desk._resolve_lines` (`desk.py:243-285`) accepts an unbounded range on purpose (ruled
-2026-08-17: *"a range is where the reviewer looked"*, stated at `:253-255`), and
-`source_problem` at `desk.py:343-345` builds its window as
-`lines[lineno - 1 - SOURCE_WINDOW : end + SOURCE_WINDOW]` -- the WHOLE range. So `file:1-868`
-reduces the verbatim check to *"this string occurs somewhere in this file"* -- **a fabricated
-citation to a real file passes today.** That is worth fixing ahead of the fuzz it was filed for,
-and the fix must not over-refuse: the function-sized range ruled admissible 2026-08-17 has to
-keep passing.
+!! **THE VERIFICATION HOLE IS THE WHOLE FILE, NOT THE +/-3 WINDOW.** VERIFIED
+2026-08-23: `desk._resolve_lines` (`desk.py:243-285`) accepts an unbounded range
+on purpose (ruled 2026-08-17: *"a range is where the reviewer looked"*, stated
+at `:253-255`), and `source_problem` at `desk.py:343-345` builds its window as
+`lines[lineno - 1 - SOURCE_WINDOW : end + SOURCE_WINDOW]` -- the WHOLE range. So
+`file:1-868` reduces the verbatim check to *"this string occurs somewhere in
+this file"* -- **a fabricated citation to a real file passes today.** That is
+worth fixing ahead of the fuzz it was filed for, and the fix must not
+over-refuse: the function-sized range ruled admissible 2026-08-17 has to keep
+passing.
 
-**Roy ruled the fix on 2026-08-18 and it is unimplemented:** *"the evidence still needs to be
-freeform because it could be outside of the censused documents but if it is in the code it should
-be the address:lines in the adress"* -- the lines counted WITHIN the block, 1-based, blanks
-included. It closes the hole by construction, because the block bounds the range.
+**Roy ruled the fix on 2026-08-18 and it is unimplemented:** *"the evidence
+still needs to be freeform because it could be outside of the censused documents
+but if it is in the code it should be the address:lines in the adress"* -- the
+lines counted WITHIN the block, 1-based, blanks included. It closes the hole by
+construction, because the block bounds the range.
 
-! **Two decisions come first.** A code RANGE has no address expression -- every code line is its
-own one-line `c`, so the function-sized range explicitly ruled admissible becomes 20 addresses.
-And sources cite CALLERS in files nobody censused: the brief's own worked example cites
-`redacted_pkg/export/invoice.py:88` -- census on demand, or keep the line form there and accept
-the fuzz?
+! **Two decisions come first.** A code RANGE has no address expression -- every
+code line is its own one-line `c`, so the function-sized range explicitly ruled
+admissible becomes 20 addresses. And sources cite CALLERS in files nobody
+censused: the brief's own worked example cites
+`redacted_pkg/export/invoice.py:88` -- census on demand, or keep the line form
+there and accept the fuzz?
 
-! **A third is about the freeform half.** Once "outside the censused documents" waives
-verification, a reviewer can label any fabricated evidence that way. Candidate: a freeform source
-is admissible only ALONGSIDE at least one resolvable one; a finding resting on freeform alone is
-a `query`.
+! **A third is about the freeform half.** Once "outside the censused documents"
+waives verification, a reviewer can label any fabricated evidence that way.
+Candidate: a freeform source is admissible only ALONGSIDE at least one
+resolvable one; a finding resting on freeform alone is a `query`.
 
 ## The four artifacts that name a place by nothing at all
 

@@ -17,33 +17,38 @@ Split:    2026-08-23 -- the one open box named four artifacts, a statement and a
 
 ## Objective
 
-**v1.x wants a concrete versioning system on everything that ships. Nothing before v1 owes one.**
+**v1.x wants a concrete versioning system on everything that ships. Nothing
+before v1 owes one.**
 
-!! **RULED 2026-08-21, DEFERRED TO v1.x.** Roy: *"when we get to a v1.X we will want a concrete
-versioning system on everything that ships with v1.X and future ... until then nah."* A 0.x
-states that ALL things are subject to shifting -- zero-vers are specifically for that, with no
-guarantee of any stability -- so nothing before v1 owes a compatibility story. **The event this
-waits on is the v1.0 tag, and no box below starts before it.**
+!! **RULED 2026-08-21, DEFERRED TO v1.x.** Roy: *"when we get to a v1.X we will
+want a concrete versioning system on everything that ships with v1.X and future
+... until then nah."* A 0.x states that ALL things are subject to shifting --
+zero-vers are specifically for that, with no guarantee of any stability -- so
+nothing before v1 owes a compatibility story. **The event this waits on is the
+v1.0 tag, and no box below starts before it.**
 
-! **WHAT EXISTS TODAY IS NOT THAT SYSTEM.** `RECORD_VERSION` is one constant on one artifact,
-moved by hand -- verified 2026-08-23 at `record.py:639`, written into a record at `:873` and
-compared on read at `:1020-1028`. 2026-08-21 measured that it does not get moved: it stayed put
-across an incompatible shape change while the comment above it described exactly that failure.
-! It is kept because it costs a line, not because it works.
+! **WHAT EXISTS TODAY IS NOT THAT SYSTEM.** `RECORD_VERSION` is one constant on
+one artifact, moved by hand -- verified 2026-08-23 at `record.py:639`, written
+into a record at `:873` and compared on read at `:1020-1028`. 2026-08-21
+measured that it does not get moved: it stayed put across an incompatible shape
+change while the comment above it described exactly that failure. ! It is kept
+because it costs a line, not because it works.
 
-! **AND THE PARSE REFUSAL IS WHAT ACTUALLY CATCHES A WRONG SHAPE.** Roy: a loud *"unable to parse
--- unknown format"* is enough, and it does not matter whether the file is an old version or a
-current one mangled. A version field only adds the case a parse cannot see -- **keys in the same
-places meaning something else.** ! That single case is the whole argument for building anything,
-and it is why the answer is *later* rather than *never*. **It is the argument the tasks below
-have to satisfy.**
+! **AND THE PARSE REFUSAL IS WHAT ACTUALLY CATCHES A WRONG SHAPE.** Roy: a loud
+*"unable to parse -- unknown format"* is enough, and it does not matter whether
+the file is an old version or a current one mangled. A version field only adds
+the case a parse cannot see -- **keys in the same places meaning something
+else.** ! That single case is the whole argument for building anything, and it
+is why the answer is *later* rather than *never*. **It is the argument the tasks
+below have to satisfy.**
 
-! **WHEN IT IS BUILT, IT COVERS EVERYTHING THAT SHIPS**, not just the record: the census, the
-record file, the run context, the plugin manifest. **One scheme, stated once.**
+! **WHEN IT IS BUILT, IT COVERS EVERYTHING THAT SHIPS**, not just the record:
+the census, the record file, the run context, the plugin manifest. **One scheme,
+stated once.**
 
-! **Deferred is not done.** Roy, 2026-08-18: *"Deferred is not done - just waiting so its status
-is still correct."* The boxes below stay unchecked because the work has not started, which is
-what an unchecked box already says.
+! **Deferred is not done.** Roy, 2026-08-18: *"Deferred is not done - just
+waiting so its status is still correct."* The boxes below stay unchecked because
+the work has not started, which is what an unchecked box already says.
 
 ## Tasks
 

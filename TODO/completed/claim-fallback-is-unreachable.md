@@ -27,51 +27,57 @@ Split:    2026-08-23 -- the six record boxes are cut to one line each and their 
 
 ## Objective
 
-A non-object claim is silently emptied, and 60 lines of fallback say the opposite.
+A non-object claim is silently emptied, and 60 lines of fallback say the
+opposite.
 
-**MEASURED 2026-08-22, by construction and not by inspection**: held.py:187 is the ONLY
-producer of `claim_fields` and it sets it from the same dict held.py:152 emptied. A dict
-claim gives filled fields plus a rendered marker string; a non-dict claim gives EMPTY
-fields and `claim = claim_text(verdict, {})`, which is the empty string for ALL SEVEN
-verdicts (ran it). So the pair -- empty `claim_fields` with a non-empty `claim` -- CANNOT
-BE PRODUCED.
+**MEASURED 2026-08-22, by construction and not by inspection**: held.py:187 is
+the ONLY producer of `claim_fields` and it sets it from the same dict
+held.py:152 emptied. A dict claim gives filled fields plus a rendered marker
+string; a non-dict claim gives EMPTY fields and `claim = claim_text(verdict,
+{})`, which is the empty string for ALL SEVEN verdicts (ran it). So the pair --
+empty `claim_fields` with a non-empty `claim` -- CANNOT BE PRODUCED.
 
-**AND A COMMENT 380 LINES AWAY SAYS THE OPPOSITE.** record.py:541-544: *"The word search
-STAYS for a record whose `claim` is MISSING or is not an object: `claim_fields` is empty
-there and this falls through to `pattern`, so a reviewer's words are still read rather than
-the record failing every check at once."* They cannot be: held.py:152 discarded them
-before any of that code runs. About 60 lines across record.py:525-544 and desk.py:171-172,
-:218 and :511 have a stated purpose that is false.
+**AND A COMMENT 380 LINES AWAY SAYS THE OPPOSITE.** record.py:541-544: *"The
+word search STAYS for a record whose `claim` is MISSING or is not an object:
+`claim_fields` is empty there and this falls through to `pattern`, so a
+reviewer's words are still read rather than the record failing every check at
+once."* They cannot be: held.py:152 discarded them before any of that code runs.
+About 60 lines across record.py:525-544 and desk.py:171-172, :218 and :511 have
+a stated purpose that is false.
 
 **IT STAYS GREEN BECAUSE THE TESTS BUILD AN UNPRODUCIBLE SHAPE.** The helper at
 tests/test_verdicts.py:79 defaults `claim` to the marker string and passes no
-`claim_fields`, so every test through it exercises a combination no producer can emit.
+`claim_fields`, so every test through it exercises a combination no producer can
+emit.
 
 **ROY LEANS (ii), 2026-08-22.** (i) would have verdicts.py accept a record that
-`record.py --check` refuses -- two readers disagreeing about what is valid, which is the
-defect class this repo hunts.
+`record.py --check` refuses -- two readers disagreeing about what is valid,
+which is the defect class this repo hunts.
 
-**THE COST OF (ii) IS SMALLER THAN THE REVIEW ESTIMATED.** Of 80 `claim=` call sites in
-test_verdicts.py only SEVEN use the marker-string form and three already pass a dict; the
-other 70 take the helper default. So it is one helper plus seven sites, not ~150 -- the
-helper can build BOTH `claim` and `claim_fields` from the marker string and every call
-site stays as written while starting to test a producible shape.
+**THE COST OF (ii) IS SMALLER THAN THE REVIEW ESTIMATED.** Of 80 `claim=` call
+sites in test_verdicts.py only SEVEN use the marker-string form and three
+already pass a dict; the other 70 take the helper default. So it is one helper
+plus seven sites, not ~150 -- the helper can build BOTH `claim` and
+`claim_fields` from the marker string and every call site stays as written while
+starting to test a producible shape.
 
-!! **THE QUESTION IS NOT *"is the old format retired"*.** It already is: record.py writes and
-validates an object, and `claim_text` GENERATES the string. The question is what happens when a
-claim is not an object.
+!! **THE QUESTION IS NOT *"is the old format retired"*.** It already is:
+record.py writes and validates an object, and `claim_text` GENERATES the string.
+The question is what happens when a claim is not an object.
 
-!! **AND THE TWO SHAPES THE RULING PICKS BETWEEN.** Under **(ii)**: held.py reports a non-dict
-claim MALFORMED -- which held.py:142-145 already does two lines earlier for a bad place -- and
-record.py:525-544 plus desk.py:171-172, :218 and :511 lose the fallback and the sentences that
-describe it. Under **(i)**: held.py:152 stops emptying the claim, and a test builds the
+!! **AND THE TWO SHAPES THE RULING PICKS BETWEEN.** Under **(ii)**: held.py
+reports a non-dict claim MALFORMED -- which held.py:142-145 already does two
+lines earlier for a bad place -- and record.py:525-544 plus desk.py:171-172,
+:218 and :511 lose the fallback and the sentences that describe it. Under
+**(i)**: held.py:152 stops emptying the claim, and a test builds the
 preserved-words shape so the fallback has a caller.
 
-!! **WHY IT IS DEFERRED, and what it waits on**: the determination of the whole census ->
-findings -> verdicts path, now that the backend round-trips. Roy: *"that whole system ...
-needs to be determined now that the backend part of the system works"*. Deleting 60 lines
-of a layer whose replacement is about to be designed is work done twice. ! T8 is deferred with
-T4 -- it waits on the same determination.
+!! **WHY IT IS DEFERRED, and what it waits on**: the determination of the whole
+census -> findings -> verdicts path, now that the backend round-trips. Roy:
+*"that whole system ... needs to be determined now that the backend part of the
+system works"*. Deleting 60 lines of a layer whose replacement is about to be
+designed is work done twice. ! T8 is deferred with T4 -- it waits on the same
+determination.
 
 ## Tasks
 
